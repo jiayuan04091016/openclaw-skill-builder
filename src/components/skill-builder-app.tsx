@@ -23,16 +23,16 @@ const templates = [
 
 const learningCards = [
   {
-    title: "什么是 Skill",
-    body: "你可以把 Skill 理解成一套固定任务说明。这个应用会帮你把自然语言目标整理成可直接使用的 Skill 文件。",
+    title: "说出你的目标",
+    body: "像平时说话一样描述你想完成什么，不需要先懂文件结构或写法。",
   },
   {
-    title: "从零创建",
-    body: "你只需要输入想达到的目标，再补充一点资料，系统就会帮你整理出第一版内容。",
+    title: "补充你的资料",
+    body: "文章、截图、视频链接、旧 Skill 都可以加进来，系统会一起参考。",
   },
   {
-    title: "导入旧 Skill",
-    body: "如果你已经有 SKILL.md，也可以在原有基础上继续补需求，做成新版而不用从头开始。",
+    title: "导出就能使用",
+    body: "生成后可以直接查看说明、预览内容，再导出成可继续使用的压缩包。",
   },
 ];
 
@@ -447,17 +447,28 @@ export function SkillBuilderApp() {
           {section === "home" ? (
             <>
               <section className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
-                <div className="rounded-[32px] bg-[linear-gradient(135deg,#fefce8_0%,#eff6ff_45%,#ecfeff_100%)] p-8 shadow-[0_16px_40px_rgba(14,116,144,0.12)]">
-                  <span className="inline-flex rounded-full bg-white/80 px-3 py-1 text-sm font-medium text-slate-700">
+                <div className="relative overflow-hidden rounded-[32px] bg-[linear-gradient(135deg,#fff7ed_0%,#eff6ff_38%,#ecfeff_100%)] p-8 shadow-[0_18px_48px_rgba(14,116,144,0.12)]">
+                  <div className="absolute -right-14 top-0 h-40 w-40 rounded-full bg-cyan-200/30 blur-3xl" />
+                  <div className="absolute bottom-0 left-0 h-32 w-32 rounded-full bg-amber-200/30 blur-3xl" />
+                  <span className="relative inline-flex rounded-full bg-white/85 px-3 py-1 text-sm font-medium text-slate-700">
                     适合零基础上手
                   </span>
-                  <h2 className="mt-5 max-w-3xl text-4xl font-semibold tracking-tight text-slate-950">
+                  <h2 className="relative mt-5 max-w-3xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
                     把你的需求和资料，快速整理成 OpenClaw 可用的 Skills
                   </h2>
-                  <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-700">
+                  <p className="relative mt-4 max-w-2xl text-lg leading-8 text-slate-700">
                     输入目标，补充文章、图片、视频或已有 Skill，系统会一步一步帮你整理、生成并导出可直接使用的内容。
                   </p>
-                  <div className="mt-8 rounded-[24px] border border-white/60 bg-white/75 p-4">
+                  <div className="relative mt-6 grid gap-3 sm:grid-cols-3">
+                    {learningCards.map((card, index) => (
+                      <div key={card.title} className="rounded-[22px] border border-white/80 bg-white/65 p-4 backdrop-blur">
+                        <div className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700">步骤 {index + 1}</div>
+                        <h3 className="mt-2 text-base font-semibold text-slate-900">{card.title}</h3>
+                        <p className="mt-2 text-sm leading-6 text-slate-600">{card.body}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="relative mt-8 rounded-[24px] border border-white/70 bg-white/80 p-4 shadow-[0_12px_30px_rgba(255,255,255,0.35)]">
                     <label className="mb-2 block text-sm font-medium text-slate-700">你想制作什么 Skill？</label>
                     <textarea
                       rows={4}
@@ -482,8 +493,21 @@ export function SkillBuilderApp() {
                 </div>
 
                 <div className="grid gap-4">
-                  {learningCards.map((card) => (
-                    <div key={card.title} className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
+                  {[
+                    {
+                      title: "适合谁用",
+                      body: "适合刚接触 OpenClaw、还不熟悉 Skill 文件写法、希望有人带着完成第一次制作的用户。",
+                    },
+                    {
+                      title: "你会得到什么",
+                      body: "你会拿到一份清晰说明、可查看的 Skill 内容，以及可继续使用的导出文件。",
+                    },
+                    {
+                      title: "推荐的开始方式",
+                      body: "第一次建议直接从模板开始，先成功做出一个版本，再慢慢补自己的真实资料。",
+                    },
+                  ].map((card) => (
+                    <div key={card.title} className="rounded-[28px] border border-slate-200 bg-white/90 p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
                       <h3 className="text-lg font-semibold text-slate-900">{card.title}</h3>
                       <p className="mt-2 text-sm leading-7 text-slate-600">{card.body}</p>
                     </div>
@@ -491,11 +515,15 @@ export function SkillBuilderApp() {
                 </div>
               </section>
 
-              <SectionCard title="新手常用模板">
+              <SectionCard
+                title="新手常用模板"
+                action={<span className="text-sm text-slate-500">先选一个最接近的场景开始，后面都能改</span>}
+              >
                 <div className="grid gap-4 md:grid-cols-3">
                   {templates.map((template) => (
-                    <div key={template.title} className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
-                      <h3 className="text-lg font-semibold text-slate-900">{template.title}</h3>
+                    <div key={template.title} className="rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-5">
+                      <div className="inline-flex rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-700">推荐模板</div>
+                      <h3 className="mt-3 text-lg font-semibold text-slate-900">{template.title}</h3>
                       <p className="mt-2 text-sm leading-7 text-slate-600">{template.goal}</p>
                       <button className="mt-4 rounded-full bg-cyan-600 px-4 py-2 text-sm font-semibold text-white" onClick={() => startFromScratch(template.goal)}>
                         使用这个模板
@@ -508,27 +536,75 @@ export function SkillBuilderApp() {
           ) : null}
 
           {section === "learn" ? (
-            <div className="grid gap-6 lg:grid-cols-3">
-              <SectionCard title="零基础入门">
-                <div className="space-y-4 text-sm leading-7 text-slate-700">
-                  <p>1. 先说目标：直接描述你想完成什么。</p>
-                  <p>2. 再补资料：文章、说明、已有 Skill 都可以。</p>
-                  <p>3. 生成内容：系统会先帮你整理出一版可继续调整的结果。</p>
-                  <p>4. 导出安装：下载 ZIP 后放进 OpenClaw 的 skills 目录。</p>
+            <div className="space-y-6">
+              <SectionCard title="学习中心">
+                <div className="rounded-[28px] bg-[linear-gradient(135deg,#fff7ed_0%,#f8fafc_40%,#eef6ff_100%)] p-6">
+                  <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                    <div className="max-w-3xl">
+                      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-700">新手入门</p>
+                      <h3 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">先看懂 3 件事，再开始做第一个 Skill</h3>
+                      <p className="mt-3 text-base leading-8 text-slate-700">
+                        如果你是第一次接触 OpenClaw，建议先看下面这三部分。看完以后，再回到“开始制作”页面，流程会顺很多。
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                      <button className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white" onClick={() => setSection("builder")}>
+                        去开始制作
+                      </button>
+                      <button className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700" onClick={() => setSection("home")}>
+                        回首页看模板
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </SectionCard>
-              <SectionCard title="图片与视频怎么用">
-                <div className="space-y-4 text-sm leading-7 text-slate-700">
-                  <p>图片和视频目前主要作为补充资料使用，支持上传和备注。</p>
-                  <p>如果资料里有关键说明，建议同步补一段文字说明，生成结果会更稳。</p>
-                  <p>后续版本再补 OCR 和视频转写，先把可用版本上线。</p>
-                </div>
-              </SectionCard>
-              <SectionCard title="已有 Skill 如何再加工">
-                <div className="space-y-4 text-sm leading-7 text-slate-700">
-                  <p>上传已有的 `SKILL.md` 或把内容粘贴进来。</p>
-                  <p>再补一句你想新增的能力，例如“增加投诉安抚场景”。</p>
-                  <p>系统会根据你的新目标重新整理内容，再导出成更适合当前需求的新版本。</p>
+
+              <div className="grid gap-6 lg:grid-cols-3">
+                <SectionCard title="第一步：先理解流程">
+                  <div className="space-y-4 text-sm leading-7 text-slate-700">
+                    <p>1. 先说目标：直接描述你想完成什么。</p>
+                    <p>2. 再补资料：文章、说明、已有 Skill 都可以。</p>
+                    <p>3. 生成内容：系统会先帮你整理出一版可继续调整的结果。</p>
+                    <p>4. 导出安装：下载 ZIP 后放进 OpenClaw 的 skills 目录。</p>
+                  </div>
+                </SectionCard>
+                <SectionCard title="第二步：学会用资料">
+                  <div className="space-y-4 text-sm leading-7 text-slate-700">
+                    <p>图片和视频目前主要作为补充资料使用，支持上传和备注。</p>
+                    <p>如果资料里有关键说明，建议同步补一段文字说明，生成结果会更稳。</p>
+                    <p>第一次使用时，优先上传最能说明任务目标的那一份资料。</p>
+                  </div>
+                </SectionCard>
+                <SectionCard title="第三步：学会改旧版本">
+                  <div className="space-y-4 text-sm leading-7 text-slate-700">
+                    <p>上传已有的 `SKILL.md` 或把内容粘贴进来。</p>
+                    <p>再补一句你想新增的能力，例如“增加投诉安抚场景”。</p>
+                    <p>系统会根据你的新目标重新整理内容，再导出成更适合当前需求的新版本。</p>
+                  </div>
+                </SectionCard>
+              </div>
+
+              <SectionCard title="推荐做法">
+                <div className="grid gap-4 md:grid-cols-3">
+                  {[
+                    {
+                      title: "先从模板开始",
+                      body: "第一次尽量不要空白开始。先用最接近的模板跑通流程，再慢慢替换成自己的真实需求。",
+                    },
+                    {
+                      title: "先做小任务",
+                      body: "第一次建议先做一个输入简单、结果直观的小任务，比如摘要、整理或回复建议。",
+                    },
+                    {
+                      title: "先测试再扩展",
+                      body: "导出后先用示例内容试一次，确认方向没问题，再继续补充更多资料和场景。",
+                    },
+                  ].map((item) => (
+                    <div key={item.title} className="rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-5">
+                      <h3 className="text-lg font-semibold text-slate-900">{item.title}</h3>
+                      <p className="mt-2 text-sm leading-7 text-slate-600">{item.body}</p>
+                    </div>
+                  ))}
                 </div>
               </SectionCard>
             </div>
@@ -558,6 +634,28 @@ export function SkillBuilderApp() {
                   </div>
                 }
               >
+                <div className="mb-5 rounded-[24px] bg-[linear-gradient(135deg,#fff7ed_0%,#f8fafc_45%,#eef6ff_100%)] p-5">
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-700">当前流程</p>
+                      <h3 className="mt-2 text-lg font-semibold text-slate-950">
+                        {builderStep === 1 && "先把目标说清楚"}
+                        {builderStep === 2 && "补充资料，让结果更贴近你的需求"}
+                        {builderStep === 3 && "确认输入、输出和适用场景"}
+                        {builderStep === 4 && "检查内容，按你的习惯做最后调整"}
+                        {builderStep === 5 && "导出文件并按步骤安装使用"}
+                      </h3>
+                    </div>
+                    <p className="max-w-xl text-sm leading-7 text-slate-600">
+                      {builderStep === 1 && "这一步建议先用最简单的话描述你想完成的事，不需要担心写得不专业。"}
+                      {builderStep === 2 && "如果你手头有资料、说明文档、图片或旧 Skill，现在一起补上会更稳。"}
+                      {builderStep === 3 && "系统会根据这里的设置整理出更清晰的结果，你也可以后面继续改。"}
+                      {builderStep === 4 && "先看说明版，再看 Skill 内容和示例，确认方向对了再导出。"}
+                      {builderStep === 5 && "导出后先用示例测试一次，确认没问题再放进真实场景使用。"}
+                    </p>
+                  </div>
+                </div>
+
                 <div className="grid gap-3 md:grid-cols-5">
                   {[
                     { id: 1, title: "目标" },
@@ -587,10 +685,11 @@ export function SkillBuilderApp() {
                       <Field label="目标描述" value={activeProject.goal} placeholder="比如：我想做一个帮助整理会议纪要并列出待办事项的 Skill" onChange={(value) => updateProject({ goal: value })} multiline />
                       <Field label="补充说明" value={activeProject.description} placeholder="比如：主要给办公新手使用，希望输出尽量简单清楚" onChange={(value) => updateProject({ description: value })} multiline />
                     </div>
-                    <div className="rounded-[24px] bg-slate-50 p-5 text-sm leading-7 text-slate-700">
-                      <h3 className="text-base font-semibold text-slate-900">怎么写更快生成好结果</h3>
+                    <div className="rounded-[24px] border border-amber-100 bg-amber-50/70 p-5 text-sm leading-7 text-slate-700">
+                      <h3 className="text-base font-semibold text-slate-900">填写建议</h3>
                       <p className="mt-3">写清楚给谁用、要做什么、最后想得到什么结果。</p>
                       <p className="mt-2">先不用写很专业，越像平时说话越好。</p>
+                      <p className="mt-2">如果你一时想不好，可以先用首页模板快速开始。</p>
                     </div>
                   </div>
                   <div className="mt-6 flex justify-end">
@@ -694,7 +793,7 @@ export function SkillBuilderApp() {
                         </div>
                       </div>
                     </div>
-                    <div className="rounded-[24px] bg-slate-50 p-5">
+                    <div className="rounded-[24px] border border-cyan-100 bg-cyan-50/60 p-5">
                       <h3 className="text-base font-semibold text-slate-900">整理结果预览</h3>
                       {structuredSpec ? (
                         <dl className="mt-4 space-y-3 text-sm leading-7 text-slate-700">
@@ -747,7 +846,7 @@ export function SkillBuilderApp() {
                       </button>
                     </div>
 
-                    <div className="rounded-[24px] border border-slate-200 bg-white p-5">
+                    <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.04)]">
                       <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 p-1">
                         {[
                           { id: "guide", label: "说明版" },
@@ -790,7 +889,7 @@ export function SkillBuilderApp() {
                 <SectionCard title="步骤 5：导出文件并安装">
                   <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
                     <div className="space-y-5">
-                      <div className="rounded-[24px] bg-slate-50 p-5">
+                      <div className="rounded-[24px] border border-emerald-100 bg-emerald-50/60 p-5">
                         <h3 className="text-base font-semibold text-slate-900">导出信息</h3>
                         <dl className="mt-3 space-y-2 text-sm leading-7 text-slate-700">
                           <div>
@@ -807,7 +906,7 @@ export function SkillBuilderApp() {
                           </div>
                         </dl>
                       </div>
-                      <div className="rounded-[24px] bg-slate-50 p-5 text-sm leading-7 text-slate-700">
+                      <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-5 text-sm leading-7 text-slate-700">
                         <h3 className="text-base font-semibold text-slate-900">安装步骤</h3>
                         <p className="mt-3">1. 点击导出 ZIP。</p>
                         <p>2. 解压文件夹。</p>
@@ -850,10 +949,21 @@ export function SkillBuilderApp() {
                 </button>
               }
             >
+              <div className="mb-5 rounded-[24px] bg-[linear-gradient(135deg,#f8fafc_0%,#eef6ff_55%,#fefce8_100%)] p-5">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-700">项目管理</p>
+                    <h3 className="mt-2 text-lg font-semibold text-slate-950">在这里继续编辑、复制版本，或重新导出你做过的内容</h3>
+                  </div>
+                  <p className="max-w-xl text-sm leading-7 text-slate-600">
+                    如果你已经做过一个接近的版本，最省时间的方式通常不是重做，而是直接复制后继续调整。
+                  </p>
+                </div>
+              </div>
               <div className="grid gap-4 md:grid-cols-2">
                 {projects.length ? (
                   projects.map((project) => (
-                    <div key={project.id} className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+                    <div key={project.id} className="rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-5 shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <h3 className="text-lg font-semibold text-slate-900">{project.title || buildStructuredSpec(project).skillName}</h3>
@@ -863,7 +973,10 @@ export function SkillBuilderApp() {
                           {project.mode === "create" ? "新建" : "导入"}
                         </span>
                       </div>
-                      <div className="mt-4 text-sm text-slate-500">最近更新：{formatDateLabel(project.updatedAt)}</div>
+                      <div className="mt-4 flex items-center justify-between gap-3 text-sm text-slate-500">
+                        <span>最近更新：{formatDateLabel(project.updatedAt)}</span>
+                        <span>{project.draft ? "已生成内容" : "进行中"}</span>
+                      </div>
                       <div className="mt-5 flex flex-wrap gap-3">
                         <button
                           className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white"
@@ -895,7 +1008,7 @@ export function SkillBuilderApp() {
                   ))
                 ) : (
                   <div className="rounded-[24px] bg-slate-50 p-8 text-sm leading-7 text-slate-600">
-                    你还没有创建过项目。先去首页或“开始制作”页面完成第一个版本。
+                    你还没有创建过项目。先去首页或“开始制作”页面完成第一个版本，之后这里会自动保存你的历史记录。
                   </div>
                 )}
               </div>
@@ -903,7 +1016,28 @@ export function SkillBuilderApp() {
           ) : null}
 
           {section === "help" ? (
-            <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="space-y-6">
+              <SectionCard title="帮助中心">
+                <div className="grid gap-4 lg:grid-cols-3">
+                  <div className="rounded-[22px] bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-5">
+                    <div className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700">快速开始</div>
+                    <h3 className="mt-2 text-base font-semibold text-slate-900">第一次使用建议</h3>
+                    <p className="mt-2 text-sm leading-7 text-slate-600">先选一个模板完成第一次创建，确认流程后再换成自己的真实需求。</p>
+                  </div>
+                  <div className="rounded-[22px] bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-5">
+                    <div className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700">安装提醒</div>
+                    <h3 className="mt-2 text-base font-semibold text-slate-900">导出后怎么用</h3>
+                    <p className="mt-2 text-sm leading-7 text-slate-600">导出压缩包后先解压，再把整个目录放进 OpenClaw 的 skills 目录。</p>
+                  </div>
+                  <div className="rounded-[22px] bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-5">
+                    <div className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700">使用建议</div>
+                    <h3 className="mt-2 text-base font-semibold text-slate-900">结果不满意怎么办</h3>
+                    <p className="mt-2 text-sm leading-7 text-slate-600">先回到前面的步骤补充更清楚的目标、输入和资料，再重新生成一次内容。</p>
+                  </div>
+                </div>
+              </SectionCard>
+
+              <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
               <SectionCard title="常见问题">
                 <div className="space-y-4">
                   {faqs.map((item) => (
@@ -923,6 +1057,7 @@ export function SkillBuilderApp() {
                   <p>建议第一次先用简单任务测试，确认结果符合预期后再逐步补充真实资料。</p>
                 </div>
               </SectionCard>
+              </div>
             </div>
           ) : null}
         </main>
