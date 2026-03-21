@@ -11,7 +11,7 @@ const navItems: { id: AppSection; label: string }[] = [
   { id: "home", label: "首页" },
   { id: "learn", label: "学习中心" },
   { id: "builder", label: "开始制作" },
-  { id: "skills", label: "我的 Skills" },
+  { id: "skills", label: "我的项目" },
   { id: "help", label: "帮助" },
 ];
 
@@ -24,30 +24,30 @@ const templates = [
 const learningCards = [
   {
     title: "什么是 Skill",
-    body: "Skill 可以理解为一套固定任务说明。这个应用会帮你把自然语言目标整理成 Skill 文件。",
+    body: "你可以把 Skill 理解成一套固定任务说明。这个应用会帮你把自然语言目标整理成可直接使用的 Skill 文件。",
   },
   {
     title: "从零创建",
-    body: "你只要输入想达到的目标，再上传一点资料，系统就会帮你整理出第一版。",
+    body: "你只需要输入想达到的目标，再补充一点资料，系统就会帮你整理出第一版内容。",
   },
   {
     title: "导入旧 Skill",
-    body: "如果你已经有 SKILL.md，也可以继续加需求，做成新版而不用重来。",
+    body: "如果你已经有 SKILL.md，也可以在原有基础上继续补需求，做成新版而不用从头开始。",
   },
 ];
 
 const faqs = [
   {
-    q: "这个应用先上什么平台最省钱？",
-    a: "首发建议上 Web。直接部署到 Vercel 免费版即可，用户打开浏览器就能使用，不需要应用商店审核，也不用额外服务器。",
+    q: "这个应用适合谁使用？",
+    a: "适合刚接触 OpenClaw、不会自己写 Skill 文件，或者想把现有资料快速整理成可用 Skill 的用户。",
   },
   {
     q: "导出的 Skill 放到哪里？",
     a: "先解压 ZIP，再把整个目录放到 OpenClaw 的 skills 目录里，然后重启或刷新 OpenClaw。",
   },
   {
-    q: "为什么先不做数据库？",
-    a: "第一版优先完成和验证需求，项目先存浏览器本地，能大幅降低开发和运维成本。后续再平滑升级到云端存储。",
+    q: "支持哪些资料类型？",
+    a: "目前支持文字资料、图片、视频链接备注，以及已有的 SKILL.md 内容。你可以先从最简单的文字资料开始，熟悉后再逐步补充更多内容。",
   },
 ];
 
@@ -213,7 +213,7 @@ export function SkillBuilderApp() {
   const [projects, setProjects] = useState<ProjectRecord[]>([]);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const [builderStep, setBuilderStep] = useState(1);
-  const [statusMessage, setStatusMessage] = useState("已准备好开始。");
+  const [statusMessage, setStatusMessage] = useState("已经准备好，可以开始制作。");
   const [previewMode, setPreviewMode] = useState<"guide" | "skill" | "result">("guide");
   const [loading, setLoading] = useState(false);
 
@@ -231,7 +231,7 @@ export function SkillBuilderApp() {
         setActiveProjectId(parsed[0].id);
       }
     } catch {
-      setStatusMessage("本地草稿读取失败，已忽略旧数据。");
+      setStatusMessage("之前保存的内容没有成功读取，系统已自动跳过旧数据。");
     }
   }, []);
 
@@ -304,7 +304,7 @@ export function SkillBuilderApp() {
     setActiveProjectId(project.id);
     setBuilderStep(1);
     setSection("builder");
-    setStatusMessage("已进入导入模式，先上传已有 Skill。");
+    setStatusMessage("已进入导入模式，请先添加已有 Skill 内容。");
   }
 
   function removeResource(resourceId: string) {
@@ -329,7 +329,7 @@ export function SkillBuilderApp() {
       id: createId("res"),
       type,
       name: file.name,
-      content: content || `${file.name} 已上传，可作为参考资料。`,
+      content: content || `${file.name} 已上传，可作为补充资料使用。`,
       createdAt: nowIso(),
     };
 
@@ -337,7 +337,7 @@ export function SkillBuilderApp() {
       resources: [...activeProject.resources, resource],
       importedSkillText: type === "skill" ? content : activeProject.importedSkillText,
     });
-    setStatusMessage(`已加入资料：${file.name}`);
+    setStatusMessage(`已添加资料：${file.name}`);
     event.target.value = "";
   }
 
@@ -366,7 +366,7 @@ export function SkillBuilderApp() {
     const nextDraft: DraftContent = buildDraftContent(buildStructuredSpec(activeProject), activeProject.includeExamples);
     updateProject({ draft: nextDraft, title: activeProject.title || buildStructuredSpec(activeProject).skillName });
     setBuilderStep(4);
-    setStatusMessage("已生成草稿，现在可以预览、微调并导出。");
+    setStatusMessage("内容已生成，现在可以预览、调整并导出。");
   }
 
   async function exportCurrentProject() {
@@ -378,7 +378,7 @@ export function SkillBuilderApp() {
       setLoading(true);
       const { blob, fileName } = await exportProjectZip(activeProject);
       downloadBlob(blob, fileName);
-      setStatusMessage("导出成功，ZIP 已开始下载。");
+      setStatusMessage("导出成功，压缩包已经开始下载。");
     } catch {
       setStatusMessage("导出失败，请稍后重试。");
     } finally {
@@ -395,7 +395,7 @@ export function SkillBuilderApp() {
     const duplicate = {
       ...source,
       id: createId(),
-      title: `${source.title || "未命名 Skill"} - 副本`,
+      title: `${source.title || "未命名项目"} - 副本`,
       createdAt: nowIso(),
       updatedAt: nowIso(),
     };
@@ -422,7 +422,7 @@ export function SkillBuilderApp() {
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-700">OpenClaw Skill Builder</p>
-              <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">面向电脑新手的 Skill 打包工作台</h1>
+              <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">面向电脑新手的 Skill 制作工作台</h1>
             </div>
             <nav className="flex flex-wrap gap-2">
               {navItems.map((item) => (
@@ -449,16 +449,16 @@ export function SkillBuilderApp() {
               <section className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
                 <div className="rounded-[32px] bg-[linear-gradient(135deg,#fefce8_0%,#eff6ff_45%,#ecfeff_100%)] p-8 shadow-[0_16px_40px_rgba(14,116,144,0.12)]">
                   <span className="inline-flex rounded-full bg-white/80 px-3 py-1 text-sm font-medium text-slate-700">
-                    最小成本首发方案
+                    适合零基础上手
                   </span>
                   <h2 className="mt-5 max-w-3xl text-4xl font-semibold tracking-tight text-slate-950">
-                    把你的需求和资料，快速打包成 OpenClaw 可用 Skills
+                    把你的需求和资料，快速整理成 OpenClaw 可用的 Skills
                   </h2>
                   <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-700">
-                    第一版直接走 Web 平台，免安装、免数据库、免运维。先把主链路做通，后面再慢慢增强。
+                    输入目标，补充文章、图片、视频或已有 Skill，系统会一步一步帮你整理、生成并导出可直接使用的内容。
                   </p>
                   <div className="mt-8 rounded-[24px] border border-white/60 bg-white/75 p-4">
-                    <label className="mb-2 block text-sm font-medium text-slate-700">你想做什么 Skill？</label>
+                    <label className="mb-2 block text-sm font-medium text-slate-700">你想制作什么 Skill？</label>
                     <textarea
                       rows={4}
                       className="w-full rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-cyan-500"
@@ -513,14 +513,14 @@ export function SkillBuilderApp() {
                 <div className="space-y-4 text-sm leading-7 text-slate-700">
                   <p>1. 先说目标：直接描述你想完成什么。</p>
                   <p>2. 再补资料：文章、说明、已有 Skill 都可以。</p>
-                  <p>3. 生成草稿：系统会帮你整理成规范内容。</p>
+                  <p>3. 生成内容：系统会先帮你整理出一版可继续调整的结果。</p>
                   <p>4. 导出安装：下载 ZIP 后放进 OpenClaw 的 skills 目录。</p>
                 </div>
               </SectionCard>
               <SectionCard title="图片与视频怎么用">
                 <div className="space-y-4 text-sm leading-7 text-slate-700">
-                  <p>首版先把图片和视频当作参考资料入口处理，支持上传和备注。</p>
-                  <p>如果资料是关键说明，建议同步补一段文字说明，生成效果会更稳。</p>
+                  <p>图片和视频目前主要作为补充资料使用，支持上传和备注。</p>
+                  <p>如果资料里有关键说明，建议同步补一段文字说明，生成结果会更稳。</p>
                   <p>后续版本再补 OCR 和视频转写，先把可用版本上线。</p>
                 </div>
               </SectionCard>
@@ -528,7 +528,7 @@ export function SkillBuilderApp() {
                 <div className="space-y-4 text-sm leading-7 text-slate-700">
                   <p>上传已有的 `SKILL.md` 或把内容粘贴进来。</p>
                   <p>再补一句你想新增的能力，例如“增加投诉安抚场景”。</p>
-                  <p>系统会用你的新目标覆盖旧版本方向，再重新标准化导出。</p>
+                  <p>系统会根据你的新目标重新整理内容，再导出成更适合当前需求的新版本。</p>
                 </div>
               </SectionCard>
             </div>
@@ -602,7 +602,7 @@ export function SkillBuilderApp() {
               ) : null}
 
               {builderStep === 2 ? (
-                <SectionCard title={activeProject.mode === "import" ? "步骤 2：导入旧 Skill 并补资料" : "步骤 2：上传参考资料"}>
+                <SectionCard title={activeProject.mode === "import" ? "步骤 2：导入旧 Skill 并补充资料" : "步骤 2：补充参考资料"}>
                   <div className="grid gap-6 lg:grid-cols-[1fr_0.95fr]">
                     <div className="space-y-4">
                       {activeProject.mode === "import" ? (
@@ -633,7 +633,7 @@ export function SkillBuilderApp() {
                     </div>
 
                     <div className="rounded-[24px] border border-slate-200 bg-white p-5">
-                      <h3 className="text-base font-semibold text-slate-900">已添加资料</h3>
+                      <h3 className="text-base font-semibold text-slate-900">已添加的资料</h3>
                       <div className="mt-4 space-y-3">
                         {activeProject.resources.length ? (
                           activeProject.resources.map((resource) => (
@@ -652,7 +652,7 @@ export function SkillBuilderApp() {
                           ))
                         ) : (
                           <div className="rounded-[18px] bg-slate-50 p-4 text-sm leading-7 text-slate-600">
-                            还没有添加任何资料。没关系，你也可以先继续，后面再补。
+                            还没有添加任何资料。没关系，你也可以先继续，后面再补充。
                           </div>
                         )}
                       </div>
@@ -695,11 +695,11 @@ export function SkillBuilderApp() {
                       </div>
                     </div>
                     <div className="rounded-[24px] bg-slate-50 p-5">
-                      <h3 className="text-base font-semibold text-slate-900">系统理解摘要</h3>
+                      <h3 className="text-base font-semibold text-slate-900">整理结果预览</h3>
                       {structuredSpec ? (
                         <dl className="mt-4 space-y-3 text-sm leading-7 text-slate-700">
                           <div>
-                            <dt className="font-semibold text-slate-900">Skill 名称建议</dt>
+                            <dt className="font-semibold text-slate-900">建议名称</dt>
                             <dd>{structuredSpec.skillName}</dd>
                           </div>
                           <div>
@@ -731,7 +731,7 @@ export function SkillBuilderApp() {
               ) : null}
 
               {builderStep === 4 ? (
-                <SectionCard title="步骤 4：预览并微调">
+                <SectionCard title="步骤 4：预览并调整">
                   <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
                     <div className="space-y-4">
                       <Field label="Skill 名称" value={activeProject.title || structuredSpec?.skillName || ""} placeholder="例如：会议纪要助手" onChange={(value) => updateProject({ title: value })} />
@@ -740,10 +740,10 @@ export function SkillBuilderApp() {
                       <Field label="风险提示" value={activeProject.warnings} placeholder="例如：请勿输入敏感信息" onChange={(value) => updateProject({ warnings: value })} multiline />
                       <label className="flex items-center gap-3 rounded-[18px] bg-slate-50 px-4 py-3 text-sm text-slate-700">
                         <input type="checkbox" checked={activeProject.includeExamples} onChange={(event) => updateProject({ includeExamples: event.target.checked })} />
-                        附带示例输入和示例输出
+                        附带示例输入和示例结果
                       </label>
                       <button className="rounded-full border border-cyan-600 px-5 py-3 text-sm font-semibold text-cyan-700" onClick={generateDraft}>
-                        重新生成预览
+                        重新生成内容
                       </button>
                     </div>
 
@@ -752,7 +752,7 @@ export function SkillBuilderApp() {
                         {[
                           { id: "guide", label: "说明版" },
                           { id: "skill", label: "SKILL.md 版" },
-                          { id: "result", label: "效果版" },
+                          { id: "result", label: "示例版" },
                         ].map((mode) => (
                           <button
                             key={mode.id}
@@ -780,21 +780,21 @@ export function SkillBuilderApp() {
                       上一步
                     </button>
                     <button className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white" onClick={() => setBuilderStep(5)}>
-                      下一步：导出
+                      下一步：导出文件
                     </button>
                   </div>
                 </SectionCard>
               ) : null}
 
               {builderStep === 5 ? (
-                <SectionCard title="步骤 5：导出并安装">
+                <SectionCard title="步骤 5：导出文件并安装">
                   <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
                     <div className="space-y-5">
                       <div className="rounded-[24px] bg-slate-50 p-5">
-                        <h3 className="text-base font-semibold text-slate-900">导出摘要</h3>
+                        <h3 className="text-base font-semibold text-slate-900">导出信息</h3>
                         <dl className="mt-3 space-y-2 text-sm leading-7 text-slate-700">
                           <div>
-                            <dt className="font-semibold text-slate-900">Skill 名称</dt>
+                            <dt className="font-semibold text-slate-900">名称</dt>
                             <dd>{activeProject.title || structuredSpec?.skillName}</dd>
                           </div>
                           <div>
@@ -820,7 +820,7 @@ export function SkillBuilderApp() {
                         onClick={exportCurrentProject}
                         disabled={loading}
                       >
-                        {loading ? "正在导出..." : "导出 ZIP"}
+                        {loading ? "正在导出..." : "导出压缩包"}
                       </button>
                     </div>
 
@@ -843,7 +843,7 @@ export function SkillBuilderApp() {
 
           {section === "skills" ? (
             <SectionCard
-              title="我的 Skills"
+              title="我的项目"
               action={
                 <button className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white" onClick={() => startFromScratch()}>
                   新建项目
@@ -885,7 +885,7 @@ export function SkillBuilderApp() {
                             downloadBlob(blob, fileName);
                           }}
                         >
-                          重新导出
+                          再次导出
                         </button>
                         <button className="rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600" onClick={() => deleteProject(project.id)}>
                           删除
@@ -895,7 +895,7 @@ export function SkillBuilderApp() {
                   ))
                 ) : (
                   <div className="rounded-[24px] bg-slate-50 p-8 text-sm leading-7 text-slate-600">
-                    你还没有创建过 Skill。先去首页或“开始制作”页面做第一个版本。
+                    你还没有创建过项目。先去首页或“开始制作”页面完成第一个版本。
                   </div>
                 )}
               </div>
@@ -915,12 +915,12 @@ export function SkillBuilderApp() {
                 </div>
               </SectionCard>
 
-              <SectionCard title="上线方案">
+              <SectionCard title="使用说明">
                 <div className="space-y-4 text-sm leading-7 text-slate-700">
-                  <p>平台：Web，优先上 Vercel 免费版。</p>
-                  <p>原因：零服务器运维、免费 SSL、自动部署、最适合先上线验证。</p>
-                  <p>当前版本：浏览器本地存储 + 浏览器本地导出 ZIP。</p>
-                  <p>后续增强：如果用户量起来，再加账号、云端存储和服务端生成。</p>
+                  <p>先在首页输入你想完成的目标，再选择从零创建或导入已有 Skill。</p>
+                  <p>如果你手头有文章、流程说明、图片、视频链接，也可以一起补充进去。</p>
+                  <p>生成后先看说明版和示例，再导出压缩包放进 OpenClaw 的 skills 目录。</p>
+                  <p>建议第一次先用简单任务测试，确认结果符合预期后再逐步补充真实资料。</p>
                 </div>
               </SectionCard>
             </div>
