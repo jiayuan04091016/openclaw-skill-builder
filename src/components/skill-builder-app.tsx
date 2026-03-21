@@ -108,7 +108,7 @@ function SectionCard({
 }) {
   return (
     <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_14px_40px_rgba(15,23,42,0.06)]">
-      <div className="mb-5 flex items-start justify-between gap-4">
+      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <h2 className="text-xl font-semibold text-slate-900">{title}</h2>
         {action}
       </div>
@@ -174,7 +174,7 @@ function QuickResourceForm({
         />
       </label>
       <button
-        className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700"
+        className="w-full rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 sm:w-auto"
         onClick={() => {
           if (!textContent.trim()) return;
           onAdd("text", "粘贴文本", textContent);
@@ -195,7 +195,7 @@ function QuickResourceForm({
         />
       </label>
       <button
-        className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700"
+        className="w-full rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 sm:w-auto"
         onClick={() => {
           if (!videoUrl.trim()) return;
           onAdd("video", "视频参考", videoUrl);
@@ -212,15 +212,18 @@ export function SkillBuilderApp() {
   const [section, setSection] = useState<AppSection>("home");
   const [projects, setProjects] = useState<ProjectRecord[]>([]);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+  const [homeGoal, setHomeGoal] = useState("");
   const [builderStep, setBuilderStep] = useState(1);
   const [statusMessage, setStatusMessage] = useState("已经准备好，可以开始制作。");
   const [previewMode, setPreviewMode] = useState<"guide" | "skill" | "result">("guide");
   const [loading, setLoading] = useState(false);
+  const [hasLoadedProjects, setHasLoadedProjects] = useState(false);
 
   useEffect(() => {
     const saved = window.localStorage.getItem(STORAGE_KEY);
 
     if (!saved) {
+      setHasLoadedProjects(true);
       return;
     }
 
@@ -229,15 +232,22 @@ export function SkillBuilderApp() {
       setProjects(parsed);
       if (parsed[0]) {
         setActiveProjectId(parsed[0].id);
+        setHomeGoal(parsed[0].goal);
       }
     } catch {
       setStatusMessage("之前保存的内容没有成功读取，系统已自动跳过旧数据。");
+    } finally {
+      setHasLoadedProjects(true);
     }
   }, []);
 
   useEffect(() => {
+    if (!hasLoadedProjects) {
+      return;
+    }
+
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
-  }, [projects]);
+  }, [projects, hasLoadedProjects]);
 
   const activeProject = useMemo(
     () => projects.find((item) => item.id === activeProjectId) ?? null,
@@ -422,9 +432,9 @@ export function SkillBuilderApp() {
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-700">OpenClaw Skill Builder</p>
-              <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">面向电脑新手的 Skill 制作工作台</h1>
+              <h1 className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">面向电脑新手的 Skill 制作工作台</h1>
             </div>
-            <nav className="flex flex-wrap gap-2">
+            <nav className="flex flex-wrap gap-2 sm:justify-start">
               {navItems.map((item) => (
                 <button
                   key={item.id}
@@ -447,16 +457,16 @@ export function SkillBuilderApp() {
           {section === "home" ? (
             <>
               <section className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
-                <div className="relative overflow-hidden rounded-[32px] bg-[linear-gradient(135deg,#fff7ed_0%,#eff6ff_38%,#ecfeff_100%)] p-8 shadow-[0_18px_48px_rgba(14,116,144,0.12)]">
+                <div className="relative overflow-hidden rounded-[32px] bg-[linear-gradient(135deg,#fff7ed_0%,#eff6ff_38%,#ecfeff_100%)] p-6 shadow-[0_18px_48px_rgba(14,116,144,0.12)] sm:p-8">
                   <div className="absolute -right-14 top-0 h-40 w-40 rounded-full bg-cyan-200/30 blur-3xl" />
                   <div className="absolute bottom-0 left-0 h-32 w-32 rounded-full bg-amber-200/30 blur-3xl" />
                   <span className="relative inline-flex rounded-full bg-white/85 px-3 py-1 text-sm font-medium text-slate-700">
                     适合零基础上手
                   </span>
-                  <h2 className="relative mt-5 max-w-3xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+                  <h2 className="relative mt-5 max-w-3xl text-3xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
                     把你的需求和资料，快速整理成 OpenClaw 可用的 Skills
                   </h2>
-                  <p className="relative mt-4 max-w-2xl text-lg leading-8 text-slate-700">
+                  <p className="relative mt-4 max-w-2xl text-base leading-8 text-slate-700 sm:text-lg">
                     输入目标，补充文章、图片、视频或已有 Skill，系统会一步一步帮你整理、生成并导出可直接使用的内容。
                   </p>
                   <div className="relative mt-6 grid gap-3 sm:grid-cols-3">
@@ -474,18 +484,14 @@ export function SkillBuilderApp() {
                       rows={4}
                       className="w-full rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-cyan-500"
                       placeholder="比如：我想做一个帮助整理会议纪要并列出待办事项的 Skill"
-                      defaultValue={activeProject?.goal ?? ""}
-                      onBlur={(event) => {
-                        if (activeProject) {
-                          updateProject({ goal: event.target.value });
-                        }
-                      }}
+                      value={homeGoal}
+                      onChange={(event) => setHomeGoal(event.target.value)}
                     />
-                    <div className="mt-4 flex flex-wrap gap-3">
-                      <button className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white" onClick={() => startFromScratch(activeProject?.goal ?? "")}>
+                    <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                      <button className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white sm:w-auto" onClick={() => startFromScratch(homeGoal)}>
                         从零创建
                       </button>
-                      <button className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700" onClick={() => startFromImport(activeProject?.goal ?? "")}>
+                      <button className="w-full rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => startFromImport(homeGoal)}>
                         导入已有 Skill
                       </button>
                     </div>
@@ -525,7 +531,7 @@ export function SkillBuilderApp() {
                       <div className="inline-flex rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-700">推荐模板</div>
                       <h3 className="mt-3 text-lg font-semibold text-slate-900">{template.title}</h3>
                       <p className="mt-2 text-sm leading-7 text-slate-600">{template.goal}</p>
-                      <button className="mt-4 rounded-full bg-cyan-600 px-4 py-2 text-sm font-semibold text-white" onClick={() => startFromScratch(template.goal)}>
+                      <button className="mt-4 w-full rounded-full bg-cyan-600 px-4 py-2 text-sm font-semibold text-white sm:w-auto" onClick={() => startFromScratch(template.goal)}>
                         使用这个模板
                       </button>
                     </div>
@@ -547,11 +553,11 @@ export function SkillBuilderApp() {
                         如果你是第一次接触 OpenClaw，建议先看下面这三部分。看完以后，再回到“开始制作”页面，流程会顺很多。
                       </p>
                     </div>
-                    <div className="flex flex-wrap gap-3">
-                      <button className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white" onClick={() => setSection("builder")}>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                      <button className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white sm:w-auto" onClick={() => setSection("builder")}>
                         去开始制作
                       </button>
-                      <button className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700" onClick={() => setSection("home")}>
+                      <button className="w-full rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => setSection("home")}>
                         回首页看模板
                       </button>
                     </div>
@@ -610,16 +616,35 @@ export function SkillBuilderApp() {
             </div>
           ) : null}
 
+          {section === "builder" && !activeProject ? (
+            <SectionCard title="开始制作">
+              <div className="rounded-[24px] bg-[linear-gradient(135deg,#fff7ed_0%,#f8fafc_45%,#eef6ff_100%)] p-6">
+                <h3 className="text-xl font-semibold text-slate-950">先创建一个项目，再继续往下做</h3>
+                <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-700">
+                  你可以从零开始，也可以导入已有 Skill。第一次使用时，建议直接从模板或一句简单目标开始。
+                </p>
+                <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                  <button className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white sm:w-auto" onClick={() => startFromScratch(homeGoal)}>
+                    从零创建项目
+                  </button>
+                  <button className="w-full rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => startFromImport(homeGoal)}>
+                    导入已有 Skill
+                  </button>
+                </div>
+              </div>
+            </SectionCard>
+          ) : null}
+
           {section === "builder" && activeProject ? (
             <>
               <SectionCard
                 title="创建向导"
                 action={
-                  <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 p-1">
+                  <div className="inline-flex w-full rounded-full border border-slate-200 bg-slate-50 p-1 sm:w-auto">
                     {(["create", "import"] as BuilderMode[]).map((mode) => (
                       <button
                         key={mode}
-                        className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                        className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition sm:flex-none ${
                           activeProject.mode === mode ? "bg-slate-950 text-white" : "text-slate-600"
                         }`}
                         onClick={() => {
@@ -656,7 +681,7 @@ export function SkillBuilderApp() {
                   </div>
                 </div>
 
-                <div className="grid gap-3 md:grid-cols-5">
+                <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-5">
                   {[
                     { id: 1, title: "目标" },
                     { id: 2, title: "资料" },
@@ -693,7 +718,7 @@ export function SkillBuilderApp() {
                     </div>
                   </div>
                   <div className="mt-6 flex justify-end">
-                    <button className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white" onClick={() => setBuilderStep(2)}>
+                    <button className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white sm:w-auto" onClick={() => setBuilderStep(2)}>
                       下一步：补资料
                     </button>
                   </div>
@@ -757,11 +782,11 @@ export function SkillBuilderApp() {
                       </div>
                     </div>
                   </div>
-                  <div className="mt-6 flex justify-between">
-                    <button className="rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700" onClick={() => setBuilderStep(1)}>
+                  <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-between">
+                    <button className="w-full rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => setBuilderStep(1)}>
                       上一步
                     </button>
-                    <button className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white" onClick={() => setBuilderStep(3)}>
+                    <button className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white sm:w-auto" onClick={() => setBuilderStep(3)}>
                       下一步：设置场景
                     </button>
                   </div>
@@ -818,11 +843,11 @@ export function SkillBuilderApp() {
                       ) : null}
                     </div>
                   </div>
-                  <div className="mt-6 flex justify-between">
-                    <button className="rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700" onClick={() => setBuilderStep(2)}>
+                  <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-between">
+                    <button className="w-full rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => setBuilderStep(2)}>
                       上一步
                     </button>
-                    <button className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white" onClick={generateDraft}>
+                    <button className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white sm:w-auto" onClick={generateDraft}>
                       生成草稿
                     </button>
                   </div>
@@ -841,13 +866,13 @@ export function SkillBuilderApp() {
                         <input type="checkbox" checked={activeProject.includeExamples} onChange={(event) => updateProject({ includeExamples: event.target.checked })} />
                         附带示例输入和示例结果
                       </label>
-                      <button className="rounded-full border border-cyan-600 px-5 py-3 text-sm font-semibold text-cyan-700" onClick={generateDraft}>
+                      <button className="w-full rounded-full border border-cyan-600 px-5 py-3 text-sm font-semibold text-cyan-700 sm:w-auto" onClick={generateDraft}>
                         重新生成内容
                       </button>
                     </div>
 
                     <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.04)]">
-                      <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 p-1">
+                      <div className="inline-flex w-full flex-wrap rounded-[20px] border border-slate-200 bg-slate-50 p-1 sm:w-auto sm:rounded-full">
                         {[
                           { id: "guide", label: "说明版" },
                           { id: "skill", label: "SKILL.md 版" },
@@ -855,7 +880,7 @@ export function SkillBuilderApp() {
                         ].map((mode) => (
                           <button
                             key={mode.id}
-                            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                            className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition sm:flex-none ${
                               previewMode === mode.id ? "bg-slate-950 text-white" : "text-slate-600"
                             }`}
                             onClick={() => setPreviewMode(mode.id as "guide" | "skill" | "result")}
@@ -874,11 +899,11 @@ export function SkillBuilderApp() {
                       </pre>
                     </div>
                   </div>
-                  <div className="mt-6 flex justify-between">
-                    <button className="rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700" onClick={() => setBuilderStep(3)}>
+                  <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-between">
+                    <button className="w-full rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => setBuilderStep(3)}>
                       上一步
                     </button>
-                    <button className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white" onClick={() => setBuilderStep(5)}>
+                    <button className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white sm:w-auto" onClick={() => setBuilderStep(5)}>
                       下一步：导出文件
                     </button>
                   </div>
@@ -915,7 +940,7 @@ export function SkillBuilderApp() {
                         <p>5. 先用示例输入测试一次，再放入真实内容。</p>
                       </div>
                       <button
-                        className="rounded-full bg-cyan-600 px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-cyan-300"
+                        className="w-full rounded-full bg-cyan-600 px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-cyan-300"
                         onClick={exportCurrentProject}
                         disabled={loading}
                       >
@@ -944,7 +969,7 @@ export function SkillBuilderApp() {
             <SectionCard
               title="我的项目"
               action={
-                <button className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white" onClick={() => startFromScratch()}>
+                <button className="w-full rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white sm:w-auto" onClick={() => startFromScratch()}>
                   新建项目
                 </button>
               }
@@ -977,9 +1002,9 @@ export function SkillBuilderApp() {
                         <span>最近更新：{formatDateLabel(project.updatedAt)}</span>
                         <span>{project.draft ? "已生成内容" : "进行中"}</span>
                       </div>
-                      <div className="mt-5 flex flex-wrap gap-3">
+                      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                         <button
-                          className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white"
+                          className="w-full rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white sm:w-auto"
                           onClick={() => {
                             setActiveProjectId(project.id);
                             setSection("builder");
@@ -988,11 +1013,11 @@ export function SkillBuilderApp() {
                         >
                           继续编辑
                         </button>
-                        <button className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700" onClick={() => duplicateProject(project.id)}>
+                        <button className="w-full rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => duplicateProject(project.id)}>
                           复制新版本
                         </button>
                         <button
-                          className="rounded-full border border-cyan-600 px-4 py-2 text-sm font-semibold text-cyan-700"
+                          className="w-full rounded-full border border-cyan-600 px-4 py-2 text-sm font-semibold text-cyan-700 sm:w-auto"
                           onClick={async () => {
                             const { blob, fileName } = await exportProjectZip(project);
                             downloadBlob(blob, fileName);
@@ -1000,7 +1025,7 @@ export function SkillBuilderApp() {
                         >
                           再次导出
                         </button>
-                        <button className="rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600" onClick={() => deleteProject(project.id)}>
+                        <button className="w-full rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600 sm:w-auto" onClick={() => deleteProject(project.id)}>
                           删除
                         </button>
                       </div>
