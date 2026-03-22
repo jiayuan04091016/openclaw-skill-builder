@@ -166,5 +166,6 @@ export type ImportAnalysisSummary = {
   missingFields: string[];
   sourceLength: number;
   qualityLevel: "low" | "medium" | "high";
+  coveredSections: string[];
   message: string;
 };

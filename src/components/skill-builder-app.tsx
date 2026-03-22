@@ -804,6 +804,13 @@ export function SkillBuilderApp() {
                                   : "，关键字段已基本齐全"}
                                 。
                               </div>
+                              <div className="mt-1">
+                                已覆盖章节：
+                                {importAnalysisSummary.coveredSections.length
+                                  ? ` ${importAnalysisSummary.coveredSections.join("、")}`
+                                  : " 目前还看不出明确章节"}
+                                。
+                              </div>
                             </div>
                           ) : null}
                           <p className="mt-2 text-xs leading-6 text-slate-500">

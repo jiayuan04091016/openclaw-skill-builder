@@ -15,6 +15,13 @@ export function buildImportAnalysisSummary(parsed: ParsedSkillImport, sourceText
     .map((field) => field.label);
   const extractedCount = importFieldLabels.length - missingFields.length;
   const sourceLength = sourceText.trim().length;
+  const coveredSections = [
+    parsed.description.trim() ? "用途/说明" : "",
+    parsed.audience.trim() ? "适用对象" : "",
+    parsed.mainTask.trim() ? "主要任务" : "",
+    parsed.inputFormat.trim() ? "输入内容" : "",
+    parsed.outputFormat.trim() ? "输出内容" : "",
+  ].filter(Boolean);
   const qualityLevel =
     extractedCount >= 5 && sourceLength >= 120 ? "high" : extractedCount >= 3 && sourceLength >= 60 ? "medium" : "low";
 
@@ -24,6 +31,7 @@ export function buildImportAnalysisSummary(parsed: ParsedSkillImport, sourceText
     missingFields,
     sourceLength,
     qualityLevel,
+    coveredSections,
     message:
       qualityLevel === "high"
         ? "当前提取结果已经比较完整，通常足够直接生成第一版。"
