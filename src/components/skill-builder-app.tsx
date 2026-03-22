@@ -935,6 +935,7 @@ export function SkillBuilderApp() {
                             <dd>{formatDateLabel(activeProject.updatedAt)}</dd>
                           </div>
                         </dl>
+                        {!currentDraft ? <p className="mt-3 text-sm text-amber-700">还没有生成草稿时，不建议直接导出。先回到上一步检查内容会更稳。</p> : null}
                       </div>
                       <div className="rounded-[24px] border border-amber-100 bg-amber-50/70 p-5 text-sm leading-7 text-slate-700">
                         <h3 className="text-base font-semibold text-slate-900">导出前提醒</h3>
@@ -959,6 +960,7 @@ export function SkillBuilderApp() {
                         </div>
                         <p className="mt-3 text-xs text-slate-400">复制测试提示词后，可以先在 OpenClaw 里跑一遍，确认输出风格和结果方向。</p>
                       </div>
+                      <p className="text-sm text-slate-600">确认说明版和示例结果都没有明显问题后，再导出会更稳。</p>
                       <button
                         className="w-full rounded-full bg-cyan-600 px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-cyan-300"
                         onClick={exportCurrentProject}
