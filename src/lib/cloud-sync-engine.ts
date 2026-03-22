@@ -17,7 +17,7 @@ export function createCloudSyncEngine(gateway: CloudProjectGateway): CloudSyncEn
       generatedProjectCount: projects.filter((project) => Boolean(project.draft)).length,
       importedProjectCount: projects.filter((project) => project.mode === "import").length,
       message: gateway.isEnabled()
-        ? "云端同步接口骨架已准备好，下一步可以接真实账号和远端项目表。"
+        ? "云端同步接口骨架已准备好，下一步可以接真实账号和远端项目列表。"
         : projects.length
           ? "当前仍以本机项目为主，后续接上真实云端后可以把这批项目整体迁移。"
           : "当前还没有可同步内容，先完成第一个项目最划算。",
