@@ -29,7 +29,7 @@
 - 状态：已完成
 - 结论：通过
 - 参考报告：
-  - [v2-smoke-report.md](/C:/Users/24754/source/repos/openclaw-skill-builder/docs/v2-smoke-report.md)
+  - [v2-smoke-report.md](C:\Users\24754\source\repos\openclaw-skill-builder\docs\v2-smoke-report.md)
 
 ## 三、问题记录
 

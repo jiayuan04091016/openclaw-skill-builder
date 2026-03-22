@@ -23,7 +23,7 @@
 - 备份恢复
 
 报告：
-- [v1-regression-report.md](/C:/Users/24754/source/repos/openclaw-skill-builder/docs/v1-regression-report.md)
+- [v1-regression-report.md](C:\Users\24754\source\repos\openclaw-skill-builder\docs\v1-regression-report.md)
 
 ## 三、第二版基础设施烟雾测试
 
@@ -38,7 +38,7 @@
 - 视频增强
 
 报告：
-- [v2-smoke-report.md](/C:/Users/24754/source/repos/openclaw-skill-builder/docs/v2-smoke-report.md)
+- [v2-smoke-report.md](C:\Users\24754\source\repos\openclaw-skill-builder\docs\v2-smoke-report.md)
 
 ## 四、当前判断
 
@@ -52,7 +52,7 @@
 - `missingKeys`: `auth`, `cloud-storage`, `ocr`, `video`
 - `nextRequiredKey`: `auth`
 
-当前还没有做的事：
+当前还没做的事：
 - 真实登录服务接入
 - 真实云端存储接入
 - 真实 OCR 服务接入

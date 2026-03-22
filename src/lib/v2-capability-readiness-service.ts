@@ -84,3 +84,29 @@ export async function buildV2CapabilityReadinessReport(): Promise<V2CapabilityRe
     items,
   };
 }
+
+export function buildV2CapabilityReadinessMarkdown(report: V2CapabilityReadinessReport) {
+  const lines = [
+    "# 第二版能力 readiness 快照",
+    "",
+    `整体状态：${report.allReadyForUnifiedTesting ? "已可进入统一测试" : "暂未全部就绪"}`,
+    report.nextBlockingCapability ? `当前第一阻塞项：${report.nextBlockingCapability}` : "当前第一阻塞项：无",
+    `下一步：${report.nextStep}`,
+    "",
+    "## 能力清单",
+  ];
+
+  for (const item of report.items) {
+    lines.push(`- ${item.label}：${item.ready ? "已就绪" : "未就绪"}`);
+
+    if (!item.ready) {
+      lines.push(`  下一步：${item.nextStep}`);
+    }
+
+    if (item.issues.length) {
+      lines.push(`  问题：${item.issues.join("；")}`);
+    }
+  }
+
+  return lines.join("\n");
+}
