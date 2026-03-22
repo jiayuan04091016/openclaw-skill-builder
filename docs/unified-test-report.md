@@ -46,6 +46,11 @@
 - 第二版 1 到 6 项都已经有主框架和可调用入口
 - 第一版核心流程没有被第二版底座破坏
 - 当前代码可通过 `lint`、`tsc`、`build`
+- provider readiness 已可输出缺失项和下一步优先项
+
+当前 provider readiness：
+- `missingKeys`: `auth`, `cloud-storage`, `ocr`, `video`
+- `nextRequiredKey`: `auth`
 
 当前还没有做的事：
 - 真实登录服务接入
