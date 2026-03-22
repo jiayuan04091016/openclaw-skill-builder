@@ -28,8 +28,8 @@ function extractFrontmatter(content: string) {
 
 function extractFrontmatterValue(content: string, key: string) {
   const frontmatter = extractFrontmatter(content);
-  const match = frontmatter.match(new RegExp(`^${key}:\\s*(.+)$`, "im"));
-  return match?.[1]?.trim() ?? "";
+  const match = frontmatter.match(new RegExp(`^${key}\\s*[:：]\\s*(.+)$`, "im"));
+  return match?.[1]?.trim().replace(/^['"]|['"]$/g, "") ?? "";
 }
 
 function extractTitle(content: string) {
@@ -38,7 +38,7 @@ function extractTitle(content: string) {
 
 function extractSectionByHeading(content: string, heading: string) {
   const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const match = content.match(new RegExp(`^##\\s+${escaped}\\s*$\\n([\\s\\S]*?)(?=^##\\s+|\\Z)`, "im"));
+  const match = content.match(new RegExp(`^#{2,4}\\s+${escaped}\\s*$\\n([\\s\\S]*?)(?=^#{2,4}\\s+|\\Z)`, "im"));
   return normalizeText(match?.[1] ?? "");
 }
 
