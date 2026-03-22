@@ -29,9 +29,26 @@ function getProjectStage(project: ProjectRecord) {
   return "刚创建";
 }
 
+function getProjectStageHint(project: ProjectRecord) {
+  if (project.draft) {
+    return "已经生成过草稿，可以直接预览、修改或重新导出。";
+  }
+
+  if (project.resources.length) {
+    return "资料已经补进来了，下一步建议确认场景并生成草稿。";
+  }
+
+  if (project.goal.trim()) {
+    return "目标已经写好，下一步建议补几份参考资料。";
+  }
+
+  return "先写下目标，再一步步往下补就行。";
+}
+
 export function ProjectCard({ project, onEdit, onDuplicate, onExport, onDelete }: ProjectCardProps) {
   const fallbackName = buildStructuredSpec(project).skillName;
   const stage = getProjectStage(project);
+  const stageHint = getProjectStageHint(project);
   const [exporting, setExporting] = useState(false);
 
   return (
@@ -55,6 +72,7 @@ export function ProjectCard({ project, onEdit, onDuplicate, onExport, onDelete }
       </div>
 
       <div className="mt-2 text-xs text-slate-400">双击卡片也可以直接继续编辑</div>
+      <div className="mt-2 rounded-[16px] bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600">{stageHint}</div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <div className="rounded-[18px] bg-slate-50 px-4 py-3">
