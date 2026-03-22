@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Field, QuickResourceForm, SectionCard } from "@/components/builder-ui";
 import { ProjectCard } from "@/components/project-card";
 import { useProjectManager } from "@/hooks/use-project-manager";
+import { useSessionState } from "@/hooks/use-session-state";
 import { builderStepMeta, builderStepTabs, faqs, learningCards, navItems, previewTabs, templates } from "@/lib/content";
 import { formatDateLabel } from "@/lib/skill-builder";
 import type { AppSection, BuilderMode, OutputStyle } from "@/types/app";
@@ -14,6 +15,7 @@ export function SkillBuilderApp() {
   const [builderStep, setBuilderStep] = useState(1);
   const [statusMessage, setStatusMessage] = useState("???????");
   const [previewMode, setPreviewMode] = useState<"guide" | "skill" | "result">("guide");
+  const session = useSessionState();
   const {
     projects,
     activeProject,
@@ -69,7 +71,13 @@ export function SkillBuilderApp() {
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-700">OpenClaw Skill Builder</p>
-              <h1 className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">面向电脑新手的 Skill 制作工作台</h1>
+              <h1 className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">??????? Skill ?????</h1>
+              <div className="mt-3 inline-flex flex-wrap items-center gap-2 text-xs text-slate-600">
+                <span className="rounded-full bg-slate-100 px-3 py-1 font-medium">{session.displayName}</span>
+                <span className="rounded-full bg-cyan-50 px-3 py-1 font-medium text-cyan-700">
+                  {session.storageMode === "local" ? "??????" : "??????"}
+                </span>
+              </div>
             </div>
             <nav className="flex flex-wrap gap-2 sm:justify-start">
               {navItems.map((item) => (

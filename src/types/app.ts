@@ -1,5 +1,9 @@
 export type AppSection = "home" | "learn" | "builder" | "skills" | "help";
 
+export type SessionMode = "guest" | "authenticated";
+
+export type StorageMode = "local" | "cloud";
+
 export type BuilderMode = "create" | "import";
 
 export type OutputStyle = "simple" | "detailed" | "teaching";
@@ -60,4 +64,10 @@ export type BackupPayload = {
   version: 1;
   exportedAt: string;
   projects: ProjectRecord[];
+};
+
+export type SessionState = {
+  mode: SessionMode;
+  storageMode: StorageMode;
+  displayName: string;
 };
