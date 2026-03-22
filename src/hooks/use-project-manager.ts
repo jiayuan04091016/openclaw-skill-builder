@@ -4,6 +4,7 @@ import { createCloudSyncClient } from "@/lib/cloud-sync-client";
 import { buildImportReviewSnapshot } from "@/lib/import-review-service";
 import { createProjectRepository, type ProjectRepository } from "@/lib/project-repository";
 import { createProjectService } from "@/lib/project-service";
+import { loadImportedSkillText } from "@/lib/skill-import-loader";
 import { createSyncService, type SyncService } from "@/lib/sync-service";
 import { buildStructuredSpec } from "@/lib/skill-builder";
 import type {
@@ -28,8 +29,13 @@ function downloadBlob(blob: Blob, fileName: string) {
 }
 
 function readFileContent(file: File) {
-  if (file.type.startsWith("text/") || file.name.endsWith(".md") || file.name.endsWith(".txt")) {
-    return file.text();
+  if (
+    file.type.startsWith("text/") ||
+    file.name.endsWith(".md") ||
+    file.name.endsWith(".txt") ||
+    file.name.toLowerCase().endsWith(".zip")
+  ) {
+    return loadImportedSkillText(file);
   }
 
   return Promise.resolve("");
