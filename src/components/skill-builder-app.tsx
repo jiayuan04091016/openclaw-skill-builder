@@ -254,7 +254,9 @@ export function SkillBuilderApp() {
               ))}
             </nav>
           </div>
-          <div className="mt-4 rounded-[20px] bg-slate-50 px-4 py-3 text-sm text-slate-600">当前状态：{statusMessage}</div>
+          <div className="mt-4 rounded-[20px] bg-slate-50 px-4 py-3 text-sm text-slate-600">
+            <span className="font-medium text-slate-800">进度提示：</span> {statusMessage}
+          </div>
           <div className="mt-3 text-xs text-slate-500">{session.syncHint}</div>
         </header>
 
