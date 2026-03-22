@@ -184,6 +184,8 @@ export function SkillBuilderApp() {
     [projects],
   );
 
+  const latestProject = projects[0] ?? null;
+
   const completionItems = activeProject
     ? [
         { label: "目标描述", done: Boolean(activeProject.goal.trim()) },
@@ -317,6 +319,29 @@ export function SkillBuilderApp() {
                   ))}
                 </div>
               </SectionCard>
+
+              {latestProject ? (
+                <SectionCard title="最近继续">
+                  <div className="flex flex-col gap-4 rounded-[24px] bg-slate-50 p-5 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">{latestProject.title || latestProject.goal || "未命名项目"}</p>
+                      <p className="mt-2 text-sm leading-7 text-slate-600">
+                        最近更新：{formatDateLabel(latestProject.updatedAt)}
+                      </p>
+                    </div>
+                    <button
+                      className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white sm:w-auto"
+                      onClick={() => {
+                        setActiveProjectId(latestProject.id);
+                        setSection("builder");
+                        setBuilderStep(latestProject.draft ? 4 : 1);
+                      }}
+                    >
+                      继续上次项目
+                    </button>
+                  </div>
+                </SectionCard>
+              ) : null}
             </>
           ) : null}
 
