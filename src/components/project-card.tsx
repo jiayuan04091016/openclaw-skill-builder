@@ -87,7 +87,14 @@ export function ProjectCard({ project, onEdit, onDuplicate, onDelete }: ProjectC
         >
           重新导出
         </button>
-        <button className="w-full rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600 sm:w-auto" onClick={onDelete}>
+        <button
+          className="w-full rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600 sm:w-auto"
+          onClick={() => {
+            if (window.confirm(`确定删除“${project.title || fallbackName}”吗？删除后无法恢复。`)) {
+              onDelete();
+            }
+          }}
+        >
           删除
         </button>
       </div>
