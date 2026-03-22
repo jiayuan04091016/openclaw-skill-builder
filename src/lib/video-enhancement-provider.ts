@@ -1,6 +1,7 @@
-import { getProviderConfig } from "@/lib/provider-config";
-import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
 import { normalizeRemoteVideoEnhancementResult } from "@/lib/media-remote-contracts";
+import { getProviderConfig } from "@/lib/provider-config";
+import { getClientGatewayUrl } from "@/lib/provider-gateway-client";
+import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
 import type { ResourceItem, VideoEnhancementResult } from "@/types/app";
 
 export type VideoEnhancementProvider = {
@@ -41,11 +42,21 @@ function createRemoteVideoEnhancementProvider(videoEnhancementProviderUrl: strin
   };
 }
 
+function createGatewayVideoEnhancementProvider(gatewayBaseUrl: string): VideoEnhancementProvider {
+  return createRemoteVideoEnhancementProvider(gatewayBaseUrl);
+}
+
 export function createVideoEnhancementProvider(): VideoEnhancementProvider {
   const providerConfig = getProviderConfig();
 
   if (providerConfig.videoEnhancementProviderUrl) {
     return createRemoteVideoEnhancementProvider(providerConfig.videoEnhancementProviderUrl);
+  }
+
+  const gatewayBaseUrl = getClientGatewayUrl("/api/provider/video");
+
+  if (gatewayBaseUrl) {
+    return createGatewayVideoEnhancementProvider(gatewayBaseUrl);
   }
 
   return createLocalVideoEnhancementProvider();

@@ -1,6 +1,7 @@
-import { getProviderConfig } from "@/lib/provider-config";
-import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
 import { normalizeRemoteOcrResult } from "@/lib/media-remote-contracts";
+import { getProviderConfig } from "@/lib/provider-config";
+import { getClientGatewayUrl } from "@/lib/provider-gateway-client";
+import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
 import type { OcrResult, ResourceItem } from "@/types/app";
 
 export type OcrProvider = {
@@ -41,11 +42,21 @@ function createRemoteOcrProvider(ocrProviderUrl: string): OcrProvider {
   };
 }
 
+function createGatewayOcrProvider(gatewayBaseUrl: string): OcrProvider {
+  return createRemoteOcrProvider(gatewayBaseUrl);
+}
+
 export function createOcrProvider(): OcrProvider {
   const providerConfig = getProviderConfig();
 
   if (providerConfig.ocrProviderUrl) {
     return createRemoteOcrProvider(providerConfig.ocrProviderUrl);
+  }
+
+  const gatewayBaseUrl = getClientGatewayUrl("/api/provider/ocr");
+
+  if (gatewayBaseUrl) {
+    return createGatewayOcrProvider(gatewayBaseUrl);
   }
 
   return createLocalOcrProvider();

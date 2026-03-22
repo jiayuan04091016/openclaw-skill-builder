@@ -1,10 +1,11 @@
-import { getProviderConfig } from "@/lib/provider-config";
-import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
-import { getRuntimeCapabilities } from "@/lib/runtime-capabilities";
 import {
   normalizeRemoteCloudProjectList,
   normalizeRemoteCloudStorageResult,
 } from "@/lib/cloud-remote-contracts";
+import { getProviderConfig } from "@/lib/provider-config";
+import { getClientGatewayUrl } from "@/lib/provider-gateway-client";
+import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
+import { getRuntimeCapabilities } from "@/lib/runtime-capabilities";
 import type { CloudProjectRecord, CloudSyncBundle } from "@/types/app";
 
 export type CloudStorageProviderResult = {
@@ -65,11 +66,21 @@ function createRemoteCloudStorageProvider(cloudStorageProviderUrl: string): Clou
   };
 }
 
+function createGatewayCloudStorageProvider(gatewayBaseUrl: string): CloudStorageProvider {
+  return createRemoteCloudStorageProvider(gatewayBaseUrl);
+}
+
 export function createCloudStorageProvider(): CloudStorageProvider {
   const providerConfig = getProviderConfig();
 
   if (providerConfig.cloudStorageProviderUrl) {
     return createRemoteCloudStorageProvider(providerConfig.cloudStorageProviderUrl);
+  }
+
+  const gatewayBaseUrl = getClientGatewayUrl("/api/provider/cloud");
+
+  if (gatewayBaseUrl) {
+    return createGatewayCloudStorageProvider(gatewayBaseUrl);
   }
 
   return createLocalCloudStorageProvider();

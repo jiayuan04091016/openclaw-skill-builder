@@ -1,4 +1,5 @@
 import { getProviderConfig } from "@/lib/provider-config";
+import { getClientGatewayUrl } from "@/lib/provider-gateway-client";
 import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
 import { getRuntimeCapabilities } from "@/lib/runtime-capabilities";
 import {
@@ -82,11 +83,21 @@ function createRemoteAuthProvider(authProviderUrl: string): AuthProvider {
   };
 }
 
+function createGatewayAuthProvider(gatewayBaseUrl: string): AuthProvider {
+  return createRemoteAuthProvider(gatewayBaseUrl);
+}
+
 export function createAuthProvider(): AuthProvider {
   const providerConfig = getProviderConfig();
 
   if (providerConfig.authProviderUrl) {
     return createRemoteAuthProvider(providerConfig.authProviderUrl);
+  }
+
+  const gatewayBaseUrl = getClientGatewayUrl("/api/provider/auth");
+
+  if (gatewayBaseUrl) {
+    return createGatewayAuthProvider(gatewayBaseUrl);
   }
 
   return createLocalAuthProvider();
