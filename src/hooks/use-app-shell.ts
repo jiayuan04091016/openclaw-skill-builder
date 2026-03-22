@@ -2,6 +2,17 @@
 
 import { useMemo, useState } from "react";
 
+import {
+  buildInstallGuideText,
+  buildPreviewClipboardText,
+  buildSyncPreviewMessage,
+  filterProjects,
+  getDraftReadinessMessage,
+  getGoalValidationMessage,
+  summarizeProjects,
+  type AppPreviewMode,
+  type AppProjectFilter,
+} from "@/lib/app-shell-service";
 import type { AppSection, DraftContent, ProjectRecord, RepositoryStatus, StructuredSpec } from "@/types/app";
 
 type UseAppShellOptions = {
@@ -39,9 +50,9 @@ export function useAppShell(options: UseAppShellOptions) {
 
   const [section, setSection] = useState<AppSection>("home");
   const [builderStep, setBuilderStep] = useState(1);
-  const [previewMode, setPreviewMode] = useState<"guide" | "skill" | "result">("guide");
+  const [previewMode, setPreviewMode] = useState<AppPreviewMode>("guide");
   const [projectKeyword, setProjectKeyword] = useState("");
-  const [projectFilter, setProjectFilter] = useState<"all" | "draft" | "generated" | "import">("all");
+  const [projectFilter, setProjectFilter] = useState<AppProjectFilter>("all");
   const [syncPreviewMessage, setSyncPreviewMessage] = useState("");
 
   function startFromScratch(goal = "") {
@@ -89,12 +100,7 @@ export function useAppShell(options: UseAppShellOptions) {
       return;
     }
 
-    const resourceCount = bundle.projects.reduce((total, project) => total + project.resources.length, 0);
-    const generatedCount = bundle.projects.filter((project) => Boolean(project.draft)).length;
-
-    setSyncPreviewMessage(
-      `如果现在开始迁移，预计会带走 ${bundle.projectCount} 个项目、${resourceCount} 条资料，其中 ${generatedCount} 个已经生成草稿。`,
-    );
+    setSyncPreviewMessage(buildSyncPreviewMessage(bundle.projectCount, bundle.projects));
   }
 
   async function copyPreviewContent() {
@@ -102,27 +108,12 @@ export function useAppShell(options: UseAppShellOptions) {
       return;
     }
 
-    const content =
-      previewMode === "guide"
-        ? currentDraft.previewText
-        : previewMode === "skill"
-          ? currentDraft.skillMarkdown
-          : `示例输入：\n${currentDraft.exampleInput}\n\n示例输出：\n${currentDraft.exampleOutput}`;
-
-    await navigator.clipboard.writeText(content);
+    await navigator.clipboard.writeText(buildPreviewClipboardText(currentDraft, previewMode));
     onStatusChange("当前预览内容已复制。");
   }
 
   async function copyInstallGuide() {
-    const guide = [
-      "1. 点击导出 ZIP。",
-      "2. 解压文件夹。",
-      "3. 把整个目录放进 OpenClaw 的 skills 目录。",
-      "4. 重启或刷新 OpenClaw。",
-      "5. 先用示例输入测试一次，再放入真实内容。",
-    ].join("\n");
-
-    await navigator.clipboard.writeText(guide);
+    await navigator.clipboard.writeText(buildInstallGuideText());
     onStatusChange("安装说明已复制。");
   }
 
@@ -136,8 +127,10 @@ export function useAppShell(options: UseAppShellOptions) {
   }
 
   function goToResourceStep() {
-    if (!activeProject?.goal.trim()) {
-      onStatusChange("请先写下你想完成的目标。");
+    const message = getGoalValidationMessage(activeProject?.goal ?? "");
+
+    if (message) {
+      onStatusChange(message);
       return;
     }
 
@@ -145,8 +138,14 @@ export function useAppShell(options: UseAppShellOptions) {
   }
 
   function goToGenerateStep() {
-    if (!activeProject?.mainTask.trim() || !activeProject.inputFormat.trim() || !activeProject.outputFormat.trim()) {
-      onStatusChange("请先补充主要任务、输入内容和输出内容。");
+    if (!activeProject) {
+      return;
+    }
+
+    const message = getDraftReadinessMessage(activeProject);
+
+    if (message) {
+      onStatusChange(message);
       return;
     }
 
@@ -171,41 +170,12 @@ export function useAppShell(options: UseAppShellOptions) {
     onStatusChange("已用系统建议补全空白项。");
   }
 
-  const filteredProjects = useMemo(() => {
-    const keyword = projectKeyword.trim().toLowerCase();
-
-    return projects.filter((project) => {
-      const text = `${project.title} ${project.goal}`.toLowerCase();
-      const keywordMatched = !keyword || text.includes(keyword);
-
-      if (!keywordMatched) {
-        return false;
-      }
-
-      if (projectFilter === "draft") {
-        return !project.draft;
-      }
-
-      if (projectFilter === "generated") {
-        return Boolean(project.draft);
-      }
-
-      if (projectFilter === "import") {
-        return project.mode === "import";
-      }
-
-      return true;
-    });
-  }, [projectFilter, projectKeyword, projects]);
-
-  const projectStats = useMemo(
-    () => ({
-      total: projects.length,
-      generated: projects.filter((project) => project.draft).length,
-      imported: projects.filter((project) => project.mode === "import").length,
-    }),
-    [projects],
+  const filteredProjects = useMemo(
+    () => filterProjects(projects, projectKeyword, projectFilter),
+    [projectFilter, projectKeyword, projects],
   );
+
+  const projectStats = useMemo(() => summarizeProjects(projects), [projects]);
 
   const migrationPreview = repositoryStatus?.migrationPreview ?? null;
 
