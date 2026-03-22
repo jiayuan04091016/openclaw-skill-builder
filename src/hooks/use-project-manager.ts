@@ -2,15 +2,11 @@ import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { createCloudSyncClient } from "@/lib/cloud-sync-client";
 import { buildImportReviewSnapshot } from "@/lib/import-review-service";
-import { createProjectImportPipelineService } from "@/lib/project-import-pipeline-service";
-import { createProjectMediaProcessingService } from "@/lib/project-media-processing-service";
-import { createProjectResourceProcessingService } from "@/lib/project-resource-processing-service";
+import { createProjectResourceInputService } from "@/lib/project-resource-input-service";
 import type { ProjectRepository } from "@/lib/project-repository";
 import { createProjectRuntimeService } from "@/lib/project-runtime-service";
 import { createProjectService } from "@/lib/project-service";
 import { createProjectTransferService } from "@/lib/project-transfer-service";
-import { loadImportedSkillText } from "@/lib/skill-import-loader";
-import type { SyncService } from "@/lib/sync-service";
 import { buildStructuredSpec } from "@/lib/skill-builder";
 import type {
   BuilderMode,
@@ -19,6 +15,7 @@ import type {
   RepositoryStatus,
   ResourceType,
 } from "@/types/app";
+import type { SyncService } from "@/lib/sync-service";
 
 type UseProjectManagerOptions = {
   onStatusChange: (message: string) => void;
@@ -33,19 +30,6 @@ function downloadBlob(blob: Blob, fileName: string) {
   URL.revokeObjectURL(url);
 }
 
-function readFileContent(file: File) {
-  if (
-    file.type.startsWith("text/") ||
-    file.name.endsWith(".md") ||
-    file.name.endsWith(".txt") ||
-    file.name.toLowerCase().endsWith(".zip")
-  ) {
-    return loadImportedSkillText(file);
-  }
-
-  return Promise.resolve("");
-}
-
 export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) {
   const [projects, setProjects] = useState<ProjectRecord[]>([]);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
@@ -55,13 +39,12 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
   const [hasLoadedProjects, setHasLoadedProjects] = useState(false);
   const [repositoryCapabilities, setRepositoryCapabilities] = useState<RepositoryCapabilities | null>(null);
   const [repositoryStatus, setRepositoryStatus] = useState<RepositoryStatus | null>(null);
+
   const backupInputRef = useRef<HTMLInputElement>(null);
   const repositoryRef = useRef<ProjectRepository | null>(null);
   const syncServiceRef = useRef<SyncService | null>(null);
   const projectServiceRef = useRef(createProjectService());
-  const projectImportPipelineServiceRef = useRef(createProjectImportPipelineService());
-  const projectMediaProcessingServiceRef = useRef(createProjectMediaProcessingService());
-  const projectResourceProcessingServiceRef = useRef(createProjectResourceProcessingService());
+  const projectResourceInputServiceRef = useRef(createProjectResourceInputService());
   const projectTransferServiceRef = useRef(createProjectTransferService());
   const cloudSyncClientRef = useRef(createCloudSyncClient());
 
@@ -85,9 +68,9 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
         repositoryRef.current = repository;
         syncServiceRef.current = syncService;
         setRepositoryCapabilities(capabilities);
-
         setProjects(parsed);
         setRepositoryStatus(nextRepositoryStatus);
+
         if (parsed[0]) {
           setActiveProjectId(parsed[0].id);
           setHomeGoal(parsed[0].goal);
@@ -199,34 +182,9 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       return;
     }
 
-    if (type === "skill") {
-      const imported = await projectImportPipelineServiceRef.current.importFromFile(activeProject, file);
-      const resource = projectServiceRef.current.createResource(
-        imported.resourceType,
-        imported.asset.sourceName,
-        imported.asset.importedSkillText || `${file.name} 已上传，可作为补充资料使用。`,
-      );
-
-      updateProject({
-        resources: [...activeProject.resources, resource],
-        ...imported.projectPatch,
-      });
-      onStatusChange(`已导入旧 Skill：${file.name}`);
-      event.target.value = "";
-      return;
-    }
-
-    const content = await readFileContent(file);
-    const resource = projectServiceRef.current.createResource(
-      type,
-      file.name,
-      content || `${file.name} 已上传，可作为补充资料使用。`,
-    );
-
-    updateProject({
-      resources: [...activeProject.resources, resource],
-    });
-    onStatusChange(`已添加资料：${file.name}`);
+    const nextInput = await projectResourceInputServiceRef.current.addFileResource(activeProject, file, type);
+    updateProject(nextInput.projectPatch);
+    onStatusChange(nextInput.statusMessage);
     event.target.value = "";
   }
 
@@ -235,9 +193,9 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       return;
     }
 
-    const resource = projectServiceRef.current.createResource(type, name, content);
-    updateProject({ resources: [...activeProject.resources, resource] });
-    onStatusChange(`已添加 ${name}`);
+    const nextInput = projectResourceInputServiceRef.current.addManualResource(activeProject, type, name, content);
+    updateProject(nextInput.projectPatch);
+    onStatusChange(nextInput.statusMessage);
   }
 
   function generateDraft() {
@@ -353,9 +311,11 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
 
       setProjects(mergedProjects);
       setActiveProjectId((currentActiveProjectId) =>
-        mergedProjects.some((project) => project.id === currentActiveProjectId) ? currentActiveProjectId : (mergedProjects[0]?.id ?? null),
+        mergedProjects.some((project) => project.id === currentActiveProjectId)
+          ? currentActiveProjectId
+          : (mergedProjects[0]?.id ?? null),
       );
-      onStatusChange("已完成一次云端项目刷新，后续接入真实服务后会从这里继续走。");
+      onStatusChange("已完成一次云端项目刷新，后续接入真实服务后会从这里继续。");
       return mergedProjects;
     } finally {
       setSyncPreparing(false);
@@ -384,20 +344,19 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
   }
 
   function applyImportedSkillText() {
-    if (!activeProject?.importedSkillText.trim()) {
+    if (!activeProject) {
+      return;
+    }
+
+    const imported = projectResourceInputServiceRef.current.applyImportedSkillText(activeProject);
+
+    if (!imported) {
       onStatusChange("请先粘贴已有 Skill 内容，再进行提取。");
       return;
     }
 
-    updateProject({
-      ...projectServiceRef.current.applyImportedSkillPatch(activeProject, activeProject.importedSkillText),
-      importedSkillArchive: projectServiceRef.current.buildImportedSkillArchive(
-        activeProject.importedSkillText,
-        activeProject.title || "手动粘贴的旧 Skill",
-        "manual",
-      ),
-    });
-    onStatusChange("已从已有 Skill 内容中提取主要信息。");
+    updateProject(imported.projectPatch);
+    onStatusChange(imported.statusMessage);
   }
 
   async function processProjectResource(resourceId: string) {
@@ -411,10 +370,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       return null;
     }
 
-    const nextProcessing = await projectResourceProcessingServiceRef.current.processProjectResource(
-      activeProject,
-      resourceId,
-    );
+    const nextProcessing = await projectResourceInputServiceRef.current.processProjectResource(activeProject, resourceId);
 
     if (!nextProcessing) {
       return null;
@@ -423,7 +379,6 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     const { processingResult, projectPatch } = nextProcessing;
     updateProject(projectPatch);
     onStatusChange(processingResult.result.message);
-
     return processingResult;
   }
 
@@ -432,7 +387,10 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       return null;
     }
 
-    const nextProcessing = await projectMediaProcessingServiceRef.current.processProjectResources(activeProject, resourceIds);
+    const nextProcessing = await projectResourceInputServiceRef.current.processProjectMediaResources(
+      activeProject,
+      resourceIds,
+    );
     updateProject(nextProcessing.projectPatch);
 
     const message =
@@ -459,9 +417,11 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
   function deleteProject(projectId: string) {
     const nextProjects = projectServiceRef.current.removeProject(projects, projectId);
     setProjects(nextProjects);
+
     if (activeProjectId === projectId) {
       setActiveProjectId(nextProjects[0]?.id ?? null);
     }
+
     if (nextProjects.length) {
       onStatusChange("项目已删除，已切换到列表里的下一个项目。");
     } else {
