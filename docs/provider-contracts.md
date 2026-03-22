@@ -19,6 +19,10 @@
 }
 ```
 
+兼容字段：
+- `displayName / name / username`
+- `mode / authenticated / isAuthenticated`
+
 ### `POST /sign-in`
 
 返回示例：
@@ -28,6 +32,10 @@
   "message": "登录成功"
 }
 ```
+
+兼容字段：
+- `ok / success / status`
+- `message / detail`
 
 ### `POST /sign-out`
 
@@ -90,6 +98,11 @@
 }
 ```
 
+兼容字段：
+- `ok / success / status`
+- `message / detail`
+- `projectCount` 缺失时会回退到请求包中的项目数
+
 ## 3. OCR Provider
 
 基础地址：
@@ -112,6 +125,10 @@
 }
 ```
 
+兼容字段：
+- `text / content`
+- `message / detail`
+
 ## 4. 视频增强 Provider
 
 基础地址：
@@ -133,3 +150,7 @@
   "message": "视频增强完成"
 }
 ```
+
+兼容字段：
+- `summary / text / content`
+- `message / detail`
