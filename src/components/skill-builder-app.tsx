@@ -700,6 +700,13 @@ export function SkillBuilderApp() {
                       <button className="w-full rounded-full border border-cyan-600 px-5 py-3 text-sm font-semibold text-cyan-700 sm:w-auto" onClick={generateDraft}>
                         重新生成内容
                       </button>
+                      <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-5 text-sm leading-7 text-slate-700">
+                        <h3 className="text-base font-semibold text-slate-900">当前会导出的文件</h3>
+                        <p className="mt-3">- `SKILL.md`：主要 Skill 内容</p>
+                        <p>- `README.md`：安装和使用说明</p>
+                        <p>- `examples/sample.txt`：示例输入输出</p>
+                        <p>- `meta.json`：导出元信息</p>
+                      </div>
                     </div>
 
                     <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.04)]">
