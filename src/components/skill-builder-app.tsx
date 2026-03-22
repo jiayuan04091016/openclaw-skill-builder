@@ -65,6 +65,21 @@ export function SkillBuilderApp() {
     setSection("builder");
   }
 
+  function continueFromLearning() {
+    if (activeProject) {
+      setSection("builder");
+      return;
+    }
+
+    if (homeGoal.trim()) {
+      startFromScratch(homeGoal);
+      return;
+    }
+
+    setSection("home");
+    setStatusMessage("先在首页写下一个目标，再开始制作会更顺。");
+  }
+
   function generateDraft() {
     buildProjectDraft();
     setBuilderStep(4);
@@ -400,13 +415,14 @@ export function SkillBuilderApp() {
                       </p>
                     </div>
                     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                      <button className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white sm:w-auto" onClick={() => setSection("builder")}>
+                      <button className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white sm:w-auto" onClick={continueFromLearning}>
                         去开始制作
                       </button>
                       <button className="w-full rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => setSection("home")}>
                         回首页看模板
                       </button>
                     </div>
+                    <p className="text-sm text-slate-500">如果你已经写过目标或做过项目，点“去开始制作”会直接接着往下走。</p>
                   </div>
                 </div>
               </SectionCard>
@@ -428,7 +444,7 @@ export function SkillBuilderApp() {
                     <p>图片和视频目前主要作为补充资料使用，支持上传和备注。</p>
                     <p>如果资料里有关键说明，建议同步补一段文字说明，生成结果会更稳。</p>
                     <p>第一次使用时，优先上传最能说明任务目标的那一份资料。</p>
-                    <button className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700" onClick={() => setSection("builder")}>
+                    <button className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700" onClick={continueFromLearning}>
                       去补参考资料
                     </button>
                   </div>
