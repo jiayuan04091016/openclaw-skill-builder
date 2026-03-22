@@ -451,6 +451,12 @@ export function SkillBuilderApp() {
                   </div>
                 </SectionCard>
               ) : null}
+
+              {!latestProject && homeGoal.trim() ? (
+                <div className="rounded-[20px] border border-dashed border-slate-200 bg-white/70 px-4 py-3 text-xs leading-6 text-slate-500">
+                  你既可以直接用刚写下来的目标开始，也可以继续往下看模板。通常已经写过目标时，先从这个目标开始会更省时间。
+                </div>
+              ) : null}
             </>
           ) : null}
 
