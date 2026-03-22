@@ -874,6 +874,9 @@ export function SkillBuilderApp() {
                             {completionItems.filter((item) => item.done).length}/{completionItems.length}
                           </span>
                         </div>
+                        <p className="mt-3 text-sm leading-7 text-slate-600">
+                          如果你先把“主要任务”“输入内容”“输出内容”填清楚，通常就已经足够生成第一版。
+                        </p>
                         <div className="mt-4 space-y-3">
                           {completionItems.map((item) => (
                             <div key={item.label} className="flex items-center justify-between gap-3 rounded-[18px] bg-slate-50 px-4 py-3 text-sm">
