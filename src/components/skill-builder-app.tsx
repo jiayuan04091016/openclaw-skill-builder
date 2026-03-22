@@ -600,6 +600,11 @@ export function SkillBuilderApp() {
                         </span>
                       </div>
                     </div>
+                    <p className="mt-3 text-sm leading-7 text-slate-600">
+                      {activeProject.mode === "create"
+                        ? "当前是从零创建模式，适合直接根据你的目标做一个新 Skill。"
+                        : "当前是导入模式，适合在旧 Skill 的基础上继续补需求、改内容和导出新版本。"}
+                    </p>
                   </div>
                   <button
                     className="w-full rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 lg:w-auto"
