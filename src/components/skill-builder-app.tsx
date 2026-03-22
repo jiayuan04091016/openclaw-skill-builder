@@ -456,6 +456,7 @@ export function SkillBuilderApp() {
                       <p className="mt-3 text-base leading-8 text-slate-700">
                         如果你是第一次接触 OpenClaw，建议先看下面这三部分。看完以后，再回到“开始制作”页面，流程会顺很多。
                       </p>
+                      <p className="mt-2 text-sm text-slate-500">如果你已经在首页写过目标，通常可以直接开始做；如果还完全没思路，就先看这页。</p>
                     </div>
                     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                       <button className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white sm:w-auto" onClick={continueFromLearning}>
