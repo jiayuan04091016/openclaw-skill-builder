@@ -227,7 +227,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       setLoading(true);
       const { blob, fileName } = await exportProjectZip(activeProject);
       downloadBlob(blob, fileName);
-      onStatusChange("导出成功，压缩包已经开始下载。");
+      onStatusChange(`导出成功：${fileName}，压缩包已经开始下载。`);
       return true;
     } catch {
       onStatusChange("导出失败，请稍后重试。");
@@ -248,7 +248,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       setLoading(true);
       const { blob, fileName } = await exportProjectZip(target);
       downloadBlob(blob, fileName);
-      onStatusChange(`已开始导出：${target.title || buildStructuredSpec(target).skillName}`);
+      onStatusChange(`已开始导出：${fileName}`);
       return true;
     } catch {
       onStatusChange("重新导出失败，请稍后重试。");
@@ -267,8 +267,9 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     }
 
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-    downloadBlob(blob, `openclaw-skill-builder-backup-${new Date().toISOString().slice(0, 10)}.json`);
-    onStatusChange("备份文件已经开始下载。");
+    const fileName = `openclaw-skill-builder-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    downloadBlob(blob, fileName);
+    onStatusChange(`备份文件已开始下载：${fileName}`);
   }
 
   async function importProjectBackup(event: ChangeEvent<HTMLInputElement>) {
@@ -285,7 +286,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       setProjects(importedProjects);
       setActiveProjectId(importedProjects[0]?.id ?? null);
       setHomeGoal(importedProjects[0]?.goal ?? "");
-      onStatusChange(`已导入 ${importedProjects.length} 个项目备份。`);
+      onStatusChange(`已导入 ${importedProjects.length} 个项目，并切换到最新一个。`);
     } catch {
       onStatusChange("备份文件读取失败，请检查文件内容后重试。");
     } finally {
