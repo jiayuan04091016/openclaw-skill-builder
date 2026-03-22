@@ -37,6 +37,20 @@ export function ProjectCard({ project, onEdit, onDuplicate, onDelete }: ProjectC
         <span>最近更新：{formatDateLabel(project.updatedAt)}</span>
         <span>{project.draft ? "已生成内容" : "进行中"}</span>
       </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <div className="rounded-[18px] bg-slate-50 px-4 py-3">
+          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">资料数</div>
+          <div className="mt-1 text-lg font-semibold text-slate-900">{project.resources.length}</div>
+        </div>
+        <div className="rounded-[18px] bg-slate-50 px-4 py-3">
+          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">示例</div>
+          <div className="mt-1 text-lg font-semibold text-slate-900">{project.includeExamples ? "已附带" : "未附带"}</div>
+        </div>
+        <div className="rounded-[18px] bg-slate-50 px-4 py-3">
+          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">语言</div>
+          <div className="mt-1 text-lg font-semibold text-slate-900">{project.language || "zh-CN"}</div>
+        </div>
+      </div>
       <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <button className="w-full rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white sm:w-auto" onClick={onEdit}>
           继续编辑
