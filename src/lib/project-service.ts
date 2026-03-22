@@ -1,3 +1,4 @@
+import { createMediaProcessingService } from "@/lib/media-processing-service";
 import { parseImportedSkill } from "@/lib/skill-import";
 import { createResourceEnhancementService } from "@/lib/resource-enhancement-service";
 import {
@@ -13,6 +14,7 @@ import type {
   DraftContent,
   OcrResult,
   ProjectRecord,
+  ResourceProcessingResult,
   ResourceItem,
   ResourceType,
   VideoEnhancementResult,
@@ -26,6 +28,7 @@ export type ProjectService = {
   duplicateProject: (project: ProjectRecord) => ProjectRecord;
   createResource: (type: ResourceType, name: string, content: string) => ResourceItem;
   applyImportedSkillPatch: (project: ProjectRecord, importedSkillText: string) => Partial<ProjectRecord>;
+  processResource: (resource: ResourceItem) => Promise<ResourceProcessingResult>;
   runOcrForResource: (resource: ResourceItem) => Promise<OcrResult>;
   enhanceVideoResource: (resource: ResourceItem) => Promise<VideoEnhancementResult>;
   buildDraft: (project: ProjectRecord) => DraftContent;
@@ -33,6 +36,7 @@ export type ProjectService = {
 };
 
 export function createProjectService(): ProjectService {
+  const mediaProcessingService = createMediaProcessingService();
   const resourceEnhancementService = createResourceEnhancementService();
 
   return {
@@ -62,6 +66,7 @@ export function createProjectService(): ProjectService {
         warnings: project.warnings || parsed.warnings,
       };
     },
+    processResource: (resource) => mediaProcessingService.processResource(resource),
     runOcrForResource: (resource) => resourceEnhancementService.runOcr(resource),
     enhanceVideoResource: (resource) => resourceEnhancementService.enhanceVideo(resource),
     buildDraft: (project) => {

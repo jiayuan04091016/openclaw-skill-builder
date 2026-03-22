@@ -183,3 +183,20 @@ export type VideoEnhancementResult = {
   summary: string;
   message: string;
 };
+
+export type ResourceProcessingResult =
+  | {
+      kind: "ocr";
+      result: OcrResult;
+    }
+  | {
+      kind: "video";
+      result: VideoEnhancementResult;
+    }
+  | {
+      kind: "unsupported";
+      result: {
+        status: "not-configured";
+        message: string;
+      };
+    };
