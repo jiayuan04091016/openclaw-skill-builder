@@ -145,3 +145,17 @@ export type SessionProfile = {
   displayName: string;
   email: string | null;
 };
+
+export type CloudSyncPlan = {
+  enabled: boolean;
+  projectCount: number;
+  generatedProjectCount: number;
+  importedProjectCount: number;
+  message: string;
+};
+
+export type CloudSyncResult = {
+  status: "not-configured" | "queued" | "completed";
+  message: string;
+  projectCount: number;
+};

@@ -1,5 +1,6 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 
+import { createCloudSyncClient } from "@/lib/cloud-sync-client";
 import { parseImportedSkill } from "@/lib/skill-import";
 import {
   createEmptyProject,
@@ -51,6 +52,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
   const [repositoryStatus, setRepositoryStatus] = useState<RepositoryStatus | null>(null);
   const backupInputRef = useRef<HTMLInputElement>(null);
   const repositoryRef = useRef<ReturnType<typeof createBrowserProjectRepository> | null>(null);
+  const cloudSyncClientRef = useRef(createCloudSyncClient());
 
   useEffect(() => {
     repositoryRef.current = createBrowserProjectRepository(window.localStorage);
@@ -296,6 +298,10 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     return repositoryRef.current.buildCloudBundle(projects);
   }
 
+  function buildCloudSyncPlan() {
+    return cloudSyncClientRef.current.buildPlan(projects);
+  }
+
   async function importProjectBackup(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
 
@@ -377,6 +383,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     structuredSpec,
     repositoryCapabilities,
     repositoryStatus,
+    buildCloudSyncPlan,
     ensureProject,
     updateProject,
     startFromScratch,
