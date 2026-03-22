@@ -333,6 +333,10 @@ export function SkillBuilderApp() {
                       <button className="w-full rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => startFromImport(homeGoal)}>
                         导入已有 Skill
                       </button>
+                      <div className="mt-4 rounded-[18px] bg-white/70 px-4 py-3">
+                        <p className="font-medium text-slate-900">推荐句式</p>
+                        <p className="mt-2 text-slate-600">我想做一个给 [谁用] 的 Skill，它能帮我 [做什么]，最后输出 [什么结果]。</p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -724,7 +728,7 @@ export function SkillBuilderApp() {
                           ))
                         ) : (
                           <div className="rounded-[18px] bg-slate-50 p-4 text-sm leading-7 text-slate-600">
-                            还没有添加任何资料。没关系，你也可以先继续，后面再补充。
+                            还没有添加任何资料。没关系，你也可以先继续，下一步先把适用场景补出来，后面再回来加资料也可以。
                           </div>
                         )}
                       </div>
@@ -815,7 +819,7 @@ export function SkillBuilderApp() {
                             <div key={item.label} className="flex items-center justify-between gap-3 rounded-[18px] bg-slate-50 px-4 py-3 text-sm">
                               <span className="font-medium text-slate-700">{item.label}</span>
                               <span className={item.done ? "font-semibold text-emerald-700" : "font-semibold text-amber-700"}>
-                                {item.done ? "已完成" : "待补充"}
+                                {item.done ? "已完成" : item.label === "参考资料" ? "可后补" : "待补充"}
                               </span>
                             </div>
                           ))}
