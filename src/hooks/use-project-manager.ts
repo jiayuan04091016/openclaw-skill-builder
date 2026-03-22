@@ -310,7 +310,12 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     if (activeProjectId === projectId) {
       setActiveProjectId(nextProjects[0]?.id ?? null);
     }
-    onStatusChange("项目已删除。");
+    if (nextProjects.length) {
+      onStatusChange("项目已删除，已切换到列表里的下一个项目。");
+    } else {
+      setHomeGoal("");
+      onStatusChange("项目已删除。当前已经没有项目了，可以从零开始创建新的内容。");
+    }
   }
 
   return {
