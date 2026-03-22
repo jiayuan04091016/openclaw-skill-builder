@@ -1049,6 +1049,7 @@ export function SkillBuilderApp() {
                     <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
                       <h3 className="text-base font-semibold text-slate-900">后续操作</h3>
                       <p className="mt-2 text-sm leading-7 text-slate-600">导出之后，通常只需要先做两件事：去测试，或者回到预览继续改。</p>
+                      <p className="mt-2 text-xs leading-6 text-slate-500">如果结果已经大体对了，就先去测试；如果方向明显不对，就先回到预览修改。</p>
                       <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                         <button className="w-full rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => setBuilderStep(4)}>
                           回到预览继续修改
