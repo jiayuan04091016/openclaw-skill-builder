@@ -765,22 +765,27 @@ export function SkillBuilderApp() {
                       <h3 className="text-base font-semibold text-slate-900">已添加的资料</h3>
                       <div className="mt-4 space-y-3">
                         {activeProject.resources.length ? (
-                          activeProject.resources.map((resource) => (
-                            <div key={resource.id} className="rounded-[18px] bg-slate-50 p-4">
-                              <div className="flex items-start justify-between gap-3">
-                                <div>
-                                  <div className="text-sm font-semibold text-slate-900">{resource.name}</div>
-                                  <div className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
-                                    {resourceTypeLabels[resource.type] ?? resource.type}
+                          <>
+                            {activeProject.resources.map((resource) => (
+                              <div key={resource.id} className="rounded-[18px] bg-slate-50 p-4">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div>
+                                    <div className="text-sm font-semibold text-slate-900">{resource.name}</div>
+                                    <div className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
+                                      {resourceTypeLabels[resource.type] ?? resource.type}
+                                    </div>
                                   </div>
+                                  <button className="text-sm font-medium text-rose-600" onClick={() => removeResource(resource.id)}>
+                                    删除
+                                  </button>
                                 </div>
-                                <button className="text-sm font-medium text-rose-600" onClick={() => removeResource(resource.id)}>
-                                  删除
-                                </button>
+                                <p className="mt-3 text-sm leading-7 text-slate-600">{resource.content.slice(0, 120)}</p>
                               </div>
-                              <p className="mt-3 text-sm leading-7 text-slate-600">{resource.content.slice(0, 120)}</p>
-                            </div>
-                          ))
+                            ))}
+                            <p className="text-xs leading-6 text-slate-500">
+                              只要这里已经有 1 到 2 份能说明任务目标的资料，通常就足够先继续到下一步了。
+                            </p>
+                          </>
                         ) : (
                           <div className="rounded-[18px] bg-slate-50 p-4 text-sm leading-7 text-slate-600">
                             还没有添加任何资料。没关系，你也可以先继续，下一步先把适用场景补出来，后面再回来加资料也可以。
