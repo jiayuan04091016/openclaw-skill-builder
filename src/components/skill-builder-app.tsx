@@ -74,6 +74,22 @@ export function SkillBuilderApp() {
     setSection("skills");
   }
 
+  async function copyPreviewContent() {
+    if (!currentDraft) {
+      return;
+    }
+
+    const content =
+      previewMode === "guide"
+        ? currentDraft.previewText
+        : previewMode === "skill"
+          ? currentDraft.skillMarkdown
+          : `示例输入：\n${currentDraft.exampleInput}\n\n示例输出：\n${currentDraft.exampleOutput}`;
+
+    await navigator.clipboard.writeText(content);
+    setStatusMessage("当前预览内容已复制。");
+  }
+
   const filteredProjects = useMemo(() => {
     const keyword = projectKeyword.trim().toLowerCase();
 
@@ -100,6 +116,15 @@ export function SkillBuilderApp() {
       return true;
     });
   }, [projectFilter, projectKeyword, projects]);
+
+  const projectStats = useMemo(
+    () => ({
+      total: projects.length,
+      generated: projects.filter((project) => project.draft).length,
+      imported: projects.filter((project) => project.mode === "import").length,
+    }),
+    [projects],
+  );
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,#fef3c7_0%,#f8fafc_28%,#eef6ff_60%,#f8fafc_100%)] text-slate-900">
@@ -578,18 +603,23 @@ export function SkillBuilderApp() {
                     </div>
 
                     <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.04)]">
-                      <div className="inline-flex w-full flex-wrap rounded-[20px] border border-slate-200 bg-slate-50 p-1 sm:w-auto sm:rounded-full">
-                        {previewTabs.map((mode) => (
-                          <button
-                            key={mode.id}
-                            className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition sm:flex-none ${
-                              previewMode === mode.id ? "bg-slate-950 text-white" : "text-slate-600"
-                            }`}
-                            onClick={() => setPreviewMode(mode.id)}
-                          >
-                            {mode.label}
-                          </button>
-                        ))}
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="inline-flex w-full flex-wrap rounded-[20px] border border-slate-200 bg-slate-50 p-1 sm:w-auto sm:rounded-full">
+                          {previewTabs.map((mode) => (
+                            <button
+                              key={mode.id}
+                              className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition sm:flex-none ${
+                                previewMode === mode.id ? "bg-slate-950 text-white" : "text-slate-600"
+                              }`}
+                              onClick={() => setPreviewMode(mode.id)}
+                            >
+                              {mode.label}
+                            </button>
+                          ))}
+                        </div>
+                        <button className="w-full rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => void copyPreviewContent()}>
+                          复制当前内容
+                        </button>
                       </div>
 
                       <pre className="mt-4 max-h-[36rem] overflow-auto rounded-[20px] bg-slate-950 p-5 text-sm leading-7 whitespace-pre-wrap text-slate-100">
@@ -695,6 +725,20 @@ export function SkillBuilderApp() {
                     如果你已经做过一个接近的版本，最省时间的方式通常不是重做，而是直接复制后继续调整。你也可以先导出备份，避免清缓存后数据丢失。
                   </p>
                 </div>
+              </div>
+
+              <div className="mb-5 grid gap-4 md:grid-cols-3">
+                {[
+                  { label: "全部项目", value: projectStats.total, hint: "当前保存在本机的全部项目" },
+                  { label: "已生成内容", value: projectStats.generated, hint: "已经生成过草稿或导出内容的项目" },
+                  { label: "导入类项目", value: projectStats.imported, hint: "基于旧 Skill 改造的项目数量" },
+                ].map((item) => (
+                  <div key={item.label} className="rounded-[22px] border border-slate-200 bg-white p-5">
+                    <div className="text-sm font-medium text-slate-500">{item.label}</div>
+                    <div className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">{item.value}</div>
+                    <div className="mt-2 text-sm leading-6 text-slate-600">{item.hint}</div>
+                  </div>
+                ))}
               </div>
 
               <div className="mb-5 grid gap-3 lg:grid-cols-[1fr_auto]">
