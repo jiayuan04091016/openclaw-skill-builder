@@ -55,3 +55,9 @@ export type ProjectRecord = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type BackupPayload = {
+  version: 1;
+  exportedAt: string;
+  projects: ProjectRecord[];
+};

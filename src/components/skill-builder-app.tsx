@@ -1,428 +1,65 @@
 "use client";
 
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 
-import { buildDraftContent, buildStructuredSpec, createId, exportProjectZip, formatDateLabel } from "@/lib/skill-builder";
-import type { AppSection, BuilderMode, DraftContent, OutputStyle, ProjectRecord, ResourceItem, ResourceType } from "@/types/app";
-
-const STORAGE_KEY = "openclaw-skill-builder-projects";
-
-const navItems: { id: AppSection; label: string }[] = [
-  { id: "home", label: "首页" },
-  { id: "learn", label: "学习中心" },
-  { id: "builder", label: "开始制作" },
-  { id: "skills", label: "我的项目" },
-  { id: "help", label: "帮助" },
-];
-
-const templates = [
-  { title: "会议纪要助手", goal: "我想做一个帮助整理会议纪要并列出待办事项的 Skill" },
-  { title: "客服回复助手", goal: "我想做一个根据客户问题生成礼貌回复建议的 Skill" },
-  { title: "网页摘要助手", goal: "我想做一个把网页内容整理成新手易读摘要的 Skill" },
-];
-
-const learningCards = [
-  {
-    title: "说出你的目标",
-    body: "像平时说话一样描述你想完成什么，不需要先懂文件结构或写法。",
-  },
-  {
-    title: "补充你的资料",
-    body: "文章、截图、视频链接、旧 Skill 都可以加进来，系统会一起参考。",
-  },
-  {
-    title: "导出就能使用",
-    body: "生成后可以直接查看说明、预览内容，再导出成可继续使用的压缩包。",
-  },
-];
-
-const faqs = [
-  {
-    q: "这个应用适合谁使用？",
-    a: "适合刚接触 OpenClaw、不会自己写 Skill 文件，或者想把现有资料快速整理成可用 Skill 的用户。",
-  },
-  {
-    q: "导出的 Skill 放到哪里？",
-    a: "先解压 ZIP，再把整个目录放到 OpenClaw 的 skills 目录里，然后重启或刷新 OpenClaw。",
-  },
-  {
-    q: "支持哪些资料类型？",
-    a: "目前支持文字资料、图片、视频链接备注，以及已有的 SKILL.md 内容。你可以先从最简单的文字资料开始，熟悉后再逐步补充更多内容。",
-  },
-];
-
-function nowIso() {
-  return new Date().toISOString();
-}
-
-function makeEmptyProject(mode: BuilderMode, seedGoal = ""): ProjectRecord {
-  const createdAt = nowIso();
-
-  return {
-    id: createId(),
-    mode,
-    title: "",
-    goal: seedGoal,
-    description: "",
-    audience: "",
-    mainTask: "",
-    inputFormat: "",
-    outputFormat: "",
-    outputStyle: "simple",
-    language: "zh-CN",
-    warnings: "",
-    includeExamples: true,
-    resources: [],
-    importedSkillText: "",
-    draft: null,
-    createdAt,
-    updatedAt: createdAt,
-  };
-}
-
-function downloadBlob(blob: Blob, fileName: string) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = fileName;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
-function readFileContent(file: File) {
-  if (file.type.startsWith("text/") || file.name.endsWith(".md") || file.name.endsWith(".txt")) {
-    return file.text();
-  }
-
-  return Promise.resolve("");
-}
-
-function SectionCard({
-  title,
-  children,
-  action,
-}: {
-  title: string;
-  children: React.ReactNode;
-  action?: React.ReactNode;
-}) {
-  return (
-    <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_14px_40px_rgba(15,23,42,0.06)]">
-      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <h2 className="text-xl font-semibold text-slate-900">{title}</h2>
-        {action}
-      </div>
-      {children}
-    </section>
-  );
-}
-
-function Field({
-  label,
-  value,
-  placeholder,
-  onChange,
-  multiline,
-}: {
-  label: string;
-  value: string;
-  placeholder: string;
-  onChange: (value: string) => void;
-  multiline?: boolean;
-}) {
-  return (
-    <label className="block text-sm font-medium text-slate-700">
-      {label}
-      {multiline ? (
-        <textarea
-          rows={4}
-          value={value}
-          className="mt-2 w-full rounded-[18px] border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-cyan-500"
-          placeholder={placeholder}
-          onChange={(event) => onChange(event.target.value)}
-        />
-      ) : (
-        <input
-          value={value}
-          className="mt-2 w-full rounded-[18px] border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-cyan-500"
-          placeholder={placeholder}
-          onChange={(event) => onChange(event.target.value)}
-        />
-      )}
-    </label>
-  );
-}
-
-function QuickResourceForm({
-  onAdd,
-}: {
-  onAdd: (type: ResourceType, name: string, content: string) => void;
-}) {
-  const [textContent, setTextContent] = useState("");
-  const [videoUrl, setVideoUrl] = useState("");
-
-  return (
-    <div className="space-y-4">
-      <label className="block text-sm font-medium text-slate-700">
-        直接粘贴文字资料
-        <textarea
-          rows={5}
-          value={textContent}
-          className="mt-2 w-full rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-cyan-500"
-          placeholder="把文章、流程说明、需求说明直接粘贴进来"
-          onChange={(event) => setTextContent(event.target.value)}
-        />
-      </label>
-      <button
-        className="w-full rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 sm:w-auto"
-        onClick={() => {
-          if (!textContent.trim()) return;
-          onAdd("text", "粘贴文本", textContent);
-          setTextContent("");
-        }}
-      >
-        添加文本资料
-      </button>
-
-      <label className="block text-sm font-medium text-slate-700">
-        视频链接或备注
-        <textarea
-          rows={3}
-          value={videoUrl}
-          className="mt-2 w-full rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-cyan-500"
-          placeholder="比如：培训视频链接，或者简单写一句有 10 分钟讲解视频可参考"
-          onChange={(event) => setVideoUrl(event.target.value)}
-        />
-      </label>
-      <button
-        className="w-full rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 sm:w-auto"
-        onClick={() => {
-          if (!videoUrl.trim()) return;
-          onAdd("video", "视频参考", videoUrl);
-          setVideoUrl("");
-        }}
-      >
-        添加视频资料
-      </button>
-    </div>
-  );
-}
+import { Field, QuickResourceForm, SectionCard } from "@/components/builder-ui";
+import { ProjectCard } from "@/components/project-card";
+import { useProjectManager } from "@/hooks/use-project-manager";
+import { builderStepMeta, builderStepTabs, faqs, learningCards, navItems, previewTabs, templates } from "@/lib/content";
+import { formatDateLabel } from "@/lib/skill-builder";
+import type { AppSection, BuilderMode, OutputStyle } from "@/types/app";
 
 export function SkillBuilderApp() {
   const [section, setSection] = useState<AppSection>("home");
-  const [projects, setProjects] = useState<ProjectRecord[]>([]);
-  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
-  const [homeGoal, setHomeGoal] = useState("");
   const [builderStep, setBuilderStep] = useState(1);
-  const [statusMessage, setStatusMessage] = useState("已经准备好，可以开始制作。");
+  const [statusMessage, setStatusMessage] = useState("????????????");
   const [previewMode, setPreviewMode] = useState<"guide" | "skill" | "result">("guide");
-  const [loading, setLoading] = useState(false);
-  const [hasLoadedProjects, setHasLoadedProjects] = useState(false);
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem(STORAGE_KEY);
-
-    if (!saved) {
-      setHasLoadedProjects(true);
-      return;
-    }
-
-    try {
-      const parsed = JSON.parse(saved) as ProjectRecord[];
-      setProjects(parsed);
-      if (parsed[0]) {
-        setActiveProjectId(parsed[0].id);
-        setHomeGoal(parsed[0].goal);
-      }
-    } catch {
-      setStatusMessage("之前保存的内容没有成功读取，系统已自动跳过旧数据。");
-    } finally {
-      setHasLoadedProjects(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!hasLoadedProjects) {
-      return;
-    }
-
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
-  }, [projects, hasLoadedProjects]);
-
-  const activeProject = useMemo(
-    () => projects.find((item) => item.id === activeProjectId) ?? null,
-    [projects, activeProjectId],
-  );
-
-  const structuredSpec = useMemo(
-    () => (activeProject ? buildStructuredSpec(activeProject) : null),
-    [activeProject],
-  );
-
-  const currentDraft =
-    activeProject?.draft ??
-    (structuredSpec && activeProject ? buildDraftContent(structuredSpec, activeProject.includeExamples) : null);
-
-  function upsertProject(project: ProjectRecord) {
-    setProjects((current) => {
-      const index = current.findIndex((item) => item.id === project.id);
-      if (index === -1) {
-        return [project, ...current];
-      }
-
-      const next = [...current];
-      next[index] = project;
-      return next.sort((a, b) => +new Date(b.updatedAt) - +new Date(a.updatedAt));
-    });
-  }
-
-  function ensureProject(mode: BuilderMode, seedGoal = "") {
-    if (activeProject && activeProject.mode === mode) {
-      return activeProject;
-    }
-
-    const project = makeEmptyProject(mode, seedGoal);
-    upsertProject(project);
-    setActiveProjectId(project.id);
-    return project;
-  }
-
-  function updateProject(patch: Partial<ProjectRecord>) {
-    if (!activeProject) {
-      return;
-    }
-
-    upsertProject({
-      ...activeProject,
-      ...patch,
-      updatedAt: nowIso(),
-    });
-  }
+  const {
+    projects,
+    activeProject,
+    setActiveProjectId,
+    homeGoal,
+    setHomeGoal,
+    loading,
+    backupInputRef,
+    currentDraft,
+    structuredSpec,
+    ensureProject,
+    updateProject,
+    startFromScratch: createProjectFromScratch,
+    startFromImport: createProjectFromImport,
+    removeResource,
+    handleFileUpload,
+    addManualResource,
+    generateDraft: buildProjectDraft,
+    exportCurrentProject,
+    exportProjectBackup,
+    importProjectBackup,
+    applyImportedSkillText,
+    duplicateProject: duplicateManagedProject,
+    deleteProject,
+  } = useProjectManager({ onStatusChange: setStatusMessage });
 
   function startFromScratch(goal = "") {
-    const project = makeEmptyProject("create", goal);
-    upsertProject(project);
-    setActiveProjectId(project.id);
+    createProjectFromScratch(goal);
     setBuilderStep(1);
     setSection("builder");
-    setStatusMessage("已创建新项目，可以开始填写目标。");
   }
 
   function startFromImport(goal = "") {
-    const project = makeEmptyProject("import", goal);
-    upsertProject(project);
-    setActiveProjectId(project.id);
+    createProjectFromImport(goal);
     setBuilderStep(1);
     setSection("builder");
-    setStatusMessage("已进入导入模式，请先添加已有 Skill 内容。");
-  }
-
-  function removeResource(resourceId: string) {
-    if (!activeProject) {
-      return;
-    }
-
-    updateProject({
-      resources: activeProject.resources.filter((item) => item.id !== resourceId),
-    });
-  }
-
-  async function handleFileUpload(event: ChangeEvent<HTMLInputElement>, type: ResourceType) {
-    const file = event.target.files?.[0];
-
-    if (!file || !activeProject) {
-      return;
-    }
-
-    const content = await readFileContent(file);
-    const resource: ResourceItem = {
-      id: createId("res"),
-      type,
-      name: file.name,
-      content: content || `${file.name} 已上传，可作为补充资料使用。`,
-      createdAt: nowIso(),
-    };
-
-    updateProject({
-      resources: [...activeProject.resources, resource],
-      importedSkillText: type === "skill" ? content : activeProject.importedSkillText,
-    });
-    setStatusMessage(`已添加资料：${file.name}`);
-    event.target.value = "";
-  }
-
-  function addManualResource(type: ResourceType, name: string, content: string) {
-    if (!activeProject || !content.trim()) {
-      return;
-    }
-
-    const resource: ResourceItem = {
-      id: createId("res"),
-      type,
-      name,
-      content,
-      createdAt: nowIso(),
-    };
-
-    updateProject({ resources: [...activeProject.resources, resource] });
-    setStatusMessage(`已添加 ${name}`);
   }
 
   function generateDraft() {
-    if (!activeProject) {
-      return;
-    }
-
-    const nextDraft: DraftContent = buildDraftContent(buildStructuredSpec(activeProject), activeProject.includeExamples);
-    updateProject({ draft: nextDraft, title: activeProject.title || buildStructuredSpec(activeProject).skillName });
+    buildProjectDraft();
     setBuilderStep(4);
-    setStatusMessage("内容已生成，现在可以预览、调整并导出。");
-  }
-
-  async function exportCurrentProject() {
-    if (!activeProject) {
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const { blob, fileName } = await exportProjectZip(activeProject);
-      downloadBlob(blob, fileName);
-      setStatusMessage("导出成功，压缩包已经开始下载。");
-    } catch {
-      setStatusMessage("导出失败，请稍后重试。");
-    } finally {
-      setLoading(false);
-    }
   }
 
   function duplicateProject(projectId: string) {
-    const source = projects.find((item) => item.id === projectId);
-    if (!source) {
-      return;
-    }
-
-    const duplicate = {
-      ...source,
-      id: createId(),
-      title: `${source.title || "未命名项目"} - 副本`,
-      createdAt: nowIso(),
-      updatedAt: nowIso(),
-    };
-
-    upsertProject(duplicate);
-    setActiveProjectId(duplicate.id);
+    duplicateManagedProject(projectId);
     setSection("skills");
-    setStatusMessage("已复制为新版本。");
-  }
-
-  function deleteProject(projectId: string) {
-    const nextProjects = projects.filter((item) => item.id !== projectId);
-    setProjects(nextProjects);
-    if (activeProjectId === projectId) {
-      setActiveProjectId(nextProjects[0]?.id ?? null);
-    }
-    setStatusMessage("项目已删除。");
   }
 
   return (
@@ -663,32 +300,14 @@ export function SkillBuilderApp() {
                   <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                     <div>
                       <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-700">当前流程</p>
-                      <h3 className="mt-2 text-lg font-semibold text-slate-950">
-                        {builderStep === 1 && "先把目标说清楚"}
-                        {builderStep === 2 && "补充资料，让结果更贴近你的需求"}
-                        {builderStep === 3 && "确认输入、输出和适用场景"}
-                        {builderStep === 4 && "检查内容，按你的习惯做最后调整"}
-                        {builderStep === 5 && "导出文件并按步骤安装使用"}
-                      </h3>
+                      <h3 className="mt-2 text-lg font-semibold text-slate-950">{builderStepMeta[builderStep].title}</h3>
                     </div>
-                    <p className="max-w-xl text-sm leading-7 text-slate-600">
-                      {builderStep === 1 && "这一步建议先用最简单的话描述你想完成的事，不需要担心写得不专业。"}
-                      {builderStep === 2 && "如果你手头有资料、说明文档、图片或旧 Skill，现在一起补上会更稳。"}
-                      {builderStep === 3 && "系统会根据这里的设置整理出更清晰的结果，你也可以后面继续改。"}
-                      {builderStep === 4 && "先看说明版，再看 Skill 内容和示例，确认方向对了再导出。"}
-                      {builderStep === 5 && "导出后先用示例测试一次，确认没问题再放进真实场景使用。"}
-                    </p>
+                    <p className="max-w-xl text-sm leading-7 text-slate-600">{builderStepMeta[builderStep].description}</p>
                   </div>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-5">
-                  {[
-                    { id: 1, title: "目标" },
-                    { id: 2, title: "资料" },
-                    { id: 3, title: "场景" },
-                    { id: 4, title: "预览" },
-                    { id: 5, title: "导出" },
-                  ].map((step) => (
+                  {builderStepTabs.map((step) => (
                     <button
                       key={step.id}
                       className={`rounded-[20px] px-4 py-3 text-left text-sm transition ${
@@ -696,12 +315,13 @@ export function SkillBuilderApp() {
                       }`}
                       onClick={() => setBuilderStep(step.id)}
                     >
-                      <div className="font-semibold">步骤 {step.id}</div>
+                      <div className="font-semibold">?? {step.id}</div>
                       <div className="mt-1">{step.title}</div>
                     </button>
                   ))}
                 </div>
               </SectionCard>
+
 
               {builderStep === 1 ? (
                 <SectionCard title="步骤 1：你想达到什么目的">
@@ -730,13 +350,18 @@ export function SkillBuilderApp() {
                   <div className="grid gap-6 lg:grid-cols-[1fr_0.95fr]">
                     <div className="space-y-4">
                       {activeProject.mode === "import" ? (
-                        <Field
-                          label="粘贴已有 Skill 内容"
-                          value={activeProject.importedSkillText}
-                          placeholder="把已有的 SKILL.md 内容粘贴到这里，或者上传 .md 文件"
-                          onChange={(value) => updateProject({ importedSkillText: value })}
-                          multiline
-                        />
+                        <div className="space-y-3">
+                          <Field
+                            label="粘贴已有 Skill 内容"
+                            value={activeProject.importedSkillText}
+                            placeholder="把已有的 SKILL.md 内容粘贴到这里，或者上传 .md 文件"
+                            onChange={(value) => updateProject({ importedSkillText: value })}
+                            multiline
+                          />
+                          <button className="w-full rounded-full border border-cyan-600 px-4 py-2 text-sm font-semibold text-cyan-700 sm:w-auto" onClick={applyImportedSkillText}>
+                            从已有内容提取信息
+                          </button>
+                        </div>
                       ) : null}
                       <div className="grid gap-3 sm:grid-cols-2">
                         <label className="rounded-[20px] border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-700">
@@ -873,17 +498,13 @@ export function SkillBuilderApp() {
 
                     <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.04)]">
                       <div className="inline-flex w-full flex-wrap rounded-[20px] border border-slate-200 bg-slate-50 p-1 sm:w-auto sm:rounded-full">
-                        {[
-                          { id: "guide", label: "说明版" },
-                          { id: "skill", label: "SKILL.md 版" },
-                          { id: "result", label: "示例版" },
-                        ].map((mode) => (
+                        {previewTabs.map((mode) => (
                           <button
                             key={mode.id}
                             className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition sm:flex-none ${
                               previewMode === mode.id ? "bg-slate-950 text-white" : "text-slate-600"
                             }`}
-                            onClick={() => setPreviewMode(mode.id as "guide" | "skill" | "result")}
+                            onClick={() => setPreviewMode(mode.id)}
                           >
                             {mode.label}
                           </button>
@@ -895,18 +516,23 @@ export function SkillBuilderApp() {
                           ? currentDraft?.previewText
                           : previewMode === "skill"
                             ? currentDraft?.skillMarkdown
-                            : `示例输入：\n${currentDraft?.exampleInput ?? ""}\n\n示例输出：\n${currentDraft?.exampleOutput ?? ""}`}
+                            : `?????
+${currentDraft?.exampleInput ?? ""}
+
+?????
+${currentDraft?.exampleOutput ?? ""}`}
                       </pre>
                     </div>
                   </div>
                   <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-between">
                     <button className="w-full rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => setBuilderStep(3)}>
-                      上一步
+                      ???
                     </button>
                     <button className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white sm:w-auto" onClick={() => setBuilderStep(5)}>
-                      下一步：导出文件
+                      ????????
                     </button>
                   </div>
+
                 </SectionCard>
               ) : null}
 
@@ -969,11 +595,20 @@ export function SkillBuilderApp() {
             <SectionCard
               title="我的项目"
               action={
-                <button className="w-full rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white sm:w-auto" onClick={() => startFromScratch()}>
-                  新建项目
-                </button>
+                <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+                  <button className="w-full rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 sm:w-auto" onClick={exportProjectBackup}>
+                    导出备份
+                  </button>
+                  <button className="w-full rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => backupInputRef.current?.click()}>
+                    导入备份
+                  </button>
+                  <button className="w-full rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white sm:w-auto" onClick={() => startFromScratch()}>
+                    新建项目
+                  </button>
+                </div>
               }
             >
+              <input ref={backupInputRef} type="file" accept=".json,application/json" className="hidden" onChange={importProjectBackup} />
               <div className="mb-5 rounded-[24px] bg-[linear-gradient(135deg,#f8fafc_0%,#eef6ff_55%,#fefce8_100%)] p-5">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <div>
@@ -981,55 +616,24 @@ export function SkillBuilderApp() {
                     <h3 className="mt-2 text-lg font-semibold text-slate-950">在这里继续编辑、复制版本，或重新导出你做过的内容</h3>
                   </div>
                   <p className="max-w-xl text-sm leading-7 text-slate-600">
-                    如果你已经做过一个接近的版本，最省时间的方式通常不是重做，而是直接复制后继续调整。
+                    如果你已经做过一个接近的版本，最省时间的方式通常不是重做，而是直接复制后继续调整。你也可以先导出备份，避免清缓存后数据丢失。
                   </p>
                 </div>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 {projects.length ? (
                   projects.map((project) => (
-                    <div key={project.id} className="rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-5 shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <h3 className="text-lg font-semibold text-slate-900">{project.title || buildStructuredSpec(project).skillName}</h3>
-                          <p className="mt-2 text-sm leading-7 text-slate-600">{project.goal || "还没有填写目标"}</p>
-                        </div>
-                        <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600">
-                          {project.mode === "create" ? "新建" : "导入"}
-                        </span>
-                      </div>
-                      <div className="mt-4 flex items-center justify-between gap-3 text-sm text-slate-500">
-                        <span>最近更新：{formatDateLabel(project.updatedAt)}</span>
-                        <span>{project.draft ? "已生成内容" : "进行中"}</span>
-                      </div>
-                      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                        <button
-                          className="w-full rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white sm:w-auto"
-                          onClick={() => {
-                            setActiveProjectId(project.id);
-                            setSection("builder");
-                            setBuilderStep(project.draft ? 4 : 1);
-                          }}
-                        >
-                          继续编辑
-                        </button>
-                        <button className="w-full rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => duplicateProject(project.id)}>
-                          复制新版本
-                        </button>
-                        <button
-                          className="w-full rounded-full border border-cyan-600 px-4 py-2 text-sm font-semibold text-cyan-700 sm:w-auto"
-                          onClick={async () => {
-                            const { blob, fileName } = await exportProjectZip(project);
-                            downloadBlob(blob, fileName);
-                          }}
-                        >
-                          再次导出
-                        </button>
-                        <button className="w-full rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600 sm:w-auto" onClick={() => deleteProject(project.id)}>
-                          删除
-                        </button>
-                      </div>
-                    </div>
+                    <ProjectCard
+                      key={project.id}
+                      project={project}
+                      onEdit={() => {
+                        setActiveProjectId(project.id);
+                        setSection("builder");
+                        setBuilderStep(project.draft ? 4 : 1);
+                      }}
+                      onDuplicate={() => duplicateProject(project.id)}
+                      onDelete={() => deleteProject(project.id)}
+                    />
                   ))
                 ) : (
                   <div className="rounded-[24px] bg-slate-50 p-8 text-sm leading-7 text-slate-600">
