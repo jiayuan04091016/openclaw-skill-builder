@@ -847,6 +847,11 @@ export function SkillBuilderApp() {
                           </div>
                         </dl>
                       </div>
+                      <div className="rounded-[24px] border border-amber-100 bg-amber-50/70 p-5 text-sm leading-7 text-slate-700">
+                        <h3 className="text-base font-semibold text-slate-900">导出前提醒</h3>
+                        <p className="mt-3">建议先复制测试提示词跑一遍示例，确认结果方向对了，再放入真实资料。</p>
+                        <p className="mt-2">如果这个版本已经接近可用，也可以先去“我的项目”导出一份备份，后面改坏了还能恢复。</p>
+                      </div>
                       <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-5 text-sm leading-7 text-slate-700">
                         <h3 className="text-base font-semibold text-slate-900">安装步骤</h3>
                         <p className="mt-3">1. 点击导出 ZIP。</p>
