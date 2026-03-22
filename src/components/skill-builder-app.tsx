@@ -932,6 +932,25 @@ export function SkillBuilderApp() {
                 </div>
               </div>
 
+              {projectKeyword.trim() || projectFilter !== "all" ? (
+                <div className="mb-5 flex justify-end">
+                  <button
+                    className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
+                    onClick={() => {
+                      setProjectKeyword("");
+                      setProjectFilter("all");
+                    }}
+                  >
+                    清空筛选
+                  </button>
+                </div>
+              ) : null}
+
+              <div className="mb-5 text-sm text-slate-500">
+                当前显示 {filteredProjects.length} 个项目
+                {projectKeyword.trim() || projectFilter !== "all" ? "（已应用筛选）" : ""}
+              </div>
+
               <div className="grid gap-4 md:grid-cols-2">
                 {filteredProjects.length ? (
                   filteredProjects.map((project) => (
