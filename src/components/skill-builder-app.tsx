@@ -90,6 +90,28 @@ export function SkillBuilderApp() {
     setStatusMessage("当前预览内容已复制。");
   }
 
+  async function copyInstallGuide() {
+    const guide = [
+      "1. 点击导出 ZIP。",
+      "2. 解压文件夹。",
+      "3. 把整个目录放进 OpenClaw 的 skills 目录。",
+      "4. 重启或刷新 OpenClaw。",
+      "5. 先用示例输入测试一次，再放入真实内容。",
+    ].join("\n");
+
+    await navigator.clipboard.writeText(guide);
+    setStatusMessage("安装说明已复制。");
+  }
+
+  async function copyTestPrompt() {
+    if (!currentDraft) {
+      return;
+    }
+
+    await navigator.clipboard.writeText(currentDraft.exampleInput);
+    setStatusMessage("测试提示词已复制。");
+  }
+
   function goToResourceStep() {
     if (!activeProject?.goal.trim()) {
       setStatusMessage("请先写下你想完成的目标。");
@@ -688,6 +710,14 @@ export function SkillBuilderApp() {
                         <p>3. 把整个目录放进 OpenClaw 的 skills 目录。</p>
                         <p>4. 重启或刷新 OpenClaw。</p>
                         <p>5. 先用示例输入测试一次，再放入真实内容。</p>
+                        <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                          <button className="w-full rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => void copyInstallGuide()}>
+                            复制安装说明
+                          </button>
+                          <button className="w-full rounded-full border border-cyan-600 px-4 py-2 text-sm font-semibold text-cyan-700 sm:w-auto" onClick={() => void copyTestPrompt()}>
+                            复制测试提示词
+                          </button>
+                        </div>
                       </div>
                       <button
                         className="w-full rounded-full bg-cyan-600 px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-cyan-300"
