@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Field, QuickResourceForm, SectionCard } from "@/components/builder-ui";
 import { ProjectCard } from "@/components/project-card";
@@ -23,6 +23,8 @@ export function SkillBuilderApp() {
   const [builderStep, setBuilderStep] = useState(1);
   const [statusMessage, setStatusMessage] = useState("已准备好开始。");
   const [previewMode, setPreviewMode] = useState<"guide" | "skill" | "result">("guide");
+  const [projectKeyword, setProjectKeyword] = useState("");
+  const [projectFilter, setProjectFilter] = useState<"all" | "draft" | "generated" | "import">("all");
   const session = useSessionState();
   const {
     projects,
@@ -71,6 +73,33 @@ export function SkillBuilderApp() {
     duplicateManagedProject(projectId);
     setSection("skills");
   }
+
+  const filteredProjects = useMemo(() => {
+    const keyword = projectKeyword.trim().toLowerCase();
+
+    return projects.filter((project) => {
+      const text = `${project.title} ${project.goal}`.toLowerCase();
+      const keywordMatched = !keyword || text.includes(keyword);
+
+      if (!keywordMatched) {
+        return false;
+      }
+
+      if (projectFilter === "draft") {
+        return !project.draft;
+      }
+
+      if (projectFilter === "generated") {
+        return Boolean(project.draft);
+      }
+
+      if (projectFilter === "import") {
+        return project.mode === "import";
+      }
+
+      return true;
+    });
+  }, [projectFilter, projectKeyword, projects]);
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,#fef3c7_0%,#f8fafc_28%,#eef6ff_60%,#f8fafc_100%)] text-slate-900">
@@ -404,6 +433,34 @@ export function SkillBuilderApp() {
                         </label>
                       </div>
                       <QuickResourceForm onAdd={addManualResource} />
+
+                      {activeProject.mode === "import" ? (
+                        <div className="rounded-[24px] border border-cyan-100 bg-cyan-50/60 p-5">
+                          <h3 className="text-base font-semibold text-slate-900">已提取到的信息</h3>
+                          <dl className="mt-4 grid gap-3 text-sm leading-7 text-slate-700 sm:grid-cols-2">
+                            <div>
+                              <dt className="font-semibold text-slate-900">名称</dt>
+                              <dd>{activeProject.title || "还没有提取到"}</dd>
+                            </div>
+                            <div>
+                              <dt className="font-semibold text-slate-900">适用对象</dt>
+                              <dd>{activeProject.audience || "还没有提取到"}</dd>
+                            </div>
+                            <div>
+                              <dt className="font-semibold text-slate-900">主要任务</dt>
+                              <dd>{activeProject.mainTask || "还没有提取到"}</dd>
+                            </div>
+                            <div>
+                              <dt className="font-semibold text-slate-900">输入内容</dt>
+                              <dd>{activeProject.inputFormat || "还没有提取到"}</dd>
+                            </div>
+                            <div className="sm:col-span-2">
+                              <dt className="font-semibold text-slate-900">输出内容</dt>
+                              <dd>{activeProject.outputFormat || "还没有提取到"}</dd>
+                            </div>
+                          </dl>
+                        </div>
+                      ) : null}
                     </div>
 
                     <div className="rounded-[24px] border border-slate-200 bg-white p-5">
@@ -639,9 +696,37 @@ export function SkillBuilderApp() {
                   </p>
                 </div>
               </div>
+
+              <div className="mb-5 grid gap-3 lg:grid-cols-[1fr_auto]">
+                <input
+                  value={projectKeyword}
+                  onChange={(event) => setProjectKeyword(event.target.value)}
+                  className="w-full rounded-[18px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-cyan-500"
+                  placeholder="搜索项目名称或目标"
+                />
+                <div className="inline-flex flex-wrap rounded-full border border-slate-200 bg-slate-50 p-1">
+                  {[
+                    { id: "all", label: "全部" },
+                    { id: "draft", label: "进行中" },
+                    { id: "generated", label: "已生成" },
+                    { id: "import", label: "导入类" },
+                  ].map((item) => (
+                    <button
+                      key={item.id}
+                      className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                        projectFilter === item.id ? "bg-slate-950 text-white" : "text-slate-600"
+                      }`}
+                      onClick={() => setProjectFilter(item.id as typeof projectFilter)}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="grid gap-4 md:grid-cols-2">
-                {projects.length ? (
-                  projects.map((project) => (
+                {filteredProjects.length ? (
+                  filteredProjects.map((project) => (
                     <ProjectCard
                       key={project.id}
                       project={project}
@@ -656,7 +741,9 @@ export function SkillBuilderApp() {
                   ))
                 ) : (
                   <div className="rounded-[24px] bg-slate-50 p-8 text-sm leading-7 text-slate-600">
-                    你还没有创建过项目。先去首页或“开始制作”页面完成第一个版本，之后这里会自动保存你的历史记录。
+                    {projects.length
+                      ? "没有符合当前筛选条件的项目，可以试试清空搜索词或切换筛选。"
+                      : "你还没有创建过项目。先去首页或“开始制作”页面完成第一个版本，之后这里会自动保存你的历史记录。"}
                   </div>
                 )}
               </div>
