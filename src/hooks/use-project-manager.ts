@@ -1,13 +1,13 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { createCloudSyncClient } from "@/lib/cloud-sync-client";
+import { createProjectExportActionService } from "@/lib/project-export-action-service";
 import { buildImportReviewSnapshot } from "@/lib/import-review-service";
 import { createProjectResourceInputService } from "@/lib/project-resource-input-service";
 import type { ProjectRepository } from "@/lib/project-repository";
 import { createProjectRuntimeService } from "@/lib/project-runtime-service";
 import { createProjectService } from "@/lib/project-service";
 import { createProjectSyncActionService } from "@/lib/project-sync-action-service";
-import { createProjectTransferService } from "@/lib/project-transfer-service";
 import { buildStructuredSpec } from "@/lib/skill-builder";
 import type {
   BuilderMode,
@@ -45,9 +45,9 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
   const repositoryRef = useRef<ProjectRepository | null>(null);
   const syncServiceRef = useRef<SyncService | null>(null);
   const projectServiceRef = useRef(createProjectService());
+  const projectExportActionServiceRef = useRef(createProjectExportActionService());
   const projectResourceInputServiceRef = useRef(createProjectResourceInputService());
   const projectSyncActionServiceRef = useRef(createProjectSyncActionService());
-  const projectTransferServiceRef = useRef(createProjectTransferService());
   const cloudSyncClientRef = useRef(createCloudSyncClient());
 
   useEffect(() => {
@@ -214,15 +214,17 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
   }
 
   async function exportCurrentProject() {
-    if (!activeProject) {
-      return false;
-    }
-
     try {
       setLoading(true);
-      const { blob, fileName } = await projectTransferServiceRef.current.exportProject(activeProject);
-      downloadBlob(blob, fileName);
-      onStatusChange(`导出成功：${fileName}，压缩包已经开始下载。`);
+      const exported = await projectExportActionServiceRef.current.exportCurrentProject(activeProject);
+
+      if (!exported) {
+        onStatusChange("当前没有可导出的项目。");
+        return false;
+      }
+
+      downloadBlob(exported.blob, exported.fileName);
+      onStatusChange(exported.statusMessage);
       return true;
     } catch {
       onStatusChange("导出失败，请稍后重试。");
@@ -233,17 +235,17 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
   }
 
   async function exportProjectById(projectId: string) {
-    const target = projects.find((item) => item.id === projectId);
-    if (!target) {
-      onStatusChange("没有找到要导出的项目。");
-      return false;
-    }
-
     try {
       setLoading(true);
-      const { blob, fileName } = await projectTransferServiceRef.current.exportProject(target);
-      downloadBlob(blob, fileName);
-      onStatusChange(`已开始导出：${fileName}`);
+      const exported = await projectExportActionServiceRef.current.exportProjectById(projects, projectId);
+
+      if (!exported) {
+        onStatusChange("没有找到要导出的项目。");
+        return false;
+      }
+
+      downloadBlob(exported.blob, exported.fileName);
+      onStatusChange(exported.statusMessage);
       return true;
     } catch {
       onStatusChange("重新导出失败，请稍后重试。");
