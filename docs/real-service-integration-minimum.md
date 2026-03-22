@@ -17,6 +17,20 @@
 
 ## 后续真正需要提供的最小信息
 
+## 最快的真实配置方式
+
+### 方式 1：先生成模板
+在项目根目录运行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\setup-real-env-template.ps1
+```
+
+执行后会自动生成：
+- `.env.local`
+
+然后只需要把真实地址填进去即可。
+
 ### 1. 账号登录
 需要：
 - 一个认证服务地址

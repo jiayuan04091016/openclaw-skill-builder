@@ -1,0 +1,30 @@
+$ErrorActionPreference = "Stop"
+
+$projectRoot = Split-Path -Parent $PSScriptRoot
+$targetFile = Join-Path $projectRoot ".env.local"
+
+$content = @"
+NEXT_PUBLIC_ENABLE_AUTH=true
+NEXT_PUBLIC_ENABLE_CLOUD_SYNC=true
+NEXT_PUBLIC_ENABLE_ENHANCED_IMPORT=true
+NEXT_PUBLIC_PROVIDER_HEALTH_TIMEOUT_MS=5000
+
+# 填入真实账号登录服务地址
+NEXT_PUBLIC_AUTH_PROVIDER_URL=
+NEXT_PUBLIC_AUTH_PROVIDER_HEALTH_PATH=/health
+
+# 填入真实云端存储服务地址
+NEXT_PUBLIC_CLOUD_STORAGE_PROVIDER_URL=
+NEXT_PUBLIC_CLOUD_STORAGE_PROVIDER_HEALTH_PATH=/health
+
+# 填入真实 OCR 服务地址
+NEXT_PUBLIC_OCR_PROVIDER_URL=
+NEXT_PUBLIC_OCR_PROVIDER_HEALTH_PATH=/health
+
+# 填入真实视频增强服务地址
+NEXT_PUBLIC_VIDEO_ENHANCEMENT_PROVIDER_URL=
+NEXT_PUBLIC_VIDEO_ENHANCEMENT_PROVIDER_HEALTH_PATH=/health
+"@
+
+Set-Content -Path $targetFile -Value $content -Encoding UTF8
+Write-Output "已生成真实服务模板配置：$targetFile"
