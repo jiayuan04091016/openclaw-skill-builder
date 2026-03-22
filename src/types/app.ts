@@ -135,4 +135,6 @@ export type SessionState = {
   syncAvailable: boolean;
   syncHint: string;
   migrationHint: string;
+  nextSyncAction: string;
+  nextSyncActionHint: string;
 };

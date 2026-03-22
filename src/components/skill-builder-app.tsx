@@ -279,6 +279,10 @@ export function SkillBuilderApp() {
           <div className="mt-3 space-y-1 text-xs text-slate-500">
             <div>{session.syncHint}</div>
             <div>{session.migrationHint}</div>
+            <div>
+              <span className="font-medium text-slate-700">下一步：</span>
+              {session.nextSyncAction}。{session.nextSyncActionHint}
+            </div>
           </div>
         </header>
 

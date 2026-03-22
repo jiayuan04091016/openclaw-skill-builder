@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 
+import { resolveNextSyncStep } from "@/lib/session-transitions";
 import type { RepositoryCapabilities, RepositoryStatus, SessionState } from "@/types/app";
 
 type UseSessionStateOptions = {
@@ -30,6 +31,7 @@ export function useSessionState(options: UseSessionStateOptions = {}): SessionSt
     const migrationHint = migrationPreview?.readyProjectCount
       ? `当前已有 ${migrationPreview.readyProjectCount} 个项目可作为后续云端迁移的第一批，其中 ${migrationPreview.generatedProjectCount} 个已经生成草稿。`
       : "当前还没有需要迁移到云端的项目，后续可以先继续在本机版里积累内容。";
+    const nextSyncStep = resolveNextSyncStep(capabilities, repositoryStatus);
 
     return {
       mode: capabilities?.authEnabled ? "authenticated" : "guest",
@@ -38,6 +40,8 @@ export function useSessionState(options: UseSessionStateOptions = {}): SessionSt
       syncAvailable,
       syncHint,
       migrationHint,
+      nextSyncAction: nextSyncStep.action,
+      nextSyncActionHint: nextSyncStep.hint,
     };
   }, [capabilities, repositoryStatus]);
 }
