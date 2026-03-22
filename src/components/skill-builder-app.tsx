@@ -952,6 +952,7 @@ export function SkillBuilderApp() {
                       >
                         {loading ? "正在导出..." : "导出压缩包"}
                       </button>
+                      <p className="text-xs text-slate-500">点击后会直接开始下载 ZIP 文件。</p>
                     </div>
 
                     <div className="rounded-[24px] border border-slate-200 bg-white p-5">
@@ -966,13 +967,16 @@ export function SkillBuilderApp() {
                       </pre>
                       <p className="mt-4 text-sm leading-7 text-slate-600">这些文件都会由系统自动准备好，你不需要自己手动创建目录或整理内容。</p>
                     </div>
-                    <div className="flex flex-col gap-3 sm:flex-row">
-                      <button className="w-full rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => setBuilderStep(4)}>
-                        回到预览继续修改
-                      </button>
-                      <button className="w-full rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => setSection("skills")}>
-                        去我的项目
-                      </button>
+                    <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+                      <h3 className="text-base font-semibold text-slate-900">后续操作</h3>
+                      <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                        <button className="w-full rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => setBuilderStep(4)}>
+                          回到预览继续修改
+                        </button>
+                        <button className="w-full rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => setSection("skills")}>
+                          去我的项目
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </SectionCard>
