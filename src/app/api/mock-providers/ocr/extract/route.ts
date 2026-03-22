@@ -6,6 +6,6 @@ export async function POST(request: Request) {
   return NextResponse.json({
     status: "completed",
     text: resource?.content || "",
-    message: "本地 mock OCR 已返回结果。",
+    message: "本地 mock OCR 已返回识别结果。",
   });
 }
