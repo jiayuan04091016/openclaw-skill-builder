@@ -16,6 +16,7 @@ import {
   previewTabs,
   templates,
 } from "@/lib/content";
+import { buildImportAnalysisSummary } from "@/lib/import-analysis";
 import { formatDateLabel } from "@/lib/skill-builder";
 import type { AppSection, BuilderMode, OutputStyle } from "@/types/app";
 
@@ -234,6 +235,21 @@ export function SkillBuilderApp() {
         { label: "输出内容", done: Boolean(activeProject.outputFormat.trim()) },
       ]
     : [];
+  const importAnalysisSummary =
+    activeProject?.mode === "import" && activeProject.importedSkillText.trim()
+      ? buildImportAnalysisSummary(
+          {
+            title: activeProject.title,
+            description: activeProject.description,
+            audience: activeProject.audience,
+            mainTask: activeProject.mainTask,
+            inputFormat: activeProject.inputFormat,
+            outputFormat: activeProject.outputFormat,
+            warnings: activeProject.warnings,
+          },
+          activeProject.importedSkillText,
+        )
+      : null;
 
   const previewModeHint =
     previewMode === "guide"
@@ -769,6 +785,18 @@ export function SkillBuilderApp() {
                           <p className="mt-2 text-sm text-slate-600">
                             当前已提取 {importedInfoItems.filter((item) => item.done).length}/{importedInfoItems.length} 项
                           </p>
+                          {importAnalysisSummary ? (
+                            <div className="mt-2 rounded-2xl bg-white/80 px-4 py-3 text-xs leading-6 text-slate-600">
+                              <div>{importAnalysisSummary.message}</div>
+                              <div className="mt-1">
+                                原始内容长度约 {importAnalysisSummary.sourceLength} 字
+                                {importAnalysisSummary.missingFields.length
+                                  ? `，当前还缺：${importAnalysisSummary.missingFields.join("、")}`
+                                  : "，关键字段已基本齐全"}
+                                。
+                              </div>
+                            </div>
+                          ) : null}
                           <p className="mt-2 text-xs leading-6 text-slate-500">
                             提取到这里后，下一步通常就是去第 3 步补充新版的适用对象、输入内容和输出结果。
                           </p>

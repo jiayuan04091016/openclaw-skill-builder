@@ -159,3 +159,11 @@ export type CloudSyncResult = {
   message: string;
   projectCount: number;
 };
+
+export type ImportAnalysisSummary = {
+  extractedCount: number;
+  totalCount: number;
+  missingFields: string[];
+  sourceLength: number;
+  message: string;
+};
