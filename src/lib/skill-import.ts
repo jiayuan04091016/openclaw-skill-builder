@@ -125,7 +125,7 @@ export function formatParsedSkillImportSource(source: ParsedSkillImportSource) {
     case "heading:h1":
       return "主标题";
     case "section:description":
-      return "用途/说明章节";
+      return "用途说明章节";
     case "section:audience":
       return "适用对象章节";
     case "section:mainTask":
@@ -141,6 +141,10 @@ export function formatParsedSkillImportSource(source: ParsedSkillImportSource) {
     default:
       return "还没有提取到";
   }
+}
+
+export function isWeakParsedSkillImportSource(source: ParsedSkillImportSource) {
+  return source === "fallback:summary" || source === "missing";
 }
 
 export function parseImportedSkill(content: string): ParsedSkillImport {

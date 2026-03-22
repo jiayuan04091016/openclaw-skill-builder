@@ -17,7 +17,7 @@ import {
   templates,
 } from "@/lib/content";
 import { buildImportAnalysisSummary } from "@/lib/import-analysis";
-import { formatParsedSkillImportSource, parseImportedSkill } from "@/lib/skill-import";
+import { formatParsedSkillImportSource, isWeakParsedSkillImportSource, parseImportedSkill } from "@/lib/skill-import";
 import { formatDateLabel } from "@/lib/skill-builder";
 import type { AppSection, BuilderMode, OutputStyle } from "@/types/app";
 
@@ -267,6 +267,19 @@ export function SkillBuilderApp() {
     activeProject?.mode === "import" && activeProject.importedSkillText.trim()
       ? parseImportedSkill(activeProject.importedSkillText)
       : null;
+  const weakImportedFields = parsedImportDetails
+    ? (
+        [
+          { label: "名称", source: parsedImportDetails.sources.title },
+          { label: "适用对象", source: parsedImportDetails.sources.audience },
+          { label: "主要任务", source: parsedImportDetails.sources.mainTask },
+          { label: "输入内容", source: parsedImportDetails.sources.inputFormat },
+          { label: "输出内容", source: parsedImportDetails.sources.outputFormat },
+        ] as const
+      )
+        .filter((item) => isWeakParsedSkillImportSource(item.source))
+        .map((item) => item.label)
+    : [];
 
   const previewModeHint =
     previewMode === "guide"
@@ -845,6 +858,11 @@ export function SkillBuilderApp() {
                           <p className="mt-2 text-xs leading-6 text-slate-500">
                             提取到这里后，下一步通常就是去第 3 步补充新版的适用对象、输入内容和输出结果。
                           </p>
+                          {weakImportedFields.length ? (
+                            <p className="mt-2 text-xs leading-6 text-amber-700">
+                              当前这些字段更值得优先人工核对：{weakImportedFields.join("、")}。
+                            </p>
+                          ) : null}
                           <dl className="mt-4 grid gap-3 text-sm leading-7 text-slate-700 sm:grid-cols-2">
                             <div>
                               <dt className="font-semibold text-slate-900">名称</dt>
