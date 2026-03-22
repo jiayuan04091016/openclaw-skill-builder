@@ -15,23 +15,27 @@ export function buildImportAnalysisSummary(parsed: ParsedSkillImport, sourceText
   const missingFields = importFieldLabels
     .filter((field) => !parsed[field.key].trim())
     .map((field) => field.label);
+
   const suggestedNextFields = nextFieldPriority
     .map((key) => importFieldLabels.find((field) => field.key === key))
     .filter((field): field is (typeof importFieldLabels)[number] => Boolean(field))
     .filter((field) => !parsed[field.key].trim())
     .map((field) => field.label)
     .slice(0, 3);
+
   const extractedCount = importFieldLabels.length - missingFields.length;
   const sourceLength = sourceText.trim().length;
   const coveredSections = [
-    parsed.description.trim() ? "用途/说明" : "",
+    parsed.description.trim() ? "用途说明" : "",
     parsed.audience.trim() ? "适用对象" : "",
     parsed.mainTask.trim() ? "主要任务" : "",
     parsed.inputFormat.trim() ? "输入内容" : "",
     parsed.outputFormat.trim() ? "输出内容" : "",
   ].filter(Boolean);
+
   const qualityLevel =
     extractedCount >= 5 && sourceLength >= 120 ? "high" : extractedCount >= 3 && sourceLength >= 60 ? "medium" : "low";
+
   const readyForFirstDraft =
     extractedCount >= 3 && coveredSections.includes("输入内容") && coveredSections.includes("输出内容");
 
