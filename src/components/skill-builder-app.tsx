@@ -17,6 +17,7 @@ import {
   templates,
 } from "@/lib/content";
 import { buildImportAnalysisSummary } from "@/lib/import-analysis";
+import { formatParsedSkillImportSource, parseImportedSkill } from "@/lib/skill-import";
 import { formatDateLabel } from "@/lib/skill-builder";
 import type { AppSection, BuilderMode, OutputStyle } from "@/types/app";
 
@@ -240,17 +241,13 @@ export function SkillBuilderApp() {
   const importAnalysisSummary =
     activeProject?.mode === "import" && activeProject.importedSkillText.trim()
       ? buildImportAnalysisSummary(
-          {
-            title: activeProject.title,
-            description: activeProject.description,
-            audience: activeProject.audience,
-            mainTask: activeProject.mainTask,
-            inputFormat: activeProject.inputFormat,
-            outputFormat: activeProject.outputFormat,
-            warnings: activeProject.warnings,
-          },
+          parseImportedSkill(activeProject.importedSkillText),
           activeProject.importedSkillText,
         )
+      : null;
+  const parsedImportDetails =
+    activeProject?.mode === "import" && activeProject.importedSkillText.trim()
+      ? parseImportedSkill(activeProject.importedSkillText)
       : null;
 
   const previewModeHint =
@@ -816,22 +813,37 @@ export function SkillBuilderApp() {
                             <div>
                               <dt className="font-semibold text-slate-900">名称</dt>
                               <dd>{activeProject.title || "还没有提取到"}</dd>
+                              <dd className="text-xs text-slate-500">
+                                来源：{parsedImportDetails ? formatParsedSkillImportSource(parsedImportDetails.sources.title) : "还没有提取到"}
+                              </dd>
                             </div>
                             <div>
                               <dt className="font-semibold text-slate-900">适用对象</dt>
                               <dd>{activeProject.audience || "还没有提取到"}</dd>
+                              <dd className="text-xs text-slate-500">
+                                来源：{parsedImportDetails ? formatParsedSkillImportSource(parsedImportDetails.sources.audience) : "还没有提取到"}
+                              </dd>
                             </div>
                             <div>
                               <dt className="font-semibold text-slate-900">主要任务</dt>
                               <dd>{activeProject.mainTask || "还没有提取到"}</dd>
+                              <dd className="text-xs text-slate-500">
+                                来源：{parsedImportDetails ? formatParsedSkillImportSource(parsedImportDetails.sources.mainTask) : "还没有提取到"}
+                              </dd>
                             </div>
                             <div>
                               <dt className="font-semibold text-slate-900">输入内容</dt>
                               <dd>{activeProject.inputFormat || "还没有提取到"}</dd>
+                              <dd className="text-xs text-slate-500">
+                                来源：{parsedImportDetails ? formatParsedSkillImportSource(parsedImportDetails.sources.inputFormat) : "还没有提取到"}
+                              </dd>
                             </div>
                             <div className="sm:col-span-2">
                               <dt className="font-semibold text-slate-900">输出内容</dt>
                               <dd>{activeProject.outputFormat || "还没有提取到"}</dd>
+                              <dd className="text-xs text-slate-500">
+                                来源：{parsedImportDetails ? formatParsedSkillImportSource(parsedImportDetails.sources.outputFormat) : "还没有提取到"}
+                              </dd>
                             </div>
                           </dl>
                           <button
