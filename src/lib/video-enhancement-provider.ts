@@ -1,4 +1,5 @@
 import { getProviderConfig } from "@/lib/provider-config";
+import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
 import type { ResourceItem, VideoEnhancementResult } from "@/types/app";
 
 export type VideoEnhancementProvider = {
@@ -12,8 +13,8 @@ function createLocalVideoEnhancementProvider(): VideoEnhancementProvider {
       summary: resource.content,
       message:
         resource.type === "video"
-          ? "视频增强 provider 已预留，后续可直接接真实摘要或转写服务。"
-          : "当前资源不是视频，暂不需要走视频增强流程。",
+          ? "视频增强 provider 已预留，后续可以直接接真实摘要或转写服务。"
+          : "当前资源不是视频，暂时不需要走视频增强流程。",
     }),
   };
 }
@@ -21,23 +22,21 @@ function createLocalVideoEnhancementProvider(): VideoEnhancementProvider {
 function createRemoteVideoEnhancementProvider(videoEnhancementProviderUrl: string): VideoEnhancementProvider {
   return {
     summarize: async (resource) => {
-      const response = await fetch(`${videoEnhancementProviderUrl}/summarize`, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
+      const result = await requestRemoteJson<VideoEnhancementResult>(
+        buildRemoteProviderUrl(videoEnhancementProviderUrl, "/summarize"),
+        {
+          method: "POST",
+          payload: resource,
         },
-        body: JSON.stringify(resource),
-      });
+      );
 
-      if (!response.ok) {
-        return {
+      return (
+        result ?? {
           status: "not-configured",
           summary: resource.content,
           message: "远端视频增强 provider 调用失败。",
-        };
-      }
-
-      return (await response.json()) as VideoEnhancementResult;
+        }
+      );
     },
   };
 }

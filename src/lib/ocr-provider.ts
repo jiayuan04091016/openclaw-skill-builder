@@ -1,4 +1,5 @@
 import { getProviderConfig } from "@/lib/provider-config";
+import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
 import type { OcrResult, ResourceItem } from "@/types/app";
 
 export type OcrProvider = {
@@ -12,8 +13,8 @@ function createLocalOcrProvider(): OcrProvider {
       text: resource.content,
       message:
         resource.type === "image"
-          ? "OCR provider 已预留，后续可直接接真实图片识别服务。"
-          : "当前资源不是图片，暂不需要走 OCR 识别。",
+          ? "OCR provider 已预留，后续可以直接接真实图片识别服务。"
+          : "当前资源不是图片，暂时不需要走 OCR 识别。",
     }),
   };
 }
@@ -21,23 +22,18 @@ function createLocalOcrProvider(): OcrProvider {
 function createRemoteOcrProvider(ocrProviderUrl: string): OcrProvider {
   return {
     extractText: async (resource) => {
-      const response = await fetch(`${ocrProviderUrl}/extract`, {
+      const result = await requestRemoteJson<OcrResult>(buildRemoteProviderUrl(ocrProviderUrl, "/extract"), {
         method: "POST",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify(resource),
+        payload: resource,
       });
 
-      if (!response.ok) {
-        return {
+      return (
+        result ?? {
           status: "not-configured",
           text: resource.content,
           message: "远端 OCR provider 调用失败。",
-        };
-      }
-
-      return (await response.json()) as OcrResult;
+        }
+      );
     },
   };
 }

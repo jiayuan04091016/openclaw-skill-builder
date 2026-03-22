@@ -1,4 +1,5 @@
 import { getProviderConfig } from "@/lib/provider-config";
+import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
 import { getRuntimeCapabilities } from "@/lib/runtime-capabilities";
 import type { CloudProjectRecord, CloudSyncBundle } from "@/types/app";
 
@@ -34,32 +35,28 @@ function createRemoteCloudStorageProvider(cloudStorageProviderUrl: string): Clou
   return {
     isConfigured: () => true,
     fetchProjects: async () => {
-      const response = await fetch(`${cloudStorageProviderUrl}/projects`, { cache: "no-store" });
+      const projects = await requestRemoteJson<CloudProjectRecord[]>(
+        buildRemoteProviderUrl(cloudStorageProviderUrl, "/projects"),
+      );
 
-      if (!response.ok) {
-        return [];
-      }
-
-      return (await response.json()) as CloudProjectRecord[];
+      return projects ?? [];
     },
     saveBundle: async (bundle) => {
-      const response = await fetch(`${cloudStorageProviderUrl}/bundle`, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
+      const result = await requestRemoteJson<CloudStorageProviderResult>(
+        buildRemoteProviderUrl(cloudStorageProviderUrl, "/bundle"),
+        {
+          method: "POST",
+          payload: bundle,
         },
-        body: JSON.stringify(bundle),
-      });
+      );
 
-      if (!response.ok) {
-        return {
+      return (
+        result ?? {
           ok: false,
           message: "远端云端存储 provider 调用失败。",
           projectCount: bundle.projectCount,
-        };
-      }
-
-      return (await response.json()) as CloudStorageProviderResult;
+        }
+      );
     },
   };
 }
