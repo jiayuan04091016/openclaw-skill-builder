@@ -28,7 +28,7 @@ export function createCloudSyncClient(): CloudSyncClient {
     pushBundle: async (projects) => ({
       status: capabilities.cloudSyncEnabled ? "queued" : "not-configured",
       message: capabilities.cloudSyncEnabled
-        ? "同步接口占位已准备好，后续接入真实服务端后即可开始推送。"
+        ? `同步准备已完成，当前共有 ${projects.length} 个项目等待后续接入真实云端接口。`
         : "当前还没有接真实云端接口，这一步先停留在迁移准备阶段。",
       projectCount: projects.length,
     }),

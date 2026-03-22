@@ -47,6 +47,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const [homeGoal, setHomeGoal] = useState("");
   const [loading, setLoading] = useState(false);
+  const [syncPreparing, setSyncPreparing] = useState(false);
   const [hasLoadedProjects, setHasLoadedProjects] = useState(false);
   const [repositoryCapabilities, setRepositoryCapabilities] = useState<RepositoryCapabilities | null>(null);
   const [repositoryStatus, setRepositoryStatus] = useState<RepositoryStatus | null>(null);
@@ -299,6 +300,17 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     return repositoryRef.current.buildCloudBundle(projects);
   }
 
+  async function prepareCloudSync() {
+    try {
+      setSyncPreparing(true);
+      const result = await cloudSyncClientRef.current.pushBundle(projects);
+      onStatusChange(result.message);
+      return result;
+    } finally {
+      setSyncPreparing(false);
+    }
+  }
+
   async function importProjectBackup(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
 
@@ -375,12 +387,14 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     homeGoal,
     setHomeGoal,
     loading,
+    syncPreparing,
     backupInputRef,
     currentDraft,
     structuredSpec,
     repositoryCapabilities,
     repositoryStatus,
     cloudSyncPlan,
+    prepareCloudSync,
     ensureProject,
     updateProject,
     startFromScratch,

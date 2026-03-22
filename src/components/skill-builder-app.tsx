@@ -34,12 +34,14 @@ export function SkillBuilderApp() {
     homeGoal,
     setHomeGoal,
     loading,
+    syncPreparing,
     backupInputRef,
     currentDraft,
     structuredSpec,
     repositoryCapabilities,
     repositoryStatus,
     cloudSyncPlan,
+    prepareCloudSync,
     ensureProject,
     updateProject,
     startFromScratch: createProjectFromScratch,
@@ -1190,6 +1192,15 @@ export function SkillBuilderApp() {
                   </div>
                   <div className="mt-2 text-xs text-cyan-900/80">
                     当前同步计划：{cloudSyncPlan.message}
+                  </div>
+                  <div className="mt-4">
+                    <button
+                      className="rounded-full border border-cyan-600 px-4 py-2 text-sm font-semibold text-cyan-700 transition hover:bg-cyan-100 disabled:cursor-not-allowed disabled:opacity-60"
+                      onClick={() => void prepareCloudSync()}
+                      disabled={syncPreparing}
+                    >
+                      {syncPreparing ? "正在检查同步准备..." : "检查同步准备"}
+                    </button>
                   </div>
                 </div>
               ) : null}
