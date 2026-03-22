@@ -3,6 +3,7 @@ import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { createCloudSyncClient } from "@/lib/cloud-sync-client";
 import { createProjectExportActionService } from "@/lib/project-export-action-service";
 import { buildImportReviewSnapshot } from "@/lib/import-review-service";
+import { createProjectLifecycleActionService } from "@/lib/project-lifecycle-action-service";
 import { createProjectResourceInputService } from "@/lib/project-resource-input-service";
 import type { ProjectRepository } from "@/lib/project-repository";
 import { createProjectRuntimeService } from "@/lib/project-runtime-service";
@@ -46,6 +47,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
   const syncServiceRef = useRef<SyncService | null>(null);
   const projectServiceRef = useRef(createProjectService());
   const projectExportActionServiceRef = useRef(createProjectExportActionService());
+  const projectLifecycleActionServiceRef = useRef(createProjectLifecycleActionService());
   const projectResourceInputServiceRef = useRef(createProjectResourceInputService());
   const projectSyncActionServiceRef = useRef(createProjectSyncActionService());
   const cloudSyncClientRef = useRef(createCloudSyncClient());
@@ -137,7 +139,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       return activeProject;
     }
 
-    const project = projectServiceRef.current.createProject(mode, seedGoal);
+    const { project } = projectLifecycleActionServiceRef.current.createProject(mode, seedGoal);
     upsertProject(project);
     setActiveProjectId(project.id);
     return project;
@@ -152,18 +154,18 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
   }
 
   function startFromScratch(goal = "") {
-    const project = projectServiceRef.current.createProject("create", goal);
+    const { project, statusMessage } = projectLifecycleActionServiceRef.current.createProject("create", goal);
     upsertProject(project);
     setActiveProjectId(project.id);
-    onStatusChange("已创建新项目，现在可以开始填写目标。");
+    onStatusChange(statusMessage);
     return project;
   }
 
   function startFromImport(goal = "") {
-    const project = projectServiceRef.current.createProject("import", goal);
+    const { project, statusMessage } = projectLifecycleActionServiceRef.current.createProject("import", goal);
     upsertProject(project);
     setActiveProjectId(project.id);
-    onStatusChange("已进入导入模式，请先添加已有 Skill 内容。");
+    onStatusChange(statusMessage);
     return project;
   }
 
@@ -205,12 +207,9 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       return;
     }
 
-    const nextDraft = projectServiceRef.current.buildDraft(activeProject);
-    updateProject({
-      draft: nextDraft,
-      title: activeProject.title || buildStructuredSpec(activeProject).skillName,
-    });
-    onStatusChange("内容已生成，现在可以预览、调整并导出。");
+    const nextProject = projectLifecycleActionServiceRef.current.generateDraft(activeProject);
+    upsertProject(nextProject.project);
+    onStatusChange(nextProject.statusMessage);
   }
 
   async function exportCurrentProject() {
@@ -414,26 +413,18 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       return;
     }
 
-    const duplicate = projectServiceRef.current.duplicateProject(source);
-    upsertProject(duplicate);
-    setActiveProjectId(duplicate.id);
-    onStatusChange("已复制为新版本。");
+    const duplicate = projectLifecycleActionServiceRef.current.duplicateProject(source);
+    upsertProject(duplicate.project);
+    setActiveProjectId(duplicate.project.id);
+    onStatusChange(duplicate.statusMessage);
   }
 
   function deleteProject(projectId: string) {
-    const nextProjects = projectServiceRef.current.removeProject(projects, projectId);
-    setProjects(nextProjects);
-
-    if (activeProjectId === projectId) {
-      setActiveProjectId(nextProjects[0]?.id ?? null);
-    }
-
-    if (nextProjects.length) {
-      onStatusChange("项目已删除，已切换到列表里的下一个项目。");
-    } else {
-      setHomeGoal("");
-      onStatusChange("项目已删除。当前已经没有项目了，可以从零开始创建新的内容。");
-    }
+    const deletion = projectLifecycleActionServiceRef.current.deleteProject(projects, projectId, activeProjectId);
+    setProjects(deletion.projects);
+    setActiveProjectId(deletion.activeProjectId);
+    setHomeGoal(deletion.homeGoal);
+    onStatusChange(deletion.statusMessage);
   }
 
   return {
