@@ -1,3 +1,4 @@
+import { buildAuthProviderContractReport } from "@/lib/auth-provider-contract-service";
 import { buildProviderReadinessReport, type ProviderReadinessItem } from "@/lib/provider-readiness-service";
 
 type ProviderPlanSpec = {
@@ -16,6 +17,7 @@ export type ProviderIntegrationPlan = {
       envKeys: string[];
       requiredEndpoints: string[];
       note: string;
+      contractIssues?: string[];
     }
   >;
 };
@@ -50,7 +52,7 @@ const PROVIDER_PLAN_SPECS: ProviderPlanSpec[] = [
   },
 ];
 
-function buildItemPlan(item: ProviderReadinessItem) {
+function buildItemPlan(item: ProviderReadinessItem, contractIssues?: string[]) {
   const spec = PROVIDER_PLAN_SPECS.find((candidate) => candidate.key === item.key);
 
   return {
@@ -58,17 +60,25 @@ function buildItemPlan(item: ProviderReadinessItem) {
     envKeys: spec?.envKeys ?? [],
     requiredEndpoints: spec?.requiredEndpoints ?? [],
     note: spec?.note ?? "",
+    contractIssues,
   };
 }
 
 export async function buildProviderIntegrationPlan(): Promise<ProviderIntegrationPlan> {
   const readiness = await buildProviderReadinessReport();
-  const items = readiness.items.map(buildItemPlan);
+  const authContract = await buildAuthProviderContractReport();
+
+  const items = readiness.items.map((item) =>
+    buildItemPlan(item, item.key === "auth" && authContract.configured ? authContract.issues : undefined),
+  );
+
+  const authNeedsContractFix =
+    authContract.configured && readiness.items.find((item) => item.key === "auth")?.reachable && !authContract.allValid;
 
   return {
-    readyForRealIntegration: readiness.allConfigured && readiness.allReachable,
-    nextProvider: readiness.nextRequiredKey ?? readiness.unreachableKeys[0] ?? null,
-    nextStep: readiness.nextIntegrationStep,
+    readyForRealIntegration: readiness.allConfigured && readiness.allReachable && authContract.allValid,
+    nextProvider: readiness.nextRequiredKey ?? readiness.unreachableKeys[0] ?? (authNeedsContractFix ? "auth" : null),
+    nextStep: authNeedsContractFix ? "先修正 auth provider 的返回结构，再继续联调。" : readiness.nextIntegrationStep,
     items,
   };
 }
