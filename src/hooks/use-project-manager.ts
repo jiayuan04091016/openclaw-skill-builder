@@ -237,6 +237,27 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     }
   }
 
+  async function exportProjectById(projectId: string) {
+    const target = projects.find((item) => item.id === projectId);
+    if (!target) {
+      onStatusChange("没有找到要导出的项目。");
+      return false;
+    }
+
+    try {
+      setLoading(true);
+      const { blob, fileName } = await exportProjectZip(target);
+      downloadBlob(blob, fileName);
+      onStatusChange(`已开始导出：${target.title || buildStructuredSpec(target).skillName}`);
+      return true;
+    } catch {
+      onStatusChange("重新导出失败，请稍后重试。");
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function exportProjectBackup() {
     const payload = await repositoryRef.current?.exportBackup(projects);
 
@@ -338,6 +359,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     addManualResource,
     generateDraft,
     exportCurrentProject,
+    exportProjectById,
     exportProjectBackup,
     importProjectBackup,
     applyImportedSkillText,

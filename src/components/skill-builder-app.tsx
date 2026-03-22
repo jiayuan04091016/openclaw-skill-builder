@@ -45,6 +45,7 @@ export function SkillBuilderApp() {
     addManualResource,
     generateDraft: buildProjectDraft,
     exportCurrentProject,
+    exportProjectById,
     exportProjectBackup,
     importProjectBackup,
     applyImportedSkillText,
@@ -1038,6 +1039,7 @@ export function SkillBuilderApp() {
                         setBuilderStep(project.draft ? 4 : 1);
                       }}
                       onDuplicate={() => duplicateProject(project.id)}
+                      onExport={() => void exportProjectById(project.id)}
                       onDelete={() => deleteProject(project.id)}
                     />
                   ))

@@ -1,12 +1,13 @@
 "use client";
 
-import { buildStructuredSpec, exportProjectZip, formatDateLabel } from "@/lib/skill-builder";
+import { buildStructuredSpec, formatDateLabel } from "@/lib/skill-builder";
 import type { ProjectRecord } from "@/types/app";
 
 type ProjectCardProps = {
   project: ProjectRecord;
   onEdit: () => void;
   onDuplicate: () => void;
+  onExport: () => void;
   onDelete: () => void;
 };
 
@@ -26,16 +27,7 @@ function getProjectStage(project: ProjectRecord) {
   return "刚创建";
 }
 
-function downloadBlob(blob: Blob, fileName: string) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = fileName;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
-export function ProjectCard({ project, onEdit, onDuplicate, onDelete }: ProjectCardProps) {
+export function ProjectCard({ project, onEdit, onDuplicate, onExport, onDelete }: ProjectCardProps) {
   const fallbackName = buildStructuredSpec(project).skillName;
   const stage = getProjectStage(project);
 
@@ -80,10 +72,7 @@ export function ProjectCard({ project, onEdit, onDuplicate, onDelete }: ProjectC
         </button>
         <button
           className="w-full rounded-full border border-cyan-600 px-4 py-2 text-sm font-semibold text-cyan-700 sm:w-auto"
-          onClick={async () => {
-            const { blob, fileName } = await exportProjectZip(project);
-            downloadBlob(blob, fileName);
-          }}
+          onClick={onExport}
         >
           重新导出
         </button>
