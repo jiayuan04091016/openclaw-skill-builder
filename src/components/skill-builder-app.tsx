@@ -470,12 +470,13 @@ export function SkillBuilderApp() {
                 </p>
                 <div className="mt-5 flex flex-col gap-3 sm:flex-row">
                   <button className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white sm:w-auto" onClick={() => startFromScratch(homeGoal)}>
-                    从零创建项目
+                    从零开始做一个新项目
                   </button>
                   <button className="w-full rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => startFromImport(homeGoal)}>
-                    导入已有 Skill
+                    我已经有旧 Skill
                   </button>
                 </div>
+                <p className="mt-3 text-sm text-slate-500">第一次使用，建议先点左边；只有手头已经有旧 Skill 时，再选右边。</p>
               </div>
             </SectionCard>
           ) : null}
