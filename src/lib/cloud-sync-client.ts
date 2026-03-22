@@ -1,5 +1,5 @@
-import { buildCloudSyncBundle, restoreProjectsFromCloud } from "@/lib/cloud-project-sync";
-import { getRuntimeCapabilities } from "@/lib/runtime-capabilities";
+import { createCloudProjectGateway } from "@/lib/cloud-project-gateway";
+import { createCloudSyncEngine } from "@/lib/cloud-sync-engine";
 import type { CloudProjectRecord, CloudSyncBundle, CloudSyncPlan, CloudSyncResult, ProjectRecord } from "@/types/app";
 
 export type CloudSyncClient = {
@@ -7,31 +7,18 @@ export type CloudSyncClient = {
   buildBundle: (projects: ProjectRecord[]) => CloudSyncBundle;
   pushBundle: (projects: ProjectRecord[]) => Promise<CloudSyncResult>;
   restoreBundle: (payload: CloudSyncBundle | CloudProjectRecord[]) => ProjectRecord[];
+  pullAndMerge: (localProjects: ProjectRecord[]) => Promise<ProjectRecord[]>;
 };
 
 export function createCloudSyncClient(): CloudSyncClient {
-  const capabilities = getRuntimeCapabilities();
+  const gateway = createCloudProjectGateway();
+  const engine = createCloudSyncEngine(gateway);
 
   return {
-    buildPlan: (projects) => ({
-      enabled: capabilities.cloudSyncEnabled,
-      projectCount: projects.length,
-      generatedProjectCount: projects.filter((project) => Boolean(project.draft)).length,
-      importedProjectCount: projects.filter((project) => project.mode === "import").length,
-      message: capabilities.cloudSyncEnabled
-        ? "云端同步底座已开启，下一步可以接真实接口。"
-        : projects.length
-          ? "当前先以本机项目为主，后续接上真实接口后可把这批项目整体迁移到云端。"
-          : "当前还没有可同步内容，先完成第一个项目最划算。",
-    }),
-    buildBundle: (projects) => buildCloudSyncBundle(projects),
-    pushBundle: async (projects) => ({
-      status: capabilities.cloudSyncEnabled ? "queued" : "not-configured",
-      message: capabilities.cloudSyncEnabled
-        ? `同步准备已完成，当前共有 ${projects.length} 个项目等待后续接入真实云端接口。`
-        : "当前还没有接真实云端接口，这一步先停留在迁移准备阶段。",
-      projectCount: projects.length,
-    }),
-    restoreBundle: (payload) => restoreProjectsFromCloud(payload),
+    buildPlan: (projects) => engine.buildPlan(projects),
+    buildBundle: (projects) => engine.buildBundle(projects),
+    pushBundle: (projects) => engine.pushProjects(projects),
+    restoreBundle: (payload) => gateway.restoreProjects(payload),
+    pullAndMerge: (localProjects) => engine.pullAndMerge(localProjects),
   };
 }
