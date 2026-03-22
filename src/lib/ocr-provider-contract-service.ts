@@ -1,6 +1,6 @@
 import { getProviderConfig } from "@/lib/provider-config";
-import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
 import { isNormalizedOcrResult } from "@/lib/media-remote-contracts";
+import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
 
 export type OcrProviderContractReport = {
   configured: boolean;

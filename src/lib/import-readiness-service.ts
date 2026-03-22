@@ -1,5 +1,5 @@
-import { buildImportProviderContractReport } from "@/lib/import-provider-contract-service";
 import { runImportIntegrationSmoke } from "@/lib/import-integration-smoke-service";
+import { buildImportProviderContractReport } from "@/lib/import-provider-contract-service";
 
 export type ImportReadinessReport = {
   contractValid: boolean;

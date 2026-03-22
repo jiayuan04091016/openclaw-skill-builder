@@ -1,6 +1,6 @@
-import { buildAuthProviderModeReport } from "@/lib/auth-provider-mode-service";
 import { runAuthIntegrationSmoke } from "@/lib/auth-integration-smoke-service";
 import { buildAuthProviderContractReport } from "@/lib/auth-provider-contract-service";
+import { buildAuthProviderModeReport } from "@/lib/auth-provider-mode-service";
 import { buildProviderReadinessReport } from "@/lib/provider-readiness-service";
 
 export type AuthReadinessReport = {

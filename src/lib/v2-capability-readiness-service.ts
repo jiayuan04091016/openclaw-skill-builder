@@ -31,13 +31,7 @@ export async function buildV2CapabilityReadinessReport(): Promise<V2CapabilityRe
   ]);
 
   const items: V2CapabilityReadinessItem[] = [
-    {
-      key: "auth",
-      label: "账号登录",
-      ready: auth.readyForIntegration,
-      nextStep: auth.nextStep,
-      issues: auth.issues,
-    },
+    { key: "auth", label: "账号登录", ready: auth.readyForIntegration, nextStep: auth.nextStep, issues: auth.issues },
     {
       key: "cloud-storage",
       label: "云端存储",
@@ -59,13 +53,7 @@ export async function buildV2CapabilityReadinessReport(): Promise<V2CapabilityRe
       nextStep: skillImport.nextStep,
       issues: skillImport.issues,
     },
-    {
-      key: "ocr",
-      label: "OCR",
-      ready: ocr.readyForIntegration,
-      nextStep: ocr.nextStep,
-      issues: ocr.issues,
-    },
+    { key: "ocr", label: "OCR", ready: ocr.readyForIntegration, nextStep: ocr.nextStep, issues: ocr.issues },
     {
       key: "video",
       label: "视频增强",
