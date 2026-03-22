@@ -1,0 +1,26 @@
+$ErrorActionPreference = "Stop"
+
+$projectRoot = Split-Path -Parent $PSScriptRoot
+$targetFile = Join-Path $projectRoot ".env.local"
+
+$content = @"
+NEXT_PUBLIC_ENABLE_AUTH=true
+NEXT_PUBLIC_ENABLE_CLOUD_SYNC=true
+NEXT_PUBLIC_ENABLE_ENHANCED_IMPORT=true
+NEXT_PUBLIC_PROVIDER_HEALTH_TIMEOUT_MS=5000
+
+NEXT_PUBLIC_AUTH_PROVIDER_URL=http://127.0.0.1:3000/api/mock-providers/auth
+NEXT_PUBLIC_AUTH_PROVIDER_HEALTH_PATH=/profile
+
+NEXT_PUBLIC_CLOUD_STORAGE_PROVIDER_URL=http://127.0.0.1:3000/api/mock-providers/cloud
+NEXT_PUBLIC_CLOUD_STORAGE_PROVIDER_HEALTH_PATH=/projects
+
+NEXT_PUBLIC_OCR_PROVIDER_URL=http://127.0.0.1:3000/api/mock-providers/ocr
+NEXT_PUBLIC_OCR_PROVIDER_HEALTH_PATH=/extract
+
+NEXT_PUBLIC_VIDEO_ENHANCEMENT_PROVIDER_URL=http://127.0.0.1:3000/api/mock-providers/video
+NEXT_PUBLIC_VIDEO_ENHANCEMENT_PROVIDER_HEALTH_PATH=/summarize
+"@
+
+Set-Content -Path $targetFile -Value $content -Encoding UTF8
+Write-Output "已生成 mock 环境配置：$targetFile"

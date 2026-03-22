@@ -4,7 +4,6 @@
 在不接真实第三方服务、不产生费用的前提下，先把“真实 provider 路径”在本地跑通。
 
 ## 已提供的本地 Mock Provider
-
 - `/api/mock-providers/auth/profile`
 - `/api/mock-providers/auth/sign-in`
 - `/api/mock-providers/auth/sign-out`
@@ -13,9 +12,20 @@
 - `/api/mock-providers/ocr/extract`
 - `/api/mock-providers/video/summarize`
 
-## 本地配置方式
+## 最快的本地配置方式
 
-在项目根目录创建 `.env.local`，填入：
+### 方式 1：直接生成 `.env.local`
+在项目根目录运行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\setup-mock-env.ps1
+```
+
+执行后会自动生成：
+- `.env.local`
+
+### 方式 2：手动创建 `.env.local`
+填入下面内容：
 
 ```env
 NEXT_PUBLIC_ENABLE_AUTH=true
