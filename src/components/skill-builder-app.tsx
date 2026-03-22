@@ -311,6 +311,7 @@ export function SkillBuilderApp() {
                       onChange={(event) => setHomeGoal(event.target.value)}
                     />
                     <p className="mt-3 text-sm text-slate-500">先把你能想到的目标写下来就行，不需要一次写得很完整，后面还能继续补资料和细节。</p>
+                    <p className="mt-2 text-xs text-slate-400">如果你已经能写出一个大概目标，就先从这里开始；如果还没有思路，再往下选模板通常更轻松。</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {[
                         "帮我整理会议纪要，并列出待办事项",
