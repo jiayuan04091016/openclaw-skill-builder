@@ -342,6 +342,12 @@ export function SkillBuilderApp() {
                       <div className="mt-4 rounded-[18px] bg-white/70 px-4 py-3">
                         <p className="font-medium text-slate-900">推荐句式</p>
                         <p className="mt-2 text-slate-600">我想做一个给 [谁用] 的 Skill，它能帮我 [做什么]，最后输出 [什么结果]。</p>
+                        <button
+                          className="mt-3 rounded-full border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
+                          onClick={() => setHomeGoal("我想做一个给 [谁用] 的 Skill，它能帮我 [做什么]，最后输出 [什么结果]。")}
+                        >
+                          一键带入这个句式
+                        </button>
                       </div>
                     </div>
                     <p className="mt-3 text-xs text-slate-400">大多数情况下，写完这句以后直接点“从零创建”就可以开始。</p>
