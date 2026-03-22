@@ -184,6 +184,13 @@ export function SkillBuilderApp() {
     [projects],
   );
 
+  const resourceTypeLabels: Record<string, string> = {
+    text: "文本资料",
+    image: "图片资料",
+    video: "视频资料",
+    skill: "Skill 内容",
+  };
+
   const latestProject = projects[0] ?? null;
 
   const completionItems = activeProject
@@ -594,6 +601,10 @@ export function SkillBuilderApp() {
                           <input type="file" accept="image/*" className="mt-2 block w-full text-sm" onChange={(event) => handleFileUpload(event, "image")} />
                         </label>
                       </div>
+                      <div className="rounded-[22px] border border-emerald-100 bg-emerald-50/70 p-4 text-sm leading-7 text-slate-700">
+                        <p className="font-semibold text-slate-900">补资料的建议顺序</p>
+                        <p className="mt-2">没有资料也可以先继续；如果你手头有内容，优先补这三类：现成说明文档、示例输入输出、旧版 Skill 或截图。</p>
+                      </div>
                       <QuickResourceForm onAdd={addManualResource} />
 
                       {activeProject.mode === "import" ? (
@@ -634,7 +645,9 @@ export function SkillBuilderApp() {
                               <div className="flex items-start justify-between gap-3">
                                 <div>
                                   <div className="text-sm font-semibold text-slate-900">{resource.name}</div>
-                                  <div className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">{resource.type}</div>
+                                  <div className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
+                                    {resourceTypeLabels[resource.type] ?? resource.type}
+                                  </div>
                                 </div>
                                 <button className="text-sm font-medium text-rose-600" onClick={() => removeResource(resource.id)}>
                                   删除
