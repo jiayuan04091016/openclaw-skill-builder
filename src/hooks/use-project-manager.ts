@@ -61,7 +61,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
         }
       } catch {
         if (isMounted) {
-          onStatusChange("???????????????????????");
+          onStatusChange("本地项目读取失败，已切换为空白状态。");
         }
       } finally {
         if (isMounted) {
@@ -212,8 +212,9 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       return;
     }
 
-    const nextDraft: DraftContent = buildDraftContent(buildStructuredSpec(activeProject), activeProject.includeExamples);
-    updateProject({ draft: nextDraft, title: activeProject.title || buildStructuredSpec(activeProject).skillName });
+    const spec = buildStructuredSpec(activeProject);
+    const nextDraft: DraftContent = buildDraftContent(spec, activeProject.includeExamples);
+    updateProject({ draft: nextDraft, title: activeProject.title || spec.skillName });
     onStatusChange("内容已生成，现在可以预览、调整并导出。");
   }
 
@@ -244,10 +245,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       return;
     }
 
-    const blob = new Blob([JSON.stringify(payload, null, 2)], {
-      type: "application/json",
-    });
-
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     downloadBlob(blob, `openclaw-skill-builder-backup-${new Date().toISOString().slice(0, 10)}.json`);
     onStatusChange("备份文件已经开始下载。");
   }

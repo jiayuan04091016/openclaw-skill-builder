@@ -6,14 +6,22 @@ import { Field, QuickResourceForm, SectionCard } from "@/components/builder-ui";
 import { ProjectCard } from "@/components/project-card";
 import { useProjectManager } from "@/hooks/use-project-manager";
 import { useSessionState } from "@/hooks/use-session-state";
-import { builderStepMeta, builderStepTabs, faqs, learningCards, navItems, previewTabs, templates } from "@/lib/content";
+import {
+  builderStepMeta,
+  builderStepTabs,
+  faqs,
+  learningCards,
+  navItems,
+  previewTabs,
+  templates,
+} from "@/lib/content";
 import { formatDateLabel } from "@/lib/skill-builder";
 import type { AppSection, BuilderMode, OutputStyle } from "@/types/app";
 
 export function SkillBuilderApp() {
   const [section, setSection] = useState<AppSection>("home");
   const [builderStep, setBuilderStep] = useState(1);
-  const [statusMessage, setStatusMessage] = useState("???????");
+  const [statusMessage, setStatusMessage] = useState("已准备好开始。");
   const [previewMode, setPreviewMode] = useState<"guide" | "skill" | "result">("guide");
   const session = useSessionState();
   const {
@@ -71,11 +79,13 @@ export function SkillBuilderApp() {
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-700">OpenClaw Skill Builder</p>
-              <h1 className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">??????? Skill ?????</h1>
+              <h1 className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
+                面向电脑新手的 Skill 打包工作台
+              </h1>
               <div className="mt-3 inline-flex flex-wrap items-center gap-2 text-xs text-slate-600">
                 <span className="rounded-full bg-slate-100 px-3 py-1 font-medium">{session.displayName}</span>
                 <span className="rounded-full bg-cyan-50 px-3 py-1 font-medium text-cyan-700">
-                  {session.storageMode === "local" ? "??????" : "??????"}
+                  {session.storageMode === "local" ? "本机保存模式" : "云端同步模式"}
                 </span>
               </div>
             </div>
@@ -93,9 +103,7 @@ export function SkillBuilderApp() {
               ))}
             </nav>
           </div>
-          <div className="mt-4 rounded-[20px] bg-slate-50 px-4 py-3 text-sm text-slate-600">
-            当前状态：{statusMessage}
-          </div>
+          <div className="mt-4 rounded-[20px] bg-slate-50 px-4 py-3 text-sm text-slate-600">当前状态：{statusMessage}</div>
         </header>
 
         <main className="mt-6 flex-1 space-y-6">
@@ -185,7 +193,6 @@ export function SkillBuilderApp() {
               </SectionCard>
             </>
           ) : null}
-
           {section === "learn" ? (
             <div className="space-y-6">
               <SectionCard title="学习中心">
@@ -214,7 +221,7 @@ export function SkillBuilderApp() {
                 <SectionCard title="第一步：先理解流程">
                   <div className="space-y-4 text-sm leading-7 text-slate-700">
                     <p>1. 先说目标：直接描述你想完成什么。</p>
-                    <p>2. 再补资料：文章、说明、已有 Skill 都可以。</p>
+                    <p>2. 再补资料：文字、说明、旧 Skill 都可以。</p>
                     <p>3. 生成内容：系统会先帮你整理出一版可继续调整的结果。</p>
                     <p>4. 导出安装：下载 ZIP 后放进 OpenClaw 的 skills 目录。</p>
                   </div>
@@ -323,25 +330,35 @@ export function SkillBuilderApp() {
                       }`}
                       onClick={() => setBuilderStep(step.id)}
                     >
-                      <div className="font-semibold">?? {step.id}</div>
+                      <div className="font-semibold">步骤 {step.id}</div>
                       <div className="mt-1">{step.title}</div>
                     </button>
                   ))}
                 </div>
               </SectionCard>
-
-
               {builderStep === 1 ? (
-                <SectionCard title="步骤 1：你想达到什么目的">
+                <SectionCard title="步骤 1：你想达到什么目的？">
                   <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
                     <div className="space-y-4">
-                      <Field label="目标描述" value={activeProject.goal} placeholder="比如：我想做一个帮助整理会议纪要并列出待办事项的 Skill" onChange={(value) => updateProject({ goal: value })} multiline />
-                      <Field label="补充说明" value={activeProject.description} placeholder="比如：主要给办公新手使用，希望输出尽量简单清楚" onChange={(value) => updateProject({ description: value })} multiline />
+                      <Field
+                        label="目标描述"
+                        value={activeProject.goal}
+                        placeholder="比如：我想做一个帮助整理会议纪要并列出待办事项的 Skill"
+                        onChange={(value) => updateProject({ goal: value })}
+                        multiline
+                      />
+                      <Field
+                        label="补充说明"
+                        value={activeProject.description}
+                        placeholder="比如：主要给办公新手使用，希望输出尽量简单清楚"
+                        onChange={(value) => updateProject({ description: value })}
+                        multiline
+                      />
                     </div>
                     <div className="rounded-[24px] border border-amber-100 bg-amber-50/70 p-5 text-sm leading-7 text-slate-700">
                       <h3 className="text-base font-semibold text-slate-900">填写建议</h3>
                       <p className="mt-3">写清楚给谁用、要做什么、最后想得到什么结果。</p>
-                      <p className="mt-2">先不用写很专业，越像平时说话越好。</p>
+                      <p className="mt-2">先不用写得很专业，越像平时说话越好。</p>
                       <p className="mt-2">如果你一时想不好，可以先用首页模板快速开始。</p>
                     </div>
                   </div>
@@ -486,7 +503,6 @@ export function SkillBuilderApp() {
                   </div>
                 </SectionCard>
               ) : null}
-
               {builderStep === 4 ? (
                 <SectionCard title="步骤 4：预览并调整">
                   <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
@@ -524,19 +540,18 @@ export function SkillBuilderApp() {
                           ? currentDraft?.previewText
                           : previewMode === "skill"
                             ? currentDraft?.skillMarkdown
-                            : `?????\n${currentDraft?.exampleInput ?? ""}\n\n?????\n${currentDraft?.exampleOutput ?? ""}`}
+                            : `示例输入：\n${currentDraft?.exampleInput ?? ""}\n\n示例输出：\n${currentDraft?.exampleOutput ?? ""}`}
                       </pre>
                     </div>
                   </div>
                   <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-between">
                     <button className="w-full rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => setBuilderStep(3)}>
-                      ???
+                      上一步
                     </button>
                     <button className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white sm:w-auto" onClick={() => setBuilderStep(5)}>
-                      ????????
+                      下一步：导出文件
                     </button>
                   </div>
-
                 </SectionCard>
               ) : null}
 
@@ -647,7 +662,6 @@ export function SkillBuilderApp() {
               </div>
             </SectionCard>
           ) : null}
-
           {section === "help" ? (
             <div className="space-y-6">
               <SectionCard title="帮助中心">
@@ -659,37 +673,37 @@ export function SkillBuilderApp() {
                   </div>
                   <div className="rounded-[22px] bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-5">
                     <div className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700">安装提醒</div>
-                    <h3 className="mt-2 text-base font-semibold text-slate-900">导出后怎么用</h3>
+                    <h3 className="mt-2 text-base font-semibold text-slate-900">导出后怎么用？</h3>
                     <p className="mt-2 text-sm leading-7 text-slate-600">导出压缩包后先解压，再把整个目录放进 OpenClaw 的 skills 目录。</p>
                   </div>
                   <div className="rounded-[22px] bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-5">
                     <div className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700">使用建议</div>
-                    <h3 className="mt-2 text-base font-semibold text-slate-900">结果不满意怎么办</h3>
+                    <h3 className="mt-2 text-base font-semibold text-slate-900">结果不满意怎么办？</h3>
                     <p className="mt-2 text-sm leading-7 text-slate-600">先回到前面的步骤补充更清楚的目标、输入和资料，再重新生成一次内容。</p>
                   </div>
                 </div>
               </SectionCard>
 
               <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-              <SectionCard title="常见问题">
-                <div className="space-y-4">
-                  {faqs.map((item) => (
-                    <details key={item.q} className="rounded-[20px] border border-slate-200 bg-slate-50 p-4">
-                      <summary className="cursor-pointer text-base font-semibold text-slate-900">{item.q}</summary>
-                      <p className="mt-3 text-sm leading-7 text-slate-600">{item.a}</p>
-                    </details>
-                  ))}
-                </div>
-              </SectionCard>
+                <SectionCard title="常见问题">
+                  <div className="space-y-4">
+                    {faqs.map((item) => (
+                      <details key={item.q} className="rounded-[20px] border border-slate-200 bg-slate-50 p-4">
+                        <summary className="cursor-pointer text-base font-semibold text-slate-900">{item.q}</summary>
+                        <p className="mt-3 text-sm leading-7 text-slate-600">{item.a}</p>
+                      </details>
+                    ))}
+                  </div>
+                </SectionCard>
 
-              <SectionCard title="使用说明">
-                <div className="space-y-4 text-sm leading-7 text-slate-700">
-                  <p>先在首页输入你想完成的目标，再选择从零创建或导入已有 Skill。</p>
-                  <p>如果你手头有文章、流程说明、图片、视频链接，也可以一起补充进去。</p>
-                  <p>生成后先看说明版和示例，再导出压缩包放进 OpenClaw 的 skills 目录。</p>
-                  <p>建议第一次先用简单任务测试，确认结果符合预期后再逐步补充真实资料。</p>
-                </div>
-              </SectionCard>
+                <SectionCard title="使用说明">
+                  <div className="space-y-4 text-sm leading-7 text-slate-700">
+                    <p>先在首页输入你想完成的目标，再选择从零创建或导入已有 Skill。</p>
+                    <p>如果你手头有文章、流程说明、图片、视频链接，也可以一起补充进去。</p>
+                    <p>生成后先看说明版和示例，再导出压缩包放进 OpenClaw 的 skills 目录。</p>
+                    <p>建议第一次先用简单任务测试，确认结果符合预期后再逐步补充真实资料。</p>
+                  </div>
+                </SectionCard>
               </div>
             </div>
           ) : null}

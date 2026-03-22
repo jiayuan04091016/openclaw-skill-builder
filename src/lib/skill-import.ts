@@ -23,12 +23,7 @@ function normalizeText(value: string) {
 
 function extractFrontmatter(content: string) {
   const match = content.match(/^---\n([\s\S]*?)\n---/);
-
-  if (!match) {
-    return "";
-  }
-
-  return match[1];
+  return match?.[1] ?? "";
 }
 
 function extractFrontmatterValue(content: string, key: string) {
@@ -38,8 +33,7 @@ function extractFrontmatterValue(content: string, key: string) {
 }
 
 function extractTitle(content: string) {
-  const h1Match = content.match(/^#\s+(.+)$/m);
-  return h1Match?.[1]?.trim() ?? "";
+  return content.match(/^#\s+(.+)$/m)?.[1]?.trim() ?? "";
 }
 
 function extractSectionByHeading(content: string, heading: string) {
@@ -48,10 +42,7 @@ function extractSectionByHeading(content: string, heading: string) {
   return normalizeText(match?.[1] ?? "");
 }
 
-function extractFirstAvailableSection(
-  content: string,
-  aliases: readonly string[],
-) {
+function extractFirstAvailableSection(content: string, aliases: readonly string[]) {
   for (const alias of aliases) {
     const section = extractSectionByHeading(content, alias);
     if (section) {
@@ -64,14 +55,14 @@ function extractFirstAvailableSection(
 
 function fallbackSummary(content: string) {
   const withoutFrontmatter = content.replace(/^---[\s\S]*?---\n?/, "");
-  const cleaned = withoutFrontmatter
+  return withoutFrontmatter
     .split("\n")
     .map((line) => line.replace(/^#+\s*/, "").trim())
     .filter(Boolean)
     .slice(0, 3)
-    .join(" ");
-
-  return cleaned.slice(0, 120).trim();
+    .join(" ")
+    .slice(0, 120)
+    .trim();
 }
 
 export function parseImportedSkill(content: string): ParsedSkillImport {

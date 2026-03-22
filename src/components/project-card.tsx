@@ -51,7 +51,7 @@ export function ProjectCard({ project, onEdit, onDuplicate, onDelete }: ProjectC
             downloadBlob(blob, fileName);
           }}
         >
-          再次导出
+          重新导出
         </button>
         <button className="w-full rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600 sm:w-auto" onClick={onDelete}>
           删除

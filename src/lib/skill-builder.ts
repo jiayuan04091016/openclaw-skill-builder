@@ -197,10 +197,7 @@ export async function exportProjectZip(project: ProjectRecord) {
 
   baseFolder.file("SKILL.md", draft.skillMarkdown);
   baseFolder.file("README.md", draft.readmeMarkdown);
-  baseFolder.file(
-    "examples/sample.txt",
-    `示例输入\n${draft.exampleInput}\n\n示例输出\n${draft.exampleOutput}`,
-  );
+  baseFolder.file("examples/sample.txt", `示例输入\n${draft.exampleInput}\n\n示例输出\n${draft.exampleOutput}`);
   baseFolder.file(
     "meta.json",
     JSON.stringify(

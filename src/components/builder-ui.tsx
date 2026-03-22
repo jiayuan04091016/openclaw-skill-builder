@@ -97,7 +97,7 @@ export function QuickResourceForm({
           rows={3}
           value={videoUrl}
           className="mt-2 w-full rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-cyan-500"
-          placeholder="比如：培训视频链接，或者简单写一句有 10 分钟讲解视频可参考"
+          placeholder="例如：培训视频链接，或者简单写一句这段视频讲了什么"
           onChange={(event) => setVideoUrl(event.target.value)}
         />
       </label>
