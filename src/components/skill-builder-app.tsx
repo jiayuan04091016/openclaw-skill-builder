@@ -12,7 +12,7 @@ import type { AppSection, BuilderMode, OutputStyle } from "@/types/app";
 export function SkillBuilderApp() {
   const [section, setSection] = useState<AppSection>("home");
   const [builderStep, setBuilderStep] = useState(1);
-  const [statusMessage, setStatusMessage] = useState("????????????");
+  const [statusMessage, setStatusMessage] = useState("???????");
   const [previewMode, setPreviewMode] = useState<"guide" | "skill" | "result">("guide");
   const {
     projects,
@@ -516,11 +516,7 @@ export function SkillBuilderApp() {
                           ? currentDraft?.previewText
                           : previewMode === "skill"
                             ? currentDraft?.skillMarkdown
-                            : `?????
-${currentDraft?.exampleInput ?? ""}
-
-?????
-${currentDraft?.exampleOutput ?? ""}`}
+                            : `?????\n${currentDraft?.exampleInput ?? ""}\n\n?????\n${currentDraft?.exampleOutput ?? ""}`}
                       </pre>
                     </div>
                   </div>
