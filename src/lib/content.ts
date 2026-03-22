@@ -10,7 +10,7 @@ export const navItems: { id: AppSection; label: string }[] = [
 
 export const templates = [
   { title: "会议纪要助手", goal: "我想做一个帮助整理会议纪要并列出待办事项的 Skill" },
-  { title: "客服回复助手", goal: "我想做一个根据客户问题生成礼貌回复建议的 Skill" },
+  { title: "客服回复助手", goal: "我想做一个根据客户提问生成礼貌回复建议的 Skill" },
   { title: "网页摘要助手", goal: "我想做一个把网页内容整理成新手易读摘要的 Skill" },
 ];
 
@@ -40,7 +40,7 @@ export const faqs = [
   },
   {
     q: "支持哪些资料类型？",
-    a: "目前支持文字资料、图片、视频链接备注，以及已有的 SKILL.md 内容。建议先从最简单的文字资料开始。",
+    a: "目前支持文字资料、图片、视频链接备注，以及已有的 SKILL.md 内容。第一次使用时，建议先从最简单的文字资料开始。",
   },
 ];
 
