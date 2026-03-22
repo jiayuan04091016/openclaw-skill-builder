@@ -171,3 +171,15 @@ export type ImportAnalysisSummary = {
   readyForFirstDraft: boolean;
   message: string;
 };
+
+export type OcrResult = {
+  status: "not-configured" | "completed";
+  text: string;
+  message: string;
+};
+
+export type VideoEnhancementResult = {
+  status: "not-configured" | "completed";
+  summary: string;
+  message: string;
+};

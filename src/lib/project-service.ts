@@ -1,4 +1,5 @@
 import { parseImportedSkill } from "@/lib/skill-import";
+import { createResourceEnhancementService } from "@/lib/resource-enhancement-service";
 import {
   createEmptyProject,
   duplicateProjectRecord,
@@ -7,7 +8,15 @@ import {
   upsertProjectRecord,
 } from "@/lib/project-operations";
 import { buildDraftContent, buildStructuredSpec, createId, exportProjectZip } from "@/lib/skill-builder";
-import type { BuilderMode, DraftContent, ProjectRecord, ResourceItem, ResourceType } from "@/types/app";
+import type {
+  BuilderMode,
+  DraftContent,
+  OcrResult,
+  ProjectRecord,
+  ResourceItem,
+  ResourceType,
+  VideoEnhancementResult,
+} from "@/types/app";
 
 export type ProjectService = {
   createProject: (mode: BuilderMode, goal?: string) => ProjectRecord;
@@ -17,11 +26,15 @@ export type ProjectService = {
   duplicateProject: (project: ProjectRecord) => ProjectRecord;
   createResource: (type: ResourceType, name: string, content: string) => ResourceItem;
   applyImportedSkillPatch: (project: ProjectRecord, importedSkillText: string) => Partial<ProjectRecord>;
+  runOcrForResource: (resource: ResourceItem) => Promise<OcrResult>;
+  enhanceVideoResource: (resource: ResourceItem) => Promise<VideoEnhancementResult>;
   buildDraft: (project: ProjectRecord) => DraftContent;
   exportProject: (project: ProjectRecord) => Promise<{ blob: Blob; fileName: string }>;
 };
 
 export function createProjectService(): ProjectService {
+  const resourceEnhancementService = createResourceEnhancementService();
+
   return {
     createProject: (mode, goal = "") => createEmptyProject(mode, goal),
     patchProject: (project, patch) => patchProject(project, patch),
@@ -49,6 +62,8 @@ export function createProjectService(): ProjectService {
         warnings: project.warnings || parsed.warnings,
       };
     },
+    runOcrForResource: (resource) => resourceEnhancementService.runOcr(resource),
+    enhanceVideoResource: (resource) => resourceEnhancementService.enhanceVideo(resource),
     buildDraft: (project) => {
       const spec = buildStructuredSpec(project);
       return buildDraftContent(spec, project.includeExamples);
