@@ -9,10 +9,18 @@ const importFieldLabels = [
   { key: "outputFormat", label: "输出内容" },
 ] as const;
 
+const nextFieldPriority = ["inputFormat", "outputFormat", "mainTask", "audience", "title"] as const;
+
 export function buildImportAnalysisSummary(parsed: ParsedSkillImport, sourceText: string): ImportAnalysisSummary {
   const missingFields = importFieldLabels
     .filter((field) => !parsed[field.key].trim())
     .map((field) => field.label);
+  const suggestedNextFields = nextFieldPriority
+    .map((key) => importFieldLabels.find((field) => field.key === key))
+    .filter((field): field is (typeof importFieldLabels)[number] => Boolean(field))
+    .filter((field) => !parsed[field.key].trim())
+    .map((field) => field.label)
+    .slice(0, 3);
   const extractedCount = importFieldLabels.length - missingFields.length;
   const sourceLength = sourceText.trim().length;
   const coveredSections = [
@@ -31,6 +39,7 @@ export function buildImportAnalysisSummary(parsed: ParsedSkillImport, sourceText
     extractedCount,
     totalCount: importFieldLabels.length,
     missingFields,
+    suggestedNextFields,
     sourceLength,
     qualityLevel,
     coveredSections,

@@ -164,6 +164,7 @@ export type ImportAnalysisSummary = {
   extractedCount: number;
   totalCount: number;
   missingFields: string[];
+  suggestedNextFields: string[];
   sourceLength: number;
   qualityLevel: "low" | "medium" | "high";
   coveredSections: string[];
