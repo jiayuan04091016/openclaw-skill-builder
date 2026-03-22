@@ -4,8 +4,9 @@ import { createCloudSyncClient } from "@/lib/cloud-sync-client";
 import { buildImportReviewSnapshot } from "@/lib/import-review-service";
 import { createProjectImportPipelineService } from "@/lib/project-import-pipeline-service";
 import { createProjectResourceProcessingService } from "@/lib/project-resource-processing-service";
-import { createProjectRepository, type ProjectRepository } from "@/lib/project-repository";
+import type { ProjectRepository } from "@/lib/project-repository";
 import { createProjectService } from "@/lib/project-service";
+import { createRuntimeBootstrapService } from "@/lib/runtime-bootstrap-service";
 import { loadImportedSkillText } from "@/lib/skill-import-loader";
 import { createSyncService, type SyncService } from "@/lib/sync-service";
 import { buildStructuredSpec } from "@/lib/skill-builder";
@@ -61,18 +62,25 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
   const cloudSyncClientRef = useRef(createCloudSyncClient());
 
   useEffect(() => {
-    const repository = createProjectRepository(window.localStorage);
-    repositoryRef.current = repository;
-    syncServiceRef.current = createSyncService({
-      repository,
-      cloudSyncClient: cloudSyncClientRef.current,
-      backupInputRef,
-    });
-    setRepositoryCapabilities(repository.getCapabilities());
+    const runtimeBootstrapService = createRuntimeBootstrapService(window.localStorage);
     let isMounted = true;
 
     async function loadProjects() {
       try {
+        const { repository, capabilities } = await runtimeBootstrapService.bootstrap();
+
+        if (!isMounted) {
+          return;
+        }
+
+        repositoryRef.current = repository;
+        syncServiceRef.current = createSyncService({
+          repository,
+          cloudSyncClient: cloudSyncClientRef.current,
+          backupInputRef,
+        });
+        setRepositoryCapabilities(capabilities);
+
         const parsed = await repository.loadProjects();
 
         if (!isMounted) {
