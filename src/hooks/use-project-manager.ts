@@ -354,8 +354,33 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       return;
     }
 
-    updateProject(projectServiceRef.current.applyImportedSkillPatch(activeProject, activeProject.importedSkillText));
+    updateProject({
+      ...projectServiceRef.current.applyImportedSkillPatch(activeProject, activeProject.importedSkillText),
+      importedSkillArchive: projectServiceRef.current.buildImportedSkillArchive(
+        activeProject.importedSkillText,
+        activeProject.title || "手动粘贴的旧 Skill",
+        "manual",
+      ),
+    });
     onStatusChange("已从已有 Skill 内容中提取主要信息。");
+  }
+
+  async function processProjectResource(resourceId: string) {
+    if (!activeProject) {
+      return null;
+    }
+
+    const resource = activeProject.resources.find((item) => item.id === resourceId);
+
+    if (!resource) {
+      return null;
+    }
+
+    const processingResult = await projectServiceRef.current.processResource(resource);
+    updateProject(projectServiceRef.current.applyResourceProcessingResult(activeProject, resourceId, processingResult));
+    onStatusChange(processingResult.result.message);
+
+    return processingResult;
   }
 
   function duplicateProject(projectId: string) {
@@ -416,6 +441,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     buildCloudSyncPreview,
     importProjectBackup,
     applyImportedSkillText,
+    processProjectResource,
     duplicateProject,
     deleteProject,
   };
