@@ -421,6 +421,27 @@ export function SkillBuilderApp() {
                   </div>
                 </SectionCard>
               ) : null}
+
+              {!latestProject && homeGoal.trim() ? (
+                <SectionCard title="继续刚写的目标">
+                  <div className="flex flex-col gap-4 rounded-[24px] bg-slate-50 p-5 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">{homeGoal}</p>
+                      <p className="mt-2 text-sm leading-7 text-slate-600">
+                        你已经把目标写下来了，下一步直接开始创建就行，不需要再重写一遍。
+                      </p>
+                    </div>
+                    <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+                      <button className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white sm:w-auto" onClick={() => startFromScratch(homeGoal)}>
+                        用这个目标开始
+                      </button>
+                      <button className="w-full rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => setHomeGoal("")}>
+                        清空重新写
+                      </button>
+                    </div>
+                  </div>
+                </SectionCard>
+              ) : null}
             </>
           ) : null}
 
