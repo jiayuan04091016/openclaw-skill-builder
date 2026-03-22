@@ -90,6 +90,24 @@ export function SkillBuilderApp() {
     setStatusMessage("当前预览内容已复制。");
   }
 
+  function goToResourceStep() {
+    if (!activeProject?.goal.trim()) {
+      setStatusMessage("请先写下你想完成的目标。");
+      return;
+    }
+
+    setBuilderStep(2);
+  }
+
+  function goToGenerateStep() {
+    if (!activeProject?.mainTask.trim() || !activeProject.inputFormat.trim() || !activeProject.outputFormat.trim()) {
+      setStatusMessage("请先补充主要任务、输入内容和输出内容。");
+      return;
+    }
+
+    generateDraft();
+  }
+
   const filteredProjects = useMemo(() => {
     const keyword = projectKeyword.trim().toLowerCase();
 
@@ -417,7 +435,7 @@ export function SkillBuilderApp() {
                     </div>
                   </div>
                   <div className="mt-6 flex justify-end">
-                    <button className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white sm:w-auto" onClick={() => setBuilderStep(2)}>
+                    <button className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white sm:w-auto" onClick={goToResourceStep}>
                       下一步：补资料
                     </button>
                   </div>
@@ -579,7 +597,7 @@ export function SkillBuilderApp() {
                     <button className="w-full rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => setBuilderStep(2)}>
                       上一步
                     </button>
-                    <button className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white sm:w-auto" onClick={generateDraft}>
+                    <button className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white sm:w-auto" onClick={goToGenerateStep}>
                       生成草稿
                     </button>
                   </div>
