@@ -1,6 +1,10 @@
 import { getProviderConfig } from "@/lib/provider-config";
 import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
 import { getRuntimeCapabilities } from "@/lib/runtime-capabilities";
+import {
+  normalizeRemoteAuthResult,
+  normalizeRemoteSessionProfile,
+} from "@/lib/auth-remote-contracts";
 import { buildGuestSessionProfile } from "@/lib/session-service";
 import type { SessionProfile } from "@/types/app";
 
@@ -41,18 +45,18 @@ function createRemoteAuthProvider(authProviderUrl: string): AuthProvider {
   return {
     isEnabled: () => true,
     getCurrentProfile: async () => {
-      const profile = await requestRemoteJson<SessionProfile>(buildRemoteProviderUrl(authProviderUrl, "/profile"));
+      const profile = normalizeRemoteSessionProfile(
+        await requestRemoteJson<unknown>(buildRemoteProviderUrl(authProviderUrl, "/profile")),
+      );
 
-      if (!profile) {
-        return buildGuestSessionProfile(true);
-      }
-
-      return profile;
+      return profile ?? buildGuestSessionProfile(true);
     },
     signIn: async () => {
-      const result = await requestRemoteJson<AuthProviderResult>(buildRemoteProviderUrl(authProviderUrl, "/sign-in"), {
-        method: "POST",
-      });
+      const result = normalizeRemoteAuthResult(
+        await requestRemoteJson<unknown>(buildRemoteProviderUrl(authProviderUrl, "/sign-in"), {
+          method: "POST",
+        }),
+      );
 
       return (
         result ?? {
@@ -62,9 +66,11 @@ function createRemoteAuthProvider(authProviderUrl: string): AuthProvider {
       );
     },
     signOut: async () => {
-      const result = await requestRemoteJson<AuthProviderResult>(buildRemoteProviderUrl(authProviderUrl, "/sign-out"), {
-        method: "POST",
-      });
+      const result = normalizeRemoteAuthResult(
+        await requestRemoteJson<unknown>(buildRemoteProviderUrl(authProviderUrl, "/sign-out"), {
+          method: "POST",
+        }),
+      );
 
       return (
         result ?? {

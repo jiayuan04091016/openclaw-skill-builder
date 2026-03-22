@@ -1,7 +1,9 @@
 import { getProviderConfig } from "@/lib/provider-config";
 import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
-import type { AuthProviderResult } from "@/lib/auth-provider";
-import type { SessionProfile } from "@/types/app";
+import {
+  isNormalizedAuthResult,
+  isNormalizedSessionProfile,
+} from "@/lib/auth-remote-contracts";
 
 export type AuthProviderContractReport = {
   configured: boolean;
@@ -11,30 +13,6 @@ export type AuthProviderContractReport = {
   allValid: boolean;
   issues: string[];
 };
-
-function isValidSessionProfile(value: unknown): value is SessionProfile {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  const candidate = value as Record<string, unknown>;
-
-  return (
-    (candidate.mode === "guest" || candidate.mode === "authenticated") &&
-    typeof candidate.displayName === "string" &&
-    (typeof candidate.email === "string" || candidate.email === null)
-  );
-}
-
-function isValidAuthProviderResult(value: unknown): value is AuthProviderResult {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  const candidate = value as Record<string, unknown>;
-
-  return typeof candidate.ok === "boolean" && typeof candidate.message === "string";
-}
 
 export async function buildAuthProviderContractReport(): Promise<AuthProviderContractReport> {
   const providerConfig = getProviderConfig();
@@ -60,9 +38,9 @@ export async function buildAuthProviderContractReport(): Promise<AuthProviderCon
     method: "POST",
   });
 
-  const profileShapeValid = isValidSessionProfile(profile);
-  const signInShapeValid = isValidAuthProviderResult(signIn);
-  const signOutShapeValid = isValidAuthProviderResult(signOut);
+  const profileShapeValid = isNormalizedSessionProfile(profile);
+  const signInShapeValid = isNormalizedAuthResult(signIn);
+  const signOutShapeValid = isNormalizedAuthResult(signOut);
 
   if (!profileShapeValid) {
     issues.push("GET /profile 返回结构不符合当前前端约定。");
