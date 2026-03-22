@@ -1031,6 +1031,7 @@ export function SkillBuilderApp() {
                 当前显示 {filteredProjects.length} 个项目
                 {projectKeyword.trim() || projectFilter !== "all" ? "（已应用筛选）" : ""}
               </div>
+              <div className="mb-5 text-xs text-slate-400">提示：双击项目卡片也可以直接继续编辑。</div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 {filteredProjects.length ? (
