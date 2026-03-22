@@ -1,0 +1,58 @@
+import {
+  normalizeRemoteCloudProjectList,
+  normalizeRemoteCloudStorageResult,
+} from "@/lib/cloud-remote-contracts";
+import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
+import { buildServerProviderHeaders, getServerProviderConfig } from "@/lib/server-provider-config";
+import type { CloudProjectRecord, CloudSyncBundle } from "@/types/app";
+
+export type CloudGatewayBundleResult = {
+  ok: boolean;
+  message: string;
+  projectCount: number;
+};
+
+export async function fetchCloudGatewayProjects(): Promise<CloudProjectRecord[]> {
+  const config = getServerProviderConfig();
+
+  if (!config.cloudStorage.url) {
+    return [];
+  }
+
+  const projects = normalizeRemoteCloudProjectList(
+    await requestRemoteJson<unknown>(buildRemoteProviderUrl(config.cloudStorage.url, "/projects"), {
+      headers: buildServerProviderHeaders(config.cloudStorage),
+    }),
+  );
+
+  return projects ?? [];
+}
+
+export async function saveCloudGatewayBundle(bundle: CloudSyncBundle): Promise<CloudGatewayBundleResult> {
+  const config = getServerProviderConfig();
+
+  if (!config.cloudStorage.url) {
+    return {
+      ok: false,
+      message: "当前还没有接入真实云端存储服务。",
+      projectCount: bundle.projectCount,
+    };
+  }
+
+  const result = normalizeRemoteCloudStorageResult(
+    await requestRemoteJson<unknown>(buildRemoteProviderUrl(config.cloudStorage.url, "/bundle"), {
+      method: "POST",
+      payload: bundle,
+      headers: buildServerProviderHeaders(config.cloudStorage),
+    }),
+    bundle.projectCount,
+  );
+
+  return (
+    result ?? {
+      ok: false,
+      message: "云端网关调用远端 bundle 失败。",
+      projectCount: bundle.projectCount,
+    }
+  );
+}
