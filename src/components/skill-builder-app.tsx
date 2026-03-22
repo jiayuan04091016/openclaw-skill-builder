@@ -1000,6 +1000,7 @@ export function SkillBuilderApp() {
                           </button>
                         </div>
                         <p className="mt-3 text-xs text-slate-400">复制测试提示词后，可以先在 OpenClaw 里跑一遍，确认输出风格和结果方向。</p>
+                        <p className="mt-2 text-xs text-slate-400">如果跑出来的方向还不对，最省时间的做法通常是回到上一步改目标描述或输入输出要求。</p>
                       </div>
                       <p className="text-sm text-slate-600">确认说明版和示例结果都没有明显问题后，再导出会更稳。</p>
                       <button
