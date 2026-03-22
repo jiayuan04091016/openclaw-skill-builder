@@ -1,4 +1,5 @@
 import { getRuntimeCapabilities } from "@/lib/runtime-capabilities";
+import { buildGuestSessionProfile } from "@/lib/session-service";
 import type { RepositoryCapabilities, SessionProfile } from "@/types/app";
 
 export type SessionRepository = {
@@ -11,10 +12,6 @@ export function createBrowserSessionRepository(): SessionRepository {
 
   return {
     getCapabilities: () => capabilities,
-    loadSessionProfile: async () => ({
-      mode: capabilities.authEnabled ? "authenticated" : "guest",
-      displayName: capabilities.authEnabled ? "已登录用户" : "本机访客",
-      email: null,
-    }),
+    loadSessionProfile: async () => buildGuestSessionProfile(capabilities.authEnabled),
   };
 }

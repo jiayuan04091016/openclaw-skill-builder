@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { loadSessionProfile } from "@/lib/session-bootstrap-service";
 import { createBrowserSessionRepository } from "@/lib/session-repository";
 import type { SessionProfile } from "@/types/app";
 
@@ -12,15 +13,15 @@ export function useSessionBootstrap() {
     const repository = createBrowserSessionRepository();
     let isMounted = true;
 
-    async function loadSessionProfile() {
-      const nextProfile = await repository.loadSessionProfile();
+    async function bootstrapSession() {
+      const nextProfile = await loadSessionProfile(repository);
 
       if (isMounted) {
         setSessionProfile(nextProfile);
       }
     }
 
-    void loadSessionProfile();
+    void bootstrapSession();
 
     return () => {
       isMounted = false;

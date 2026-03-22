@@ -7,6 +7,14 @@ type BuildSessionStateOptions = {
   sessionProfile?: SessionProfile | null;
 };
 
+export function buildGuestSessionProfile(authEnabled: boolean): SessionProfile {
+  return {
+    mode: authEnabled ? "authenticated" : "guest",
+    displayName: authEnabled ? "已登录用户" : "本机访客",
+    email: null,
+  };
+}
+
 export function buildSessionState(options: BuildSessionStateOptions = {}): SessionState {
   const { capabilities, repositoryStatus, sessionProfile } = options;
   const storageMode = capabilities?.storageMode ?? "local";
