@@ -386,6 +386,7 @@ export function SkillBuilderApp() {
                       <button className="mt-4 w-full rounded-full bg-cyan-600 px-4 py-2 text-sm font-semibold text-white sm:w-auto" onClick={() => startFromScratch(template.goal)}>
                         使用这个模板
                       </button>
+                      <p className="mt-2 text-xs leading-6 text-slate-500">先用最接近的模板开始就行，进入后名称、描述、输入输出都还能继续改。</p>
                     </div>
                   ))}
                 </div>
