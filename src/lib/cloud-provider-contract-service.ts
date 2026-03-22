@@ -1,10 +1,10 @@
-import { getProviderConfig } from "@/lib/provider-config";
-import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
 import {
   buildSampleCloudSyncBundle,
   normalizeRemoteCloudProjectList,
   normalizeRemoteCloudStorageResult,
 } from "@/lib/cloud-remote-contracts";
+import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
+import { buildServerProviderHeaders, getServerProviderConfig } from "@/lib/server-provider-config";
 
 export type CloudProviderContractReport = {
   configured: boolean;
@@ -15,9 +15,10 @@ export type CloudProviderContractReport = {
 };
 
 export async function buildCloudProviderContractReport(): Promise<CloudProviderContractReport> {
-  const providerConfig = getProviderConfig();
+  const providerConfig = getServerProviderConfig();
+  const headers = buildServerProviderHeaders(providerConfig.cloudStorage);
 
-  if (!providerConfig.cloudStorageProviderUrl) {
+  if (!providerConfig.cloudStorage.url) {
     return {
       configured: false,
       projectsShapeValid: false,
@@ -30,12 +31,15 @@ export async function buildCloudProviderContractReport(): Promise<CloudProviderC
   const issues: string[] = [];
   const sampleBundle = buildSampleCloudSyncBundle();
   const projects = normalizeRemoteCloudProjectList(
-    await requestRemoteJson<unknown>(buildRemoteProviderUrl(providerConfig.cloudStorageProviderUrl, "/projects")),
+    await requestRemoteJson<unknown>(buildRemoteProviderUrl(providerConfig.cloudStorage.url, "/projects"), {
+      headers,
+    }),
   );
   const bundleResult = normalizeRemoteCloudStorageResult(
-    await requestRemoteJson<unknown>(buildRemoteProviderUrl(providerConfig.cloudStorageProviderUrl, "/bundle"), {
+    await requestRemoteJson<unknown>(buildRemoteProviderUrl(providerConfig.cloudStorage.url, "/bundle"), {
       method: "POST",
       payload: sampleBundle,
+      headers,
     }),
     sampleBundle.projectCount,
   );

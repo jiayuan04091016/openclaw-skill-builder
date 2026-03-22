@@ -1,9 +1,9 @@
-import { getProviderConfig } from "@/lib/provider-config";
-import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
 import {
   isNormalizedAuthResult,
   isNormalizedSessionProfile,
 } from "@/lib/auth-remote-contracts";
+import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
+import { buildServerProviderHeaders, getServerProviderConfig } from "@/lib/server-provider-config";
 
 export type AuthProviderContractReport = {
   configured: boolean;
@@ -15,9 +15,10 @@ export type AuthProviderContractReport = {
 };
 
 export async function buildAuthProviderContractReport(): Promise<AuthProviderContractReport> {
-  const providerConfig = getProviderConfig();
+  const providerConfig = getServerProviderConfig();
+  const headers = buildServerProviderHeaders(providerConfig.auth);
 
-  if (!providerConfig.authProviderUrl) {
+  if (!providerConfig.auth.url) {
     return {
       configured: false,
       profileShapeValid: false,
@@ -30,12 +31,16 @@ export async function buildAuthProviderContractReport(): Promise<AuthProviderCon
 
   const issues: string[] = [];
 
-  const profile = await requestRemoteJson<unknown>(buildRemoteProviderUrl(providerConfig.authProviderUrl, "/profile"));
-  const signIn = await requestRemoteJson<unknown>(buildRemoteProviderUrl(providerConfig.authProviderUrl, "/sign-in"), {
-    method: "POST",
+  const profile = await requestRemoteJson<unknown>(buildRemoteProviderUrl(providerConfig.auth.url, "/profile"), {
+    headers,
   });
-  const signOut = await requestRemoteJson<unknown>(buildRemoteProviderUrl(providerConfig.authProviderUrl, "/sign-out"), {
+  const signIn = await requestRemoteJson<unknown>(buildRemoteProviderUrl(providerConfig.auth.url, "/sign-in"), {
     method: "POST",
+    headers,
+  });
+  const signOut = await requestRemoteJson<unknown>(buildRemoteProviderUrl(providerConfig.auth.url, "/sign-out"), {
+    method: "POST",
+    headers,
   });
 
   const profileShapeValid = isNormalizedSessionProfile(profile);

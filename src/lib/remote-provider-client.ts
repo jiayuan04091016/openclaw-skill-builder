@@ -3,6 +3,7 @@ type RequestJsonOptions = {
   payload?: unknown;
   timeoutMs?: number;
   cache?: RequestCache;
+  headers?: HeadersInit;
 };
 
 export type RemoteProbeResult = {
@@ -32,16 +33,18 @@ async function fetchWithTimeout(input: string, init: RequestInit, timeoutMs = 50
 }
 
 export async function requestRemoteJson<T>(url: string, options: RequestJsonOptions = {}): Promise<T | null> {
+  const headers = new Headers(options.headers);
+
+  if (options.payload) {
+    headers.set("content-type", "application/json");
+  }
+
   const response = await fetchWithTimeout(
     url,
     {
       method: options.method ?? "GET",
       cache: options.cache ?? "no-store",
-      headers: options.payload
-        ? {
-            "content-type": "application/json",
-          }
-        : undefined,
+      headers,
       body: options.payload ? JSON.stringify(options.payload) : undefined,
     },
     options.timeoutMs,
@@ -54,7 +57,12 @@ export async function requestRemoteJson<T>(url: string, options: RequestJsonOpti
   return (await response.json()) as T;
 }
 
-export async function probeRemoteProvider(baseUrl: string, healthPath = "/health", timeoutMs = 5000): Promise<RemoteProbeResult> {
+export async function probeRemoteProvider(
+  baseUrl: string,
+  healthPath = "/health",
+  timeoutMs = 5000,
+  headers?: HeadersInit,
+): Promise<RemoteProbeResult> {
   const healthUrl = joinUrl(baseUrl, healthPath);
 
   try {
@@ -63,6 +71,7 @@ export async function probeRemoteProvider(baseUrl: string, healthPath = "/health
       {
         method: "GET",
         cache: "no-store",
+        headers,
       },
       timeoutMs,
     );

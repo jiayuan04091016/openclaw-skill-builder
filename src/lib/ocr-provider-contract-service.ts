@@ -1,6 +1,6 @@
-import { getProviderConfig } from "@/lib/provider-config";
 import { isNormalizedOcrResult } from "@/lib/media-remote-contracts";
 import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
+import { buildServerProviderHeaders, getServerProviderConfig } from "@/lib/server-provider-config";
 
 export type OcrProviderContractReport = {
   configured: boolean;
@@ -10,9 +10,10 @@ export type OcrProviderContractReport = {
 };
 
 export async function buildOcrProviderContractReport(): Promise<OcrProviderContractReport> {
-  const providerConfig = getProviderConfig();
+  const providerConfig = getServerProviderConfig();
+  const headers = buildServerProviderHeaders(providerConfig.ocr);
 
-  if (!providerConfig.ocrProviderUrl) {
+  if (!providerConfig.ocr.url) {
     return {
       configured: false,
       extractShapeValid: false,
@@ -22,8 +23,9 @@ export async function buildOcrProviderContractReport(): Promise<OcrProviderContr
   }
 
   const issues: string[] = [];
-  const extractResult = await requestRemoteJson<unknown>(buildRemoteProviderUrl(providerConfig.ocrProviderUrl, "/extract"), {
+  const extractResult = await requestRemoteJson<unknown>(buildRemoteProviderUrl(providerConfig.ocr.url, "/extract"), {
     method: "POST",
+    headers,
     payload: {
       id: "sample-ocr-resource",
       type: "image",

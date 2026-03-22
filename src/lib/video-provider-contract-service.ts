@@ -1,6 +1,6 @@
-import { getProviderConfig } from "@/lib/provider-config";
 import { isNormalizedVideoEnhancementResult } from "@/lib/media-remote-contracts";
 import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
+import { buildServerProviderHeaders, getServerProviderConfig } from "@/lib/server-provider-config";
 
 export type VideoProviderContractReport = {
   configured: boolean;
@@ -10,9 +10,10 @@ export type VideoProviderContractReport = {
 };
 
 export async function buildVideoProviderContractReport(): Promise<VideoProviderContractReport> {
-  const providerConfig = getProviderConfig();
+  const providerConfig = getServerProviderConfig();
+  const headers = buildServerProviderHeaders(providerConfig.video);
 
-  if (!providerConfig.videoEnhancementProviderUrl) {
+  if (!providerConfig.video.url) {
     return {
       configured: false,
       summarizeShapeValid: false,
@@ -23,9 +24,10 @@ export async function buildVideoProviderContractReport(): Promise<VideoProviderC
 
   const issues: string[] = [];
   const summarizeResult = await requestRemoteJson<unknown>(
-    buildRemoteProviderUrl(providerConfig.videoEnhancementProviderUrl, "/summarize"),
+    buildRemoteProviderUrl(providerConfig.video.url, "/summarize"),
     {
       method: "POST",
+      headers,
       payload: {
         id: "sample-video-resource",
         type: "video",

@@ -1,5 +1,5 @@
-import { getProviderConfig } from "@/lib/provider-config";
 import { probeRemoteProvider } from "@/lib/remote-provider-client";
+import { buildServerProviderHeaders, getServerProviderConfig } from "@/lib/server-provider-config";
 
 export type ProviderHealthKey = "auth" | "cloud-storage" | "ocr" | "video";
 
@@ -14,29 +14,33 @@ export type ProviderHealthItem = {
 };
 
 export async function buildProviderHealthItems(): Promise<ProviderHealthItem[]> {
-  const providerConfig = getProviderConfig();
+  const providerConfig = getServerProviderConfig();
   const timeoutMs = providerConfig.providerHealthTimeoutMs;
 
   const specs = [
     {
       key: "auth" as const,
-      target: providerConfig.authProviderUrl,
-      healthPath: providerConfig.authProviderHealthPath,
+      target: providerConfig.auth.url,
+      healthPath: providerConfig.auth.healthPath,
+      headers: buildServerProviderHeaders(providerConfig.auth),
     },
     {
       key: "cloud-storage" as const,
-      target: providerConfig.cloudStorageProviderUrl,
-      healthPath: providerConfig.cloudStorageProviderHealthPath,
+      target: providerConfig.cloudStorage.url,
+      healthPath: providerConfig.cloudStorage.healthPath,
+      headers: buildServerProviderHeaders(providerConfig.cloudStorage),
     },
     {
       key: "ocr" as const,
-      target: providerConfig.ocrProviderUrl,
-      healthPath: providerConfig.ocrProviderHealthPath,
+      target: providerConfig.ocr.url,
+      healthPath: providerConfig.ocr.healthPath,
+      headers: buildServerProviderHeaders(providerConfig.ocr),
     },
     {
       key: "video" as const,
-      target: providerConfig.videoEnhancementProviderUrl,
-      healthPath: providerConfig.videoEnhancementProviderHealthPath,
+      target: providerConfig.video.url,
+      healthPath: providerConfig.video.healthPath,
+      headers: buildServerProviderHeaders(providerConfig.video),
     },
   ];
 
@@ -54,7 +58,7 @@ export async function buildProviderHealthItems(): Promise<ProviderHealthItem[]> 
         };
       }
 
-      const probe = await probeRemoteProvider(spec.target, spec.healthPath, timeoutMs);
+      const probe = await probeRemoteProvider(spec.target, spec.healthPath, timeoutMs, spec.headers);
 
       return {
         key: spec.key,
