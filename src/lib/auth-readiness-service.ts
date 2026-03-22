@@ -1,8 +1,12 @@
+import { buildAuthProviderModeReport } from "@/lib/auth-provider-mode-service";
 import { runAuthIntegrationSmoke } from "@/lib/auth-integration-smoke-service";
 import { buildAuthProviderContractReport } from "@/lib/auth-provider-contract-service";
 import { buildProviderReadinessReport } from "@/lib/provider-readiness-service";
 
 export type AuthReadinessReport = {
+  providerMode: "local" | "mock" | "remote";
+  providerTarget: string;
+  providerReason: string;
   configured: boolean;
   reachable: boolean;
   contractValid: boolean;
@@ -17,6 +21,7 @@ export async function buildAuthReadinessReport(): Promise<AuthReadinessReport> {
   const authReadiness = providerReadiness.items.find((item) => item.key === "auth");
   const contractReport = await buildAuthProviderContractReport();
   const integrationSmoke = runAuthIntegrationSmoke();
+  const providerMode = buildAuthProviderModeReport();
 
   const issues = [...contractReport.issues];
 
@@ -43,6 +48,9 @@ export async function buildAuthReadinessReport(): Promise<AuthReadinessReport> {
   }
 
   return {
+    providerMode: providerMode.mode,
+    providerTarget: providerMode.target,
+    providerReason: providerMode.reason,
     configured,
     reachable,
     contractValid,
