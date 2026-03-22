@@ -2,17 +2,17 @@ import { buildBackupPayload, loadProjectsFromStorage, parseBackupPayload, savePr
 import type { BackupPayload, ProjectRecord } from "@/types/app";
 
 export type ProjectRepository = {
-  loadProjects: () => ProjectRecord[];
-  saveProjects: (projects: ProjectRecord[]) => void;
-  exportBackup: (projects: ProjectRecord[]) => BackupPayload;
-  importBackup: (content: string) => ProjectRecord[];
+  loadProjects: () => Promise<ProjectRecord[]>;
+  saveProjects: (projects: ProjectRecord[]) => Promise<void>;
+  exportBackup: (projects: ProjectRecord[]) => Promise<BackupPayload>;
+  importBackup: (content: string) => Promise<ProjectRecord[]>;
 };
 
 export function createBrowserProjectRepository(storage: Storage): ProjectRepository {
   return {
-    loadProjects: () => loadProjectsFromStorage(storage),
-    saveProjects: (projects) => saveProjectsToStorage(storage, projects),
-    exportBackup: (projects) => buildBackupPayload(projects),
-    importBackup: (content) => parseBackupPayload(content),
+    loadProjects: async () => loadProjectsFromStorage(storage),
+    saveProjects: async (projects) => saveProjectsToStorage(storage, projects),
+    exportBackup: async (projects) => buildBackupPayload(projects),
+    importBackup: async (content) => parseBackupPayload(content),
   };
 }

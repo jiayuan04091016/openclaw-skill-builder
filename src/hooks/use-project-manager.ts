@@ -44,19 +44,37 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
 
   useEffect(() => {
     repositoryRef.current = createBrowserProjectRepository(window.localStorage);
+    let isMounted = true;
 
-    try {
-      const parsed = repositoryRef.current.loadProjects();
-      setProjects(parsed);
-      if (parsed[0]) {
-        setActiveProjectId(parsed[0].id);
-        setHomeGoal(parsed[0].goal);
+    async function loadProjects() {
+      try {
+        const parsed = await repositoryRef.current?.loadProjects();
+
+        if (!isMounted || !parsed) {
+          return;
+        }
+
+        setProjects(parsed);
+        if (parsed[0]) {
+          setActiveProjectId(parsed[0].id);
+          setHomeGoal(parsed[0].goal);
+        }
+      } catch {
+        if (isMounted) {
+          onStatusChange("?????????????????????????");
+        }
+      } finally {
+        if (isMounted) {
+          setHasLoadedProjects(true);
+        }
       }
-    } catch {
-      onStatusChange("之前保存的内容没有成功读取，系统已自动跳过旧数据。");
-    } finally {
-      setHasLoadedProjects(true);
     }
+
+    void loadProjects();
+
+    return () => {
+      isMounted = false;
+    };
   }, [onStatusChange]);
 
   useEffect(() => {
@@ -64,7 +82,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       return;
     }
 
-    repositoryRef.current?.saveProjects(projects);
+    void repositoryRef.current?.saveProjects(projects);
   }, [projects, hasLoadedProjects]);
 
   const activeProject = useMemo(
@@ -218,8 +236,8 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     }
   }
 
-  function exportProjectBackup() {
-    const payload = repositoryRef.current?.exportBackup(projects);
+  async function exportProjectBackup() {
+    const payload = await repositoryRef.current?.exportBackup(projects);
 
     if (!payload) {
       onStatusChange("当前无法导出备份，请稍后重试。");
@@ -243,7 +261,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
 
     try {
       const content = await file.text();
-      const importedProjects = repositoryRef.current?.importBackup(content) ?? [];
+      const importedProjects = (await repositoryRef.current?.importBackup(content)) ?? [];
 
       setProjects(importedProjects);
       setActiveProjectId(importedProjects[0]?.id ?? null);
