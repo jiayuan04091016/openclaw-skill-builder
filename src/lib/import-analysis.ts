@@ -24,7 +24,8 @@ export function buildImportAnalysisSummary(parsed: ParsedSkillImport, sourceText
   ].filter(Boolean);
   const qualityLevel =
     extractedCount >= 5 && sourceLength >= 120 ? "high" : extractedCount >= 3 && sourceLength >= 60 ? "medium" : "low";
-  const readyForFirstDraft = extractedCount >= 3 && coveredSections.includes("输入内容") && coveredSections.includes("输出内容");
+  const readyForFirstDraft =
+    extractedCount >= 3 && coveredSections.includes("输入内容") && coveredSections.includes("输出内容");
 
   return {
     extractedCount,
