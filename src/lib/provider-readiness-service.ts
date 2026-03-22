@@ -9,6 +9,8 @@ export type ProviderReadinessItem = {
 export type ProviderReadinessReport = {
   allConfigured: boolean;
   items: ProviderReadinessItem[];
+  missingKeys: ProviderReadinessItem["key"][];
+  nextRequiredKey: ProviderReadinessItem["key"] | null;
 };
 
 export function buildProviderReadinessReport(): ProviderReadinessReport {
@@ -39,5 +41,7 @@ export function buildProviderReadinessReport(): ProviderReadinessReport {
   return {
     allConfigured: items.every((item) => item.configured),
     items,
+    missingKeys: items.filter((item) => !item.configured).map((item) => item.key),
+    nextRequiredKey: items.find((item) => !item.configured)?.key ?? null,
   };
 }
