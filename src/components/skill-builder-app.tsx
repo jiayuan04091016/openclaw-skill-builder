@@ -694,6 +694,9 @@ export function SkillBuilderApp() {
                             onChange={(value) => updateProject({ importedSkillText: value })}
                             multiline
                           />
+                          <p className="text-xs leading-6 text-slate-500">
+                            不需要一开始就贴得很完整。只要能说明旧 Skill 的核心用途、输入和输出，通常就足够先提取一版。
+                          </p>
                           <button className="w-full rounded-full border border-cyan-600 px-4 py-2 text-sm font-semibold text-cyan-700 sm:w-auto" onClick={applyImportedSkillText}>
                             从已有内容提取信息
                           </button>
