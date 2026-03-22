@@ -1,4 +1,5 @@
 import { createProjectService } from "@/lib/project-service";
+import { createSkillImportArchiveService } from "@/lib/skill-import-archive-service";
 import { createSkillImportPipelineService, type SkillImportPipelineResult } from "@/lib/skill-import-pipeline-service";
 import type { ProjectRecord, ResourceType } from "@/types/app";
 
@@ -14,13 +15,14 @@ export type ProjectImportPipelineService = {
 
 export function createProjectImportPipelineService(): ProjectImportPipelineService {
   const projectService = createProjectService();
+  const skillImportArchiveService = createSkillImportArchiveService();
   const skillImportPipelineService = createSkillImportPipelineService();
 
   function buildProjectPatch(project: ProjectRecord, importedSkillText: string, sourceName: string, sourceType: "text" | "markdown" | "zip" | "manual") {
     return {
       ...projectService.applyImportedSkillPatch(project, importedSkillText),
       importedSkillArchive: importedSkillText
-        ? projectService.buildImportedSkillArchive(importedSkillText, sourceName, sourceType)
+        ? skillImportArchiveService.buildArchive(importedSkillText, sourceName, sourceType)
         : project.importedSkillArchive,
     };
   }
