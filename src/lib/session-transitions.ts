@@ -30,7 +30,7 @@ export function resolveNextSyncStep(
   if (authEnabled && !cloudSyncEnabled) {
     return {
       action: "优先补云端项目存储",
-      hint: "账号入口已经有了，下一步应该把项目、资料和草稿接到云端仓储里。",
+      hint: "账号入口已经有了，下一步应该把项目、资料和草稿接到云端存储里。",
     };
   }
 
