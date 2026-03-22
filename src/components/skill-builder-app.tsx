@@ -1238,6 +1238,7 @@ export function SkillBuilderApp() {
                   <p className="mt-2">1. 回首页写一句简单目标</p>
                   <p>2. 从零创建，先走完整个流程</p>
                   <p>3. 先用示例内容测试，方向对了再补真实资料</p>
+                  <p className="mt-2 text-xs text-slate-500">如果你手头已经有旧 Skill，通常最短路径不是从零开始，而是直接走导入模式继续改。</p>
                 </div>
                 <div className="grid gap-4 lg:grid-cols-3">
                   <div className="rounded-[22px] bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-5">
