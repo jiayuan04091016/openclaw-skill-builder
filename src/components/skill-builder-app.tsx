@@ -166,6 +166,16 @@ export function SkillBuilderApp() {
     [projects],
   );
 
+  const completionItems = activeProject
+    ? [
+        { label: "目标描述", done: Boolean(activeProject.goal.trim()) },
+        { label: "主要任务", done: Boolean(activeProject.mainTask.trim()) },
+        { label: "输入内容", done: Boolean(activeProject.inputFormat.trim()) },
+        { label: "输出内容", done: Boolean(activeProject.outputFormat.trim()) },
+        { label: "参考资料", done: activeProject.resources.length > 0 },
+      ]
+    : [];
+
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,#fef3c7_0%,#f8fafc_28%,#eef6ff_60%,#f8fafc_100%)] text-slate-900">
       <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8">
@@ -594,29 +604,50 @@ export function SkillBuilderApp() {
                         </div>
                       </div>
                     </div>
-                    <div className="rounded-[24px] border border-cyan-100 bg-cyan-50/60 p-5">
-                      <h3 className="text-base font-semibold text-slate-900">整理结果预览</h3>
-                      {structuredSpec ? (
-                        <dl className="mt-4 space-y-3 text-sm leading-7 text-slate-700">
-                          <div>
-                            <dt className="font-semibold text-slate-900">建议名称</dt>
-                            <dd>{structuredSpec.skillName}</dd>
-                          </div>
-                          <div>
-                            <dt className="font-semibold text-slate-900">用途</dt>
-                            <dd>{structuredSpec.description}</dd>
-                          </div>
-                          <div>
-                            <dt className="font-semibold text-slate-900">输入 / 输出</dt>
-                            <dd>{structuredSpec.inputFormat}</dd>
-                            <dd>{structuredSpec.outputFormat}</dd>
-                          </div>
-                          <div>
-                            <dt className="font-semibold text-slate-900">注意事项</dt>
-                            <dd className="whitespace-pre-line">{structuredSpec.warnings}</dd>
-                          </div>
-                        </dl>
-                      ) : null}
+                    <div className="space-y-4">
+                      <div className="rounded-[24px] border border-cyan-100 bg-cyan-50/60 p-5">
+                        <h3 className="text-base font-semibold text-slate-900">整理结果预览</h3>
+                        {structuredSpec ? (
+                          <dl className="mt-4 space-y-3 text-sm leading-7 text-slate-700">
+                            <div>
+                              <dt className="font-semibold text-slate-900">建议名称</dt>
+                              <dd>{structuredSpec.skillName}</dd>
+                            </div>
+                            <div>
+                              <dt className="font-semibold text-slate-900">用途</dt>
+                              <dd>{structuredSpec.description}</dd>
+                            </div>
+                            <div>
+                              <dt className="font-semibold text-slate-900">输入 / 输出</dt>
+                              <dd>{structuredSpec.inputFormat}</dd>
+                              <dd>{structuredSpec.outputFormat}</dd>
+                            </div>
+                            <div>
+                              <dt className="font-semibold text-slate-900">注意事项</dt>
+                              <dd className="whitespace-pre-line">{structuredSpec.warnings}</dd>
+                            </div>
+                          </dl>
+                        ) : null}
+                      </div>
+
+                      <div className="rounded-[24px] border border-slate-200 bg-white p-5">
+                        <div className="flex items-center justify-between gap-3">
+                          <h3 className="text-base font-semibold text-slate-900">完成度检查</h3>
+                          <span className="text-sm font-medium text-slate-500">
+                            {completionItems.filter((item) => item.done).length}/{completionItems.length}
+                          </span>
+                        </div>
+                        <div className="mt-4 space-y-3">
+                          {completionItems.map((item) => (
+                            <div key={item.label} className="flex items-center justify-between gap-3 rounded-[18px] bg-slate-50 px-4 py-3 text-sm">
+                              <span className="font-medium text-slate-700">{item.label}</span>
+                              <span className={item.done ? "font-semibold text-emerald-700" : "font-semibold text-amber-700"}>
+                                {item.done ? "已完成" : "待补充"}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
                   <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-between">
