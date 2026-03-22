@@ -492,6 +492,7 @@ export function SkillBuilderApp() {
                     <p>图片和视频目前主要作为补充资料使用，支持上传和备注。</p>
                     <p>如果资料里有关键说明，建议同步补一段文字说明，生成结果会更稳。</p>
                     <p>第一次使用时，优先上传最能说明任务目标的那一份资料。</p>
+                    <p className="text-xs text-slate-500">如果你已经知道要做什么，只是不确定该补哪些资料，就先看这一部分。</p>
                     <button className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700" onClick={continueFromLearning}>
                       去补参考资料
                     </button>
@@ -502,6 +503,7 @@ export function SkillBuilderApp() {
                     <p>上传已有的 `SKILL.md` 或把内容粘贴进来。</p>
                     <p>再补一句你想新增的能力，例如“增加投诉安抚场景”。</p>
                     <p>系统会根据你的新目标重新整理内容，再导出成更适合当前需求的新版本。</p>
+                    <p className="text-xs text-slate-500">如果你手头已经有旧 Skill，或者只想在原有基础上改一版，就直接看这一部分。</p>
                     <button className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700" onClick={() => startFromImport(homeGoal)}>
                       直接试试导入模式
                     </button>
