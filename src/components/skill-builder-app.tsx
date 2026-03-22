@@ -373,6 +373,13 @@ export function SkillBuilderApp() {
                     <div key={template.title} className="rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-5">
                       <div className="inline-flex rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-700">推荐模板</div>
                       <h3 className="mt-3 text-lg font-semibold text-slate-900">{template.title}</h3>
+                      <p className="mt-2 text-xs text-slate-500">
+                        {template.title.includes("会议")
+                          ? "适合会议结束后快速整理重点和待办。"
+                          : template.title.includes("客服")
+                            ? "适合把客户问题整理成礼貌、稳定的回复。"
+                            : "适合先把零散网页内容整理成清晰摘要。"}
+                      </p>
                       <p className="mt-2 text-sm leading-7 text-slate-600">{template.goal}</p>
                       <button className="mt-4 w-full rounded-full bg-cyan-600 px-4 py-2 text-sm font-semibold text-white sm:w-auto" onClick={() => startFromScratch(template.goal)}>
                         使用这个模板
