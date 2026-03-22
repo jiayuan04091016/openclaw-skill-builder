@@ -947,6 +947,7 @@ export function SkillBuilderApp() {
                         <p>3. 把整个目录放进 OpenClaw 的 skills 目录。</p>
                         <p>4. 重启或刷新 OpenClaw。</p>
                         <p>5. 先用示例输入测试一次，再放入真实内容。</p>
+                        <p className="mt-2 text-slate-500">第一次测试建议先用短一点、没有敏感信息的内容，确认方向对了再换成真实资料。</p>
                         <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                           <button className="w-full rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => void copyInstallGuide()}>
                             复制安装说明
@@ -955,6 +956,7 @@ export function SkillBuilderApp() {
                             复制测试提示词
                           </button>
                         </div>
+                        <p className="mt-3 text-xs text-slate-400">复制测试提示词后，可以先在 OpenClaw 里跑一遍，确认输出风格和结果方向。</p>
                       </div>
                       <button
                         className="w-full rounded-full bg-cyan-600 px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-cyan-300"
