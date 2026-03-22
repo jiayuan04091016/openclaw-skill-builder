@@ -3,13 +3,14 @@
 ## 1. 账号登录 Provider
 
 基础地址：
-
 - `NEXT_PUBLIC_AUTH_PROVIDER_URL`
+
+健康检查：
+- `GET /health`
 
 ### `GET /profile`
 
-返回：
-
+返回示例：
 ```json
 {
   "mode": "authenticated",
@@ -20,8 +21,7 @@
 
 ### `POST /sign-in`
 
-返回：
-
+返回示例：
 ```json
 {
   "ok": true,
@@ -31,8 +31,7 @@
 
 ### `POST /sign-out`
 
-返回：
-
+返回示例：
 ```json
 {
   "ok": true,
@@ -43,13 +42,14 @@
 ## 2. 云端存储 Provider
 
 基础地址：
-
 - `NEXT_PUBLIC_CLOUD_STORAGE_PROVIDER_URL`
+
+健康检查：
+- `GET /health`
 
 ### `GET /projects`
 
-返回：
-
+返回示例：
 ```json
 [
   {
@@ -81,8 +81,7 @@
 请求体：
 - `CloudSyncBundle`
 
-返回：
-
+返回示例：
 ```json
 {
   "ok": true,
@@ -94,16 +93,17 @@
 ## 3. OCR Provider
 
 基础地址：
-
 - `NEXT_PUBLIC_OCR_PROVIDER_URL`
+
+健康检查：
+- `GET /health`
 
 ### `POST /extract`
 
 请求体：
 - 单条 `ResourceItem`
 
-返回：
-
+返回示例：
 ```json
 {
   "status": "completed",
@@ -115,16 +115,17 @@
 ## 4. 视频增强 Provider
 
 基础地址：
-
 - `NEXT_PUBLIC_VIDEO_ENHANCEMENT_PROVIDER_URL`
+
+健康检查：
+- `GET /health`
 
 ### `POST /summarize`
 
 请求体：
 - 单条 `ResourceItem`
 
-返回：
-
+返回示例：
 ```json
 {
   "status": "completed",
