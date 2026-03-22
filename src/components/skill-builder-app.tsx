@@ -852,6 +852,9 @@ export function SkillBuilderApp() {
                       <Field label="一句话描述" value={activeProject.description} placeholder="帮助谁完成什么任务，并输出什么结果" onChange={(value) => updateProject({ description: value })} multiline />
                       <Field label="输出语言" value={activeProject.language} placeholder="例如：zh-CN" onChange={(value) => updateProject({ language: value })} />
                       <Field label="风险提示" value={activeProject.warnings} placeholder="例如：请勿输入敏感信息" onChange={(value) => updateProject({ warnings: value })} multiline />
+                      <div className="rounded-[18px] bg-slate-50 px-4 py-3 text-sm leading-7 text-slate-600">
+                        优先改这三项就够了：名称、描述、风险提示。其他内容如果暂时没问题，可以先保持默认。
+                      </div>
                       <label className="flex items-center gap-3 rounded-[18px] bg-slate-50 px-4 py-3 text-sm text-slate-700">
                         <input type="checkbox" checked={activeProject.includeExamples} onChange={(event) => updateProject({ includeExamples: event.target.checked })} />
                         附带示例输入和示例结果
@@ -888,6 +891,7 @@ export function SkillBuilderApp() {
                         </button>
                       </div>
 
+                      <p className="mt-3 text-xs text-slate-400">第一次检查时，先看“说明版”通常最快。</p>
                       <p className="mt-3 text-sm text-slate-500">{previewModeHint}</p>
 
                       <pre className="mt-4 max-h-[36rem] overflow-auto rounded-[20px] bg-slate-950 p-5 text-sm leading-7 whitespace-pre-wrap text-slate-100">
