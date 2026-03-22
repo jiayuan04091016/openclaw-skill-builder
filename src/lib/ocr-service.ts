@@ -1,3 +1,4 @@
+import { createOcrProvider } from "@/lib/ocr-provider";
 import type { OcrResult, ResourceItem } from "@/types/app";
 
 export type OcrService = {
@@ -5,14 +6,9 @@ export type OcrService = {
 };
 
 export function createOcrService(): OcrService {
+  const provider = createOcrProvider();
+
   return {
-    extractText: async (resource) => ({
-      status: "not-configured",
-      text: resource.content,
-      message:
-        resource.type === "image"
-          ? "OCR 接口已预留，后续可继续接真实图片识别服务。"
-          : "当前资源不是图片，暂不需要走 OCR 识别。",
-    }),
+    extractText: async (resource) => provider.extractText(resource),
   };
 }
