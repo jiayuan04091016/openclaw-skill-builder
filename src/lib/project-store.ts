@@ -1,4 +1,5 @@
 import { normalizeProjects } from "@/lib/project-normalizer";
+import { buildCloudMigrationPreview } from "@/lib/sync-readiness";
 import type { BackupPayload, ProjectRecord, RepositoryStatus } from "@/types/app";
 
 export const STORAGE_KEY = "openclaw-skill-builder-projects";
@@ -60,6 +61,7 @@ export function loadRepositoryStatus(storage: Storage, projects: ProjectRecord[]
     projectCount: projects.length,
     lastSavedAt: meta.lastSavedAt,
     syncState: "local-only",
+    migrationPreview: buildCloudMigrationPreview(projects),
   };
 }
 

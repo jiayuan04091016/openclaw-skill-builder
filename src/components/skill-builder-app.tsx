@@ -201,6 +201,7 @@ export function SkillBuilderApp() {
     }),
     [projects],
   );
+  const migrationPreview = repositoryStatus?.migrationPreview ?? null;
 
   const resourceTypeLabels: Record<string, string> = {
     text: "文本资料",
@@ -275,7 +276,10 @@ export function SkillBuilderApp() {
           <div className="mt-4 rounded-[20px] bg-slate-50 px-4 py-3 text-sm text-slate-600">
             <span className="font-medium text-slate-800">进度提示：</span> {statusMessage}
           </div>
-          <div className="mt-3 text-xs text-slate-500">{session.syncHint}</div>
+          <div className="mt-3 space-y-1 text-xs text-slate-500">
+            <div>{session.syncHint}</div>
+            <div>{session.migrationHint}</div>
+          </div>
         </header>
 
         <main className="mt-6 flex-1 space-y-6">
@@ -1112,6 +1116,35 @@ export function SkillBuilderApp() {
               }
             >
               <input ref={backupInputRef} type="file" accept=".json,application/json" className="hidden" onChange={importProjectBackup} />
+              {migrationPreview ? (
+                <div className="mb-5 rounded-[22px] border border-cyan-100 bg-cyan-50/80 p-5">
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                    <div>
+                      <div className="text-sm font-semibold text-cyan-800">云端迁移准备</div>
+                      <div className="mt-2 text-sm leading-7 text-cyan-950">
+                        当前这台设备里已经有 {migrationPreview.readyProjectCount} 个项目可作为后续登录后的第一批迁移内容，
+                        其中 {migrationPreview.generatedProjectCount} 个已经生成草稿，{migrationPreview.importedProjectCount} 个来自旧 Skill 改造。
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 text-sm text-cyan-900 sm:min-w-[260px]">
+                      <div className="rounded-2xl bg-white/80 px-4 py-3">
+                        <div className="text-xs text-cyan-700">待迁移项目</div>
+                        <div className="mt-1 text-xl font-semibold">{migrationPreview.readyProjectCount}</div>
+                      </div>
+                      <div className="rounded-2xl bg-white/80 px-4 py-3">
+                        <div className="text-xs text-cyan-700">资料条目</div>
+                        <div className="mt-1 text-xl font-semibold">{migrationPreview.resourceCount}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-3 text-xs text-cyan-800/80">
+                    这一步先只做迁移准备，不会影响你当前的本机保存和导出流程。
+                    {migrationPreview.latestProjectUpdatedAt
+                      ? ` 最近一次项目更新时间：${new Date(migrationPreview.latestProjectUpdatedAt).toLocaleString("zh-CN")}。`
+                      : ""}
+                  </div>
+                </div>
+              ) : null}
               <div className="mb-5 rounded-[24px] bg-[linear-gradient(135deg,#f8fafc_0%,#eef6ff_55%,#fefce8_100%)] p-5">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <div>

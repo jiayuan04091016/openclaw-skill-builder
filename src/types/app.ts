@@ -113,10 +113,19 @@ export type RepositoryCapabilities = {
   storageMode: StorageMode;
 };
 
+export type CloudMigrationPreview = {
+  readyProjectCount: number;
+  generatedProjectCount: number;
+  importedProjectCount: number;
+  resourceCount: number;
+  latestProjectUpdatedAt: string | null;
+};
+
 export type RepositoryStatus = {
   projectCount: number;
   lastSavedAt: string | null;
   syncState: SyncState;
+  migrationPreview: CloudMigrationPreview;
 };
 
 export type SessionState = {
@@ -125,4 +134,5 @@ export type SessionState = {
   displayName: string;
   syncAvailable: boolean;
   syncHint: string;
+  migrationHint: string;
 };
