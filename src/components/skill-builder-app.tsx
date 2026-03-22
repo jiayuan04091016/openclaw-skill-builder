@@ -213,6 +213,13 @@ export function SkillBuilderApp() {
       ]
     : [];
 
+  const previewModeHint =
+    previewMode === "guide"
+      ? "当前查看的是给用户阅读的说明版。"
+      : previewMode === "skill"
+        ? "当前查看的是将写入导出包的 SKILL.md 内容。"
+        : "当前查看的是示例输入和示例输出效果。";
+
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,#fef3c7_0%,#f8fafc_28%,#eef6ff_60%,#f8fafc_100%)] text-slate-900">
       <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8">
@@ -826,6 +833,8 @@ export function SkillBuilderApp() {
                           复制当前内容
                         </button>
                       </div>
+
+                      <p className="mt-3 text-sm text-slate-500">{previewModeHint}</p>
 
                       <pre className="mt-4 max-h-[36rem] overflow-auto rounded-[20px] bg-slate-950 p-5 text-sm leading-7 whitespace-pre-wrap text-slate-100">
                         {previewMode === "guide"
