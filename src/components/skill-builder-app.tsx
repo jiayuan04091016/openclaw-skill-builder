@@ -333,6 +333,9 @@ export function SkillBuilderApp() {
                       <button className="w-full rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => startFromImport(homeGoal)}>
                         导入已有 Skill
                       </button>
+                      <p className="w-full text-xs leading-6 text-slate-500">
+                        没有旧 Skill 时，通常直接选“从零创建”；只有手头已经有旧版本时，再选“导入已有 Skill”。
+                      </p>
                       <div className="mt-4 rounded-[18px] bg-white/70 px-4 py-3">
                         <p className="font-medium text-slate-900">推荐句式</p>
                         <p className="mt-2 text-slate-600">我想做一个给 [谁用] 的 Skill，它能帮我 [做什么]，最后输出 [什么结果]。</p>
