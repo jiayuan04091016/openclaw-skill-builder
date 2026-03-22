@@ -396,6 +396,7 @@ export function SkillBuilderApp() {
                         使用这个模板
                       </button>
                       <p className="mt-2 text-xs leading-6 text-slate-500">先用最接近的模板开始就行，进入后名称、描述、输入输出都还能继续改。</p>
+                      <p className="mt-1 text-xs leading-6 text-slate-400">如果只是想先做出第一个能跑通的版本，模板通常会比空白开始更快。</p>
                     </div>
                   ))}
                 </div>
