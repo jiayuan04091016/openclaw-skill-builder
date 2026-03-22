@@ -718,6 +718,11 @@ export function SkillBuilderApp() {
 
               {builderStep === 3 ? (
                 <SectionCard title="步骤 3：确认适用场景">
+                  {activeProject.mode === "import" ? (
+                    <div className="mb-5 rounded-[22px] border border-cyan-100 bg-cyan-50/70 p-4 text-sm leading-7 text-slate-700">
+                      当前正在基于旧 Skill 继续改造。这里补充的是新版目标、输入和输出要求。
+                    </div>
+                  ) : null}
                   <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
                     <div className="grid gap-4">
                       <Field label="适用对象" value={activeProject.audience} placeholder="例如：办公新手、客服人员、内容编辑" onChange={(value) => updateProject({ audience: value })} />
