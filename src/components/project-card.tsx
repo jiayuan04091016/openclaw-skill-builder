@@ -50,10 +50,12 @@ export function ProjectCard({ project, onEdit, onDuplicate, onDelete }: ProjectC
           {project.mode === "create" ? "新建" : "导入"}
         </span>
       </div>
+
       <div className="mt-4 flex items-center justify-between gap-3 text-sm text-slate-500">
         <span>最近更新：{formatDateLabel(project.updatedAt)}</span>
         <span>{stage}</span>
       </div>
+
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <div className="rounded-[18px] bg-slate-50 px-4 py-3">
           <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">资料数</div>
@@ -68,6 +70,7 @@ export function ProjectCard({ project, onEdit, onDuplicate, onDelete }: ProjectC
           <div className="mt-1 text-lg font-semibold text-slate-900">{project.language || "zh-CN"}</div>
         </div>
       </div>
+
       <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <button className="w-full rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white sm:w-auto" onClick={onEdit}>
           继续编辑
