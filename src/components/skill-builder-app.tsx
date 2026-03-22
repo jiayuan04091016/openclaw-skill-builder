@@ -620,6 +620,24 @@ export function SkillBuilderApp() {
                         onChange={(value) => updateProject({ description: value })}
                         multiline
                       />
+                      <div className="rounded-[20px] bg-slate-50 px-4 py-4">
+                        <p className="text-sm font-medium text-slate-700">不知道怎么开头时，可以先点一个示例：</p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {[
+                            "帮我整理会议纪要，并自动列出重点和待办事项",
+                            "根据客户提问生成礼貌、稳定的客服回复",
+                            "把网页内容整理成适合新手阅读的简洁摘要",
+                          ].map((example) => (
+                            <button
+                              key={example}
+                              className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 transition hover:border-cyan-300 hover:text-cyan-700"
+                              onClick={() => updateProject({ goal: example })}
+                            >
+                              {example}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                     <div className="rounded-[24px] border border-amber-100 bg-amber-50/70 p-5 text-sm leading-7 text-slate-700">
                       <h3 className="text-base font-semibold text-slate-900">填写建议</h3>
