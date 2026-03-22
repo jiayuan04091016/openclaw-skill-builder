@@ -70,4 +70,6 @@ export type SessionState = {
   mode: SessionMode;
   storageMode: StorageMode;
   displayName: string;
+  syncAvailable: boolean;
+  syncHint: string;
 };

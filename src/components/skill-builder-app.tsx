@@ -181,6 +181,9 @@ export function SkillBuilderApp() {
                 <span className="rounded-full bg-cyan-50 px-3 py-1 font-medium text-cyan-700">
                   {session.storageMode === "local" ? "本机保存模式" : "云端同步模式"}
                 </span>
+                <span className="rounded-full bg-amber-50 px-3 py-1 font-medium text-amber-700">
+                  {session.syncAvailable ? "已开启同步" : "暂未开启同步"}
+                </span>
               </div>
             </div>
             <nav className="flex flex-wrap gap-2 sm:justify-start">
@@ -198,6 +201,7 @@ export function SkillBuilderApp() {
             </nav>
           </div>
           <div className="mt-4 rounded-[20px] bg-slate-50 px-4 py-3 text-sm text-slate-600">当前状态：{statusMessage}</div>
+          <div className="mt-3 text-xs text-slate-500">{session.syncHint}</div>
         </header>
 
         <main className="mt-6 flex-1 space-y-6">
