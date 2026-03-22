@@ -1,3 +1,6 @@
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
+
 import { buildAuthProviderContractReport } from "@/lib/auth-provider-contract-service";
 import { buildProviderReadinessReport, type ProviderReadinessItem } from "@/lib/provider-readiness-service";
 
@@ -80,5 +83,54 @@ export async function buildProviderIntegrationPlan(): Promise<ProviderIntegratio
     nextProvider: readiness.nextRequiredKey ?? readiness.unreachableKeys[0] ?? (authNeedsContractFix ? "auth" : null),
     nextStep: authNeedsContractFix ? "先修正 auth provider 的返回结构，再继续联调。" : readiness.nextIntegrationStep,
     items,
+  };
+}
+
+export function buildProviderIntegrationPlanMarkdown(plan: ProviderIntegrationPlan) {
+  const lines = [
+    "# 真实服务接入计划快照",
+    "",
+    `当前是否已可进入真实联调：${plan.readyForRealIntegration ? "可以" : "还不可以"}`,
+    `下一优先 provider：${plan.nextProvider ?? "无"}`,
+    `下一步：${plan.nextStep}`,
+    "",
+    "## 接入顺序",
+  ];
+
+  for (const item of plan.items) {
+    lines.push(`- ${item.key}：${item.configured ? "已配置" : "未配置"}`);
+    lines.push(`  说明：${item.note}`);
+
+    if (item.envKeys.length) {
+      lines.push(`  环境变量：${item.envKeys.join("、")}`);
+    }
+
+    if (item.requiredEndpoints.length) {
+      lines.push(`  最小接口：${item.requiredEndpoints.join("；")}`);
+    }
+
+    if (item.contractIssues?.length) {
+      lines.push(`  契约问题：${item.contractIssues.join("；")}`);
+    }
+  }
+
+  return lines.join("\n");
+}
+
+export async function writeProviderIntegrationPlanSnapshot() {
+  const plan = await buildProviderIntegrationPlan();
+  const markdown = buildProviderIntegrationPlanMarkdown(plan);
+  const docsDir = path.join(process.cwd(), "docs");
+  const fileName = "provider-integration-plan.md";
+  const filePath = path.join(docsDir, fileName);
+
+  await mkdir(docsDir, { recursive: true });
+  await writeFile(filePath, markdown, "utf8");
+
+  return {
+    filePath,
+    fileName,
+    readyForRealIntegration: plan.readyForRealIntegration,
+    nextProvider: plan.nextProvider,
   };
 }
