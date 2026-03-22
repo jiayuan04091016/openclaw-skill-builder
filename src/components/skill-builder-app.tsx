@@ -130,6 +130,24 @@ export function SkillBuilderApp() {
     generateDraft();
   }
 
+  function applyStructuredSuggestions() {
+    if (!activeProject || !structuredSpec) {
+      return;
+    }
+
+    updateProject({
+      title: activeProject.title || structuredSpec.skillName,
+      description: activeProject.description || structuredSpec.description,
+      audience: activeProject.audience || structuredSpec.audience,
+      mainTask: activeProject.mainTask || structuredSpec.mainTask,
+      inputFormat: activeProject.inputFormat || structuredSpec.inputFormat,
+      outputFormat: activeProject.outputFormat || structuredSpec.outputFormat,
+      warnings: activeProject.warnings || structuredSpec.warnings,
+      language: activeProject.language || structuredSpec.language,
+    });
+    setStatusMessage("已用系统建议补全空白项。");
+  }
+
   const filteredProjects = useMemo(() => {
     const keyword = projectKeyword.trim().toLowerCase();
 
@@ -301,6 +319,7 @@ export function SkillBuilderApp() {
               </SectionCard>
             </>
           ) : null}
+
           {section === "learn" ? (
             <div className="space-y-6">
               <SectionCard title="学习中心">
@@ -604,9 +623,15 @@ export function SkillBuilderApp() {
                         </div>
                       </div>
                     </div>
+
                     <div className="space-y-4">
                       <div className="rounded-[24px] border border-cyan-100 bg-cyan-50/60 p-5">
-                        <h3 className="text-base font-semibold text-slate-900">整理结果预览</h3>
+                        <div className="flex items-center justify-between gap-3">
+                          <h3 className="text-base font-semibold text-slate-900">整理结果预览</h3>
+                          <button className="rounded-full border border-cyan-600 px-4 py-2 text-sm font-semibold text-cyan-700" onClick={applyStructuredSuggestions}>
+                            用系统建议补全空白项
+                          </button>
+                        </div>
                         {structuredSpec ? (
                           <dl className="mt-4 space-y-3 text-sm leading-7 text-slate-700">
                             <div>
@@ -876,6 +901,7 @@ export function SkillBuilderApp() {
               </div>
             </SectionCard>
           ) : null}
+
           {section === "help" ? (
             <div className="space-y-6">
               <SectionCard title="帮助中心">
