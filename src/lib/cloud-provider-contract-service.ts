@@ -1,7 +1,10 @@
 import { getProviderConfig } from "@/lib/provider-config";
 import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
-import type { CloudStorageProviderResult } from "@/lib/cloud-storage-provider";
-import type { CloudProjectRecord, CloudSyncBundle } from "@/types/app";
+import {
+  buildSampleCloudSyncBundle,
+  normalizeRemoteCloudProjectList,
+  normalizeRemoteCloudStorageResult,
+} from "@/lib/cloud-remote-contracts";
 
 export type CloudProviderContractReport = {
   configured: boolean;
@@ -10,71 +13,6 @@ export type CloudProviderContractReport = {
   allValid: boolean;
   issues: string[];
 };
-
-function isValidCloudProjectRecord(value: unknown): value is CloudProjectRecord {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  const candidate = value as Record<string, unknown>;
-
-  return (
-    typeof candidate.id === "string" &&
-    (candidate.mode === "create" || candidate.mode === "import") &&
-    typeof candidate.title === "string" &&
-    typeof candidate.goal === "string" &&
-    Array.isArray(candidate.resources)
-  );
-}
-
-function isValidCloudProjectList(value: unknown): value is CloudProjectRecord[] {
-  return Array.isArray(value) && value.every(isValidCloudProjectRecord);
-}
-
-function isValidCloudStorageProviderResult(value: unknown): value is CloudStorageProviderResult {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  const candidate = value as Record<string, unknown>;
-
-  return (
-    typeof candidate.ok === "boolean" &&
-    typeof candidate.message === "string" &&
-    typeof candidate.projectCount === "number"
-  );
-}
-
-function createSampleBundle(): CloudSyncBundle {
-  return {
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    projectCount: 1,
-    projects: [
-      {
-        id: "sample-cloud-project",
-        mode: "create",
-        title: "云端同步测试",
-        goal: "验证云端存储 provider",
-        description: "",
-        audience: "",
-        mainTask: "",
-        inputFormat: "",
-        outputFormat: "",
-        outputStyle: "simple",
-        language: "中文",
-        warnings: "",
-        includeExamples: true,
-        resources: [],
-        importedSkillText: "",
-        importedSkillArchive: null,
-        draft: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    ],
-  };
-}
 
 export async function buildCloudProviderContractReport(): Promise<CloudProviderContractReport> {
   const providerConfig = getProviderConfig();
@@ -90,19 +28,20 @@ export async function buildCloudProviderContractReport(): Promise<CloudProviderC
   }
 
   const issues: string[] = [];
-  const projects = await requestRemoteJson<unknown>(
-    buildRemoteProviderUrl(providerConfig.cloudStorageProviderUrl, "/projects"),
+  const sampleBundle = buildSampleCloudSyncBundle();
+  const projects = normalizeRemoteCloudProjectList(
+    await requestRemoteJson<unknown>(buildRemoteProviderUrl(providerConfig.cloudStorageProviderUrl, "/projects")),
   );
-  const bundleResult = await requestRemoteJson<unknown>(
-    buildRemoteProviderUrl(providerConfig.cloudStorageProviderUrl, "/bundle"),
-    {
+  const bundleResult = normalizeRemoteCloudStorageResult(
+    await requestRemoteJson<unknown>(buildRemoteProviderUrl(providerConfig.cloudStorageProviderUrl, "/bundle"), {
       method: "POST",
-      payload: createSampleBundle(),
-    },
+      payload: sampleBundle,
+    }),
+    sampleBundle.projectCount,
   );
 
-  const projectsShapeValid = isValidCloudProjectList(projects);
-  const bundleShapeValid = isValidCloudStorageProviderResult(bundleResult);
+  const projectsShapeValid = Array.isArray(projects);
+  const bundleShapeValid = Boolean(bundleResult);
 
   if (!projectsShapeValid) {
     issues.push("GET /projects 返回结构不符合当前前端约定。");

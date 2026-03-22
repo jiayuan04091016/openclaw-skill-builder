@@ -1,6 +1,10 @@
 import { getProviderConfig } from "@/lib/provider-config";
 import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
 import { getRuntimeCapabilities } from "@/lib/runtime-capabilities";
+import {
+  normalizeRemoteCloudProjectList,
+  normalizeRemoteCloudStorageResult,
+} from "@/lib/cloud-remote-contracts";
 import type { CloudProjectRecord, CloudSyncBundle } from "@/types/app";
 
 export type CloudStorageProviderResult = {
@@ -35,19 +39,19 @@ function createRemoteCloudStorageProvider(cloudStorageProviderUrl: string): Clou
   return {
     isConfigured: () => true,
     fetchProjects: async () => {
-      const projects = await requestRemoteJson<CloudProjectRecord[]>(
-        buildRemoteProviderUrl(cloudStorageProviderUrl, "/projects"),
+      const projects = normalizeRemoteCloudProjectList(
+        await requestRemoteJson<unknown>(buildRemoteProviderUrl(cloudStorageProviderUrl, "/projects")),
       );
 
       return projects ?? [];
     },
     saveBundle: async (bundle) => {
-      const result = await requestRemoteJson<CloudStorageProviderResult>(
-        buildRemoteProviderUrl(cloudStorageProviderUrl, "/bundle"),
-        {
+      const result = normalizeRemoteCloudStorageResult(
+        await requestRemoteJson<unknown>(buildRemoteProviderUrl(cloudStorageProviderUrl, "/bundle"), {
           method: "POST",
           payload: bundle,
-        },
+        }),
+        bundle.projectCount,
       );
 
       return (
