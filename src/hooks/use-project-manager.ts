@@ -3,6 +3,7 @@ import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { createCloudSyncClient } from "@/lib/cloud-sync-client";
 import { buildImportReviewSnapshot } from "@/lib/import-review-service";
 import { createProjectImportPipelineService } from "@/lib/project-import-pipeline-service";
+import { createProjectMediaProcessingService } from "@/lib/project-media-processing-service";
 import { createProjectResourceProcessingService } from "@/lib/project-resource-processing-service";
 import type { ProjectRepository } from "@/lib/project-repository";
 import { createProjectService } from "@/lib/project-service";
@@ -58,6 +59,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
   const syncServiceRef = useRef<SyncService | null>(null);
   const projectServiceRef = useRef(createProjectService());
   const projectImportPipelineServiceRef = useRef(createProjectImportPipelineService());
+  const projectMediaProcessingServiceRef = useRef(createProjectMediaProcessingService());
   const projectResourceProcessingServiceRef = useRef(createProjectResourceProcessingService());
   const cloudSyncClientRef = useRef(createCloudSyncClient());
 
@@ -415,6 +417,23 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     return processingResult;
   }
 
+  async function processProjectMediaResources(resourceIds?: string[]) {
+    if (!activeProject) {
+      return null;
+    }
+
+    const nextProcessing = await projectMediaProcessingServiceRef.current.processProjectResources(activeProject, resourceIds);
+    updateProject(nextProcessing.projectPatch);
+
+    const message =
+      nextProcessing.summary.processedCount > 0
+        ? `已处理 ${nextProcessing.summary.processedCount} 条媒体资料。`
+        : "当前没有可处理的图片或视频资料。";
+    onStatusChange(message);
+
+    return nextProcessing;
+  }
+
   function duplicateProject(projectId: string) {
     const source = projects.find((item) => item.id === projectId);
     if (!source) {
@@ -474,6 +493,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     importProjectBackup,
     applyImportedSkillText,
     processProjectResource,
+    processProjectMediaResources,
     duplicateProject,
     deleteProject,
   };
