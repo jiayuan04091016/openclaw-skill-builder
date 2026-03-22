@@ -267,6 +267,7 @@ export function SkillBuilderApp() {
     activeProject?.mode === "import" && activeProject.importedSkillText.trim()
       ? parseImportedSkill(activeProject.importedSkillText)
       : null;
+  const importReviewPriority = ["输入内容", "输出内容", "主要任务", "适用对象", "名称"] as const;
   const weakImportedFields = parsedImportDetails
     ? (
         [
@@ -278,6 +279,11 @@ export function SkillBuilderApp() {
         ] as const
       )
         .filter((item) => isWeakParsedSkillImportSource(item.source))
+        .sort(
+          (left, right) =>
+            importReviewPriority.indexOf(left.label as (typeof importReviewPriority)[number]) -
+            importReviewPriority.indexOf(right.label as (typeof importReviewPriority)[number]),
+        )
         .map((item) => item.label)
     : [];
 
@@ -859,9 +865,12 @@ export function SkillBuilderApp() {
                             提取到这里后，下一步通常就是去第 3 步补充新版的适用对象、输入内容和输出结果。
                           </p>
                           {weakImportedFields.length ? (
-                            <p className="mt-2 text-xs leading-6 text-amber-700">
-                              当前这些字段更值得优先人工核对：{weakImportedFields.join("、")}。
-                            </p>
+                            <div className="mt-2 text-xs leading-6 text-amber-700">
+                              <p>当前这些字段更值得优先人工核对：{weakImportedFields.join("、")}。</p>
+                              {weakImportedFields.length > 1 ? (
+                                <p>如果想先用最少时间提高成品质量，通常先看前两项就够了。</p>
+                              ) : null}
+                            </div>
                           ) : null}
                           <dl className="mt-4 grid gap-3 text-sm leading-7 text-slate-700 sm:grid-cols-2">
                             <div>
