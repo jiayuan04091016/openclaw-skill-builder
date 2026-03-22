@@ -1,6 +1,6 @@
 import { getProviderConfig } from "@/lib/provider-config";
 import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
-import type { VideoEnhancementResult } from "@/types/app";
+import { isNormalizedVideoEnhancementResult } from "@/lib/media-remote-contracts";
 
 export type VideoProviderContractReport = {
   configured: boolean;
@@ -8,20 +8,6 @@ export type VideoProviderContractReport = {
   allValid: boolean;
   issues: string[];
 };
-
-function isValidVideoEnhancementResult(value: unknown): value is VideoEnhancementResult {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  const candidate = value as Record<string, unknown>;
-
-  return (
-    (candidate.status === "not-configured" || candidate.status === "completed") &&
-    typeof candidate.summary === "string" &&
-    typeof candidate.message === "string"
-  );
-}
 
 export async function buildVideoProviderContractReport(): Promise<VideoProviderContractReport> {
   const providerConfig = getProviderConfig();
@@ -50,7 +36,7 @@ export async function buildVideoProviderContractReport(): Promise<VideoProviderC
     },
   );
 
-  const summarizeShapeValid = isValidVideoEnhancementResult(summarizeResult);
+  const summarizeShapeValid = isNormalizedVideoEnhancementResult(summarizeResult);
 
   if (!summarizeShapeValid) {
     issues.push("POST /summarize 返回结构不符合当前前端约定。");

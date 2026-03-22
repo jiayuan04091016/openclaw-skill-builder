@@ -1,5 +1,6 @@
 import { getProviderConfig } from "@/lib/provider-config";
 import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
+import { normalizeRemoteVideoEnhancementResult } from "@/lib/media-remote-contracts";
 import type { ResourceItem, VideoEnhancementResult } from "@/types/app";
 
 export type VideoEnhancementProvider = {
@@ -22,12 +23,11 @@ function createLocalVideoEnhancementProvider(): VideoEnhancementProvider {
 function createRemoteVideoEnhancementProvider(videoEnhancementProviderUrl: string): VideoEnhancementProvider {
   return {
     summarize: async (resource) => {
-      const result = await requestRemoteJson<VideoEnhancementResult>(
-        buildRemoteProviderUrl(videoEnhancementProviderUrl, "/summarize"),
-        {
+      const result = normalizeRemoteVideoEnhancementResult(
+        await requestRemoteJson<unknown>(buildRemoteProviderUrl(videoEnhancementProviderUrl, "/summarize"), {
           method: "POST",
           payload: resource,
-        },
+        }),
       );
 
       return (

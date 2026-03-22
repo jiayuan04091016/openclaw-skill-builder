@@ -1,6 +1,6 @@
 import { getProviderConfig } from "@/lib/provider-config";
 import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
-import type { OcrResult } from "@/types/app";
+import { isNormalizedOcrResult } from "@/lib/media-remote-contracts";
 
 export type OcrProviderContractReport = {
   configured: boolean;
@@ -8,20 +8,6 @@ export type OcrProviderContractReport = {
   allValid: boolean;
   issues: string[];
 };
-
-function isValidOcrResult(value: unknown): value is OcrResult {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  const candidate = value as Record<string, unknown>;
-
-  return (
-    (candidate.status === "not-configured" || candidate.status === "completed") &&
-    typeof candidate.text === "string" &&
-    typeof candidate.message === "string"
-  );
-}
 
 export async function buildOcrProviderContractReport(): Promise<OcrProviderContractReport> {
   const providerConfig = getProviderConfig();
@@ -47,7 +33,7 @@ export async function buildOcrProviderContractReport(): Promise<OcrProviderContr
     },
   });
 
-  const extractShapeValid = isValidOcrResult(extractResult);
+  const extractShapeValid = isNormalizedOcrResult(extractResult);
 
   if (!extractShapeValid) {
     issues.push("POST /extract 返回结构不符合当前前端约定。");

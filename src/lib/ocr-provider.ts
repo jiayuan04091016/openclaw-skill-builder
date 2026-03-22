@@ -1,5 +1,6 @@
 import { getProviderConfig } from "@/lib/provider-config";
 import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
+import { normalizeRemoteOcrResult } from "@/lib/media-remote-contracts";
 import type { OcrResult, ResourceItem } from "@/types/app";
 
 export type OcrProvider = {
@@ -22,10 +23,12 @@ function createLocalOcrProvider(): OcrProvider {
 function createRemoteOcrProvider(ocrProviderUrl: string): OcrProvider {
   return {
     extractText: async (resource) => {
-      const result = await requestRemoteJson<OcrResult>(buildRemoteProviderUrl(ocrProviderUrl, "/extract"), {
-        method: "POST",
-        payload: resource,
-      });
+      const result = normalizeRemoteOcrResult(
+        await requestRemoteJson<unknown>(buildRemoteProviderUrl(ocrProviderUrl, "/extract"), {
+          method: "POST",
+          payload: resource,
+        }),
+      );
 
       return (
         result ?? {
