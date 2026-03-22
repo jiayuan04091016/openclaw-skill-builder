@@ -1274,6 +1274,7 @@ export function SkillBuilderApp() {
                     ))}
                     <div className="rounded-[20px] border border-dashed border-slate-200 bg-white p-4 text-sm leading-7 text-slate-600">
                       如果这里还没解决你的问题，最省时间的做法通常是先回首页写一个简单目标，边做边看结果，再决定哪里要补。
+                      <p className="mt-2 text-xs text-slate-500">如果你现在已经知道要做什么了，就不用继续停在帮助页，直接回去开始做通常更快。</p>
                       <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                         <button className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700" onClick={() => setSection("home")}>
                           回首页
