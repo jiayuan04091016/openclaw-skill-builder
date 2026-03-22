@@ -28,6 +28,7 @@ export function SkillBuilderApp() {
   const [previewMode, setPreviewMode] = useState<"guide" | "skill" | "result">("guide");
   const [projectKeyword, setProjectKeyword] = useState("");
   const [projectFilter, setProjectFilter] = useState<"all" | "draft" | "generated" | "import">("all");
+  const [syncPreviewMessage, setSyncPreviewMessage] = useState("");
   const {
     projects,
     activeProject,
@@ -43,6 +44,7 @@ export function SkillBuilderApp() {
     repositoryStatus,
     cloudSyncPlan,
     prepareCloudSync,
+    buildCloudSyncPreview,
     ensureProject,
     updateProject,
     startFromScratch: createProjectFromScratch,
@@ -97,6 +99,22 @@ export function SkillBuilderApp() {
   function duplicateProject(projectId: string) {
     duplicateManagedProject(projectId);
     setSection("skills");
+  }
+
+  async function previewCloudSyncBundle() {
+    const bundle = await buildCloudSyncPreview();
+
+    if (!bundle) {
+      setSyncPreviewMessage("当前还没有可预览的迁移内容。");
+      return;
+    }
+
+    const resourceCount = bundle.projects.reduce((total, project) => total + project.resources.length, 0);
+    const generatedCount = bundle.projects.filter((project) => Boolean(project.draft)).length;
+
+    setSyncPreviewMessage(
+      `如果现在开始迁移，预计会带走 ${bundle.projectCount} 个项目、${resourceCount} 条资料，其中 ${generatedCount} 个已经生成草稿。`,
+    );
   }
 
   async function copyPreviewContent() {
@@ -1218,7 +1236,14 @@ export function SkillBuilderApp() {
                   <div className="mt-2 text-xs text-cyan-900/80">
                     当前同步计划：{cloudSyncPlan.message}
                   </div>
-                  <div className="mt-4">
+                  {syncPreviewMessage ? <div className="mt-2 text-xs text-cyan-900/80">{syncPreviewMessage}</div> : null}
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <button
+                      className="rounded-full border border-cyan-300 px-4 py-2 text-sm font-semibold text-cyan-700 transition hover:bg-cyan-100"
+                      onClick={() => void previewCloudSyncBundle()}
+                    >
+                      查看迁移预览
+                    </button>
                     <button
                       className="rounded-full border border-cyan-600 px-4 py-2 text-sm font-semibold text-cyan-700 transition hover:bg-cyan-100 disabled:cursor-not-allowed disabled:opacity-60"
                       onClick={() => void prepareCloudSync()}
