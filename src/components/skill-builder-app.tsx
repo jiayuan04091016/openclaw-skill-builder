@@ -38,6 +38,7 @@ export function SkillBuilderApp() {
     structuredSpec,
     repositoryCapabilities,
     repositoryStatus,
+    cloudSyncPlan,
     ensureProject,
     updateProject,
     startFromScratch: createProjectFromScratch,
@@ -1148,6 +1149,9 @@ export function SkillBuilderApp() {
                     {migrationPreview.latestProjectUpdatedAt
                       ? ` 最近一次项目更新时间：${new Date(migrationPreview.latestProjectUpdatedAt).toLocaleString("zh-CN")}。`
                       : ""}
+                  </div>
+                  <div className="mt-2 text-xs text-cyan-900/80">
+                    当前同步计划：{cloudSyncPlan.message}
                   </div>
                 </div>
               ) : null}

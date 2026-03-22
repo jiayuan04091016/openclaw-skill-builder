@@ -116,6 +116,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
   const currentDraft =
     activeProject?.draft ??
     (structuredSpec && activeProject ? buildDraftContent(structuredSpec, activeProject.includeExamples) : null);
+  const cloudSyncPlan = useMemo(() => cloudSyncClientRef.current.buildPlan(projects), [projects]);
 
   function upsertProject(project: ProjectRecord) {
     setProjects((current) => upsertProjectRecord(current, project));
@@ -298,10 +299,6 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     return repositoryRef.current.buildCloudBundle(projects);
   }
 
-  function buildCloudSyncPlan() {
-    return cloudSyncClientRef.current.buildPlan(projects);
-  }
-
   async function importProjectBackup(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
 
@@ -383,7 +380,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     structuredSpec,
     repositoryCapabilities,
     repositoryStatus,
-    buildCloudSyncPlan,
+    cloudSyncPlan,
     ensureProject,
     updateProject,
     startFromScratch,
