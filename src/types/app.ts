@@ -139,3 +139,9 @@ export type SessionState = {
   nextSyncAction: string;
   nextSyncActionHint: string;
 };
+
+export type SessionProfile = {
+  mode: SessionMode;
+  displayName: string;
+  email: string | null;
+};

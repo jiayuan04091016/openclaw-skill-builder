@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Field, QuickResourceForm, SectionCard } from "@/components/builder-ui";
 import { ProjectCard } from "@/components/project-card";
 import { useProjectManager } from "@/hooks/use-project-manager";
+import { useSessionBootstrap } from "@/hooks/use-session-bootstrap";
 import { useSessionState } from "@/hooks/use-session-state";
 import {
   builderStepMeta,
@@ -53,7 +54,8 @@ export function SkillBuilderApp() {
     duplicateProject: duplicateManagedProject,
     deleteProject,
   } = useProjectManager({ onStatusChange: setStatusMessage });
-  const session = useSessionState({ capabilities: repositoryCapabilities, repositoryStatus });
+  const { sessionProfile } = useSessionBootstrap();
+  const session = useSessionState({ capabilities: repositoryCapabilities, repositoryStatus, sessionProfile });
 
   function startFromScratch(goal = "") {
     createProjectFromScratch(goal);

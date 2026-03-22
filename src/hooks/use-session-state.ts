@@ -3,15 +3,16 @@
 import { useMemo } from "react";
 
 import { resolveNextSyncStep } from "@/lib/session-transitions";
-import type { RepositoryCapabilities, RepositoryStatus, SessionState } from "@/types/app";
+import type { RepositoryCapabilities, RepositoryStatus, SessionProfile, SessionState } from "@/types/app";
 
 type UseSessionStateOptions = {
   capabilities?: RepositoryCapabilities | null;
   repositoryStatus?: RepositoryStatus | null;
+  sessionProfile?: SessionProfile | null;
 };
 
 export function useSessionState(options: UseSessionStateOptions = {}): SessionState {
-  const { capabilities, repositoryStatus } = options;
+  const { capabilities, repositoryStatus, sessionProfile } = options;
 
   return useMemo(() => {
     const storageMode = capabilities?.storageMode ?? "local";
@@ -22,8 +23,8 @@ export function useSessionState(options: UseSessionStateOptions = {}): SessionSt
     const syncState = repositoryStatus?.syncState ?? "local-only";
     const syncStateLabel =
       syncState === "cloud-ready"
-        ? "可接云端同步"
-        : syncState === "syncing"
+      ? "可接云端同步"
+      : syncState === "syncing"
           ? "正在同步"
           : syncState === "error"
             ? "同步异常"
@@ -43,9 +44,9 @@ export function useSessionState(options: UseSessionStateOptions = {}): SessionSt
     const nextSyncStep = resolveNextSyncStep(capabilities, repositoryStatus);
 
     return {
-      mode: capabilities?.authEnabled ? "authenticated" : "guest",
+      mode: sessionProfile?.mode ?? (capabilities?.authEnabled ? "authenticated" : "guest"),
       storageMode,
-      displayName: capabilities?.authEnabled ? "已登录用户" : "本机访客",
+      displayName: sessionProfile?.displayName ?? (capabilities?.authEnabled ? "已登录用户" : "本机访客"),
       syncAvailable,
       syncStateLabel,
       syncHint,
@@ -53,5 +54,5 @@ export function useSessionState(options: UseSessionStateOptions = {}): SessionSt
       nextSyncAction: nextSyncStep.action,
       nextSyncActionHint: nextSyncStep.hint,
     };
-  }, [capabilities, repositoryStatus]);
+  }, [capabilities, repositoryStatus, sessionProfile]);
 }
