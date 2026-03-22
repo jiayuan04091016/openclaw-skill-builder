@@ -990,13 +990,13 @@ export function SkillBuilderApp() {
               action={
                 <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
                   <button className="w-full rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 sm:w-auto" onClick={exportProjectBackup}>
-                    导出备份
+                    下载备份
                   </button>
                   <button className="w-full rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => backupInputRef.current?.click()}>
-                    导入备份
+                    恢复备份
                   </button>
                   <button className="w-full rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white sm:w-auto" onClick={() => startFromScratch()}>
-                    新建项目
+                    开始新项目
                   </button>
                 </div>
               }
@@ -1009,7 +1009,7 @@ export function SkillBuilderApp() {
                     <h3 className="mt-2 text-lg font-semibold text-slate-950">在这里继续编辑、复制版本，或重新导出你做过的内容</h3>
                   </div>
                   <p className="max-w-xl text-sm leading-7 text-slate-600">
-                    如果你已经做过一个接近的版本，最省时间的方式通常不是重做，而是直接复制后继续调整。你也可以先导出备份，避免清缓存后数据丢失。
+                    如果你已经做过一个接近的版本，最省时间的方式通常不是重做，而是直接复制后继续调整。你也可以先下载备份，避免清缓存后数据丢失。
                   </p>
                 </div>
               </div>
