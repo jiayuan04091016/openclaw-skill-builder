@@ -952,6 +952,7 @@ export function SkillBuilderApp() {
 
                       <p className="mt-3 text-xs text-slate-400">第一次检查时，先看“说明版”通常最快。</p>
                       <p className="mt-3 text-sm text-slate-500">{previewModeHint}</p>
+                      <p className="mt-2 text-xs text-slate-400">如果你暂时看不懂 “SKILL.md 版”，完全正常，先看“说明版”和“示例版”就够了。</p>
 
                       <pre className="mt-4 max-h-[36rem] overflow-auto rounded-[20px] bg-slate-950 p-5 text-sm leading-7 whitespace-pre-wrap text-slate-100">
                         {previewMode === "guide"
