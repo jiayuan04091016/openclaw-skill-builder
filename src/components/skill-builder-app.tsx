@@ -338,6 +338,7 @@ export function SkillBuilderApp() {
                         <p className="mt-2 text-slate-600">我想做一个给 [谁用] 的 Skill，它能帮我 [做什么]，最后输出 [什么结果]。</p>
                       </div>
                     </div>
+                    <p className="mt-3 text-xs text-slate-400">大多数情况下，写完这句以后直接点“从零创建”就可以开始。</p>
                   </div>
                 </div>
 
