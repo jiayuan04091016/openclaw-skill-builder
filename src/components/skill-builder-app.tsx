@@ -1190,6 +1190,13 @@ export function SkillBuilderApp() {
           {section === "help" ? (
             <div className="space-y-6">
               <SectionCard title="帮助中心">
+                <div className="mb-4 rounded-[24px] border border-cyan-100 bg-cyan-50/70 p-5 text-sm leading-7 text-slate-700">
+                  <h3 className="text-base font-semibold text-slate-900">最短起步路径</h3>
+                  <p className="mt-2">如果你只是想先做出第一个可用版本，最省时间的做法通常是：</p>
+                  <p className="mt-2">1. 回首页写一句简单目标</p>
+                  <p>2. 从零创建，先走完整个流程</p>
+                  <p>3. 先用示例内容测试，方向对了再补真实资料</p>
+                </div>
                 <div className="grid gap-4 lg:grid-cols-3">
                   <div className="rounded-[22px] bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-5">
                     <div className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700">快速开始</div>
