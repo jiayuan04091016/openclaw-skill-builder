@@ -473,6 +473,30 @@ export function SkillBuilderApp() {
                   </div>
                 </div>
 
+                <div className="mb-5 grid gap-4 lg:grid-cols-[1fr_auto]">
+                  <div className="rounded-[24px] border border-slate-200 bg-white p-5">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-700">当前项目</p>
+                        <h3 className="mt-2 text-lg font-semibold text-slate-950">{activeProject.title || activeProject.goal || "未命名项目"}</h3>
+                      </div>
+                      <div className="flex flex-wrap gap-2 text-xs text-slate-600">
+                        <span className="rounded-full bg-slate-100 px-3 py-1 font-medium">{activeProject.mode === "create" ? "从零创建" : "导入已有 Skill"}</span>
+                        <span className="rounded-full bg-slate-100 px-3 py-1 font-medium">资料 {activeProject.resources.length} 项</span>
+                        <span className="rounded-full bg-slate-100 px-3 py-1 font-medium">
+                          {activeProject.draft ? "已生成草稿" : "尚未生成草稿"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    className="w-full rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 lg:w-auto"
+                    onClick={() => setSection("skills")}
+                  >
+                    回到我的项目
+                  </button>
+                </div>
+
                 <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-5">
                   {builderStepTabs.map((step) => (
                     <button
