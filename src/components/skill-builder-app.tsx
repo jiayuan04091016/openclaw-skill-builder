@@ -745,14 +745,12 @@ export function SkillBuilderApp() {
                               <dd>{activeProject.outputFormat || "还没有提取到"}</dd>
                             </div>
                           </dl>
-                          {importedInfoItems.some((item) => !item.done) ? (
-                            <button
-                              className="mt-4 rounded-full border border-cyan-600 px-4 py-2 text-sm font-semibold text-cyan-700"
-                              onClick={() => setBuilderStep(3)}
-                            >
-                              去补全剩余内容
-                            </button>
-                          ) : null}
+                          <button
+                            className="mt-4 rounded-full border border-cyan-600 px-4 py-2 text-sm font-semibold text-cyan-700"
+                            onClick={() => setBuilderStep(3)}
+                          >
+                            {importedInfoItems.some((item) => !item.done) ? "去补全剩余内容" : "去第 3 步继续完善"}
+                          </button>
                         </div>
                       ) : null}
                     </div>
