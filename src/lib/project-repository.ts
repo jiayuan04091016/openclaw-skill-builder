@@ -15,6 +15,8 @@ export type ProjectRepository = {
 };
 
 export function createBrowserProjectRepository(storage: Storage): ProjectRepository {
+  const capabilities = getRuntimeCapabilities();
+
   return {
     loadProjects: async () => loadProjectsFromStorage(storage),
     saveProjects: async (projects) => saveProjectsToStorage(storage, projects),
@@ -22,7 +24,10 @@ export function createBrowserProjectRepository(storage: Storage): ProjectReposit
     importBackup: async (content) => parseBackupPayload(content),
     buildCloudBundle: async (projects) => buildCloudSyncBundle(projects),
     restoreFromCloud: async (payload) => restoreProjectsFromCloud(payload),
-    getCapabilities: () => getRuntimeCapabilities(),
-    getStatus: (projects) => loadRepositoryStatus(storage, projects),
+    getCapabilities: () => capabilities,
+    getStatus: (projects) => ({
+      ...loadRepositoryStatus(storage, projects),
+      syncState: capabilities.cloudSyncEnabled ? "cloud-ready" : "local-only",
+    }),
   };
 }

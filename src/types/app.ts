@@ -133,6 +133,7 @@ export type SessionState = {
   storageMode: StorageMode;
   displayName: string;
   syncAvailable: boolean;
+  syncStateLabel: string;
   syncHint: string;
   migrationHint: string;
   nextSyncAction: string;

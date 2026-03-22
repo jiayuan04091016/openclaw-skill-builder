@@ -19,6 +19,15 @@ export function useSessionState(options: UseSessionStateOptions = {}): SessionSt
     const projectCount = repositoryStatus?.projectCount ?? 0;
     const lastSavedAt = repositoryStatus?.lastSavedAt;
     const migrationPreview = repositoryStatus?.migrationPreview;
+    const syncState = repositoryStatus?.syncState ?? "local-only";
+    const syncStateLabel =
+      syncState === "cloud-ready"
+        ? "可接云端同步"
+        : syncState === "syncing"
+          ? "正在同步"
+          : syncState === "error"
+            ? "同步异常"
+            : "本机保存中";
 
     const syncHint = syncAvailable
       ? "云端同步底座已开启，后续接入登录后就可以继续补真实同步流程。"
@@ -38,6 +47,7 @@ export function useSessionState(options: UseSessionStateOptions = {}): SessionSt
       storageMode,
       displayName: capabilities?.authEnabled ? "已登录用户" : "本机访客",
       syncAvailable,
+      syncStateLabel,
       syncHint,
       migrationHint,
       nextSyncAction: nextSyncStep.action,

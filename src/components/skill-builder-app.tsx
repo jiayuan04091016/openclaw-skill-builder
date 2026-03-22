@@ -255,7 +255,7 @@ export function SkillBuilderApp() {
                   {session.storageMode === "local" ? "本机保存模式" : "云端同步模式"}
                 </span>
                 <span className="rounded-full bg-amber-50 px-3 py-1 font-medium text-amber-700">
-                  {session.syncAvailable ? "已开启同步" : "暂未开启同步"}
+                  {session.syncStateLabel}
                 </span>
               </div>
             </div>
