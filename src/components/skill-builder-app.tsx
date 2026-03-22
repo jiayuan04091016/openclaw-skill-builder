@@ -789,6 +789,16 @@ export function SkillBuilderApp() {
                             <div className="mt-2 rounded-2xl bg-white/80 px-4 py-3 text-xs leading-6 text-slate-600">
                               <div>{importAnalysisSummary.message}</div>
                               <div className="mt-1">
+                                当前提取质量：
+                                <span className="font-semibold text-slate-800">
+                                  {importAnalysisSummary.qualityLevel === "high"
+                                    ? " 较完整"
+                                    : importAnalysisSummary.qualityLevel === "medium"
+                                      ? " 可直接先用"
+                                      : " 偏弱，建议多补一点"}
+                                </span>
+                              </div>
+                              <div className="mt-1">
                                 原始内容长度约 {importAnalysisSummary.sourceLength} 字
                                 {importAnalysisSummary.missingFields.length
                                   ? `，当前还缺：${importAnalysisSummary.missingFields.join("、")}`

@@ -14,14 +14,21 @@ export function buildImportAnalysisSummary(parsed: ParsedSkillImport, sourceText
     .filter((field) => !parsed[field.key].trim())
     .map((field) => field.label);
   const extractedCount = importFieldLabels.length - missingFields.length;
+  const sourceLength = sourceText.trim().length;
+  const qualityLevel =
+    extractedCount >= 5 && sourceLength >= 120 ? "high" : extractedCount >= 3 && sourceLength >= 60 ? "medium" : "low";
 
   return {
     extractedCount,
     totalCount: importFieldLabels.length,
     missingFields,
-    sourceLength: sourceText.trim().length,
-    message: missingFields.length
-      ? `当前先提取到了 ${extractedCount}/${importFieldLabels.length} 项，剩下的内容可以在下一步继续补。`
-      : "当前关键字段已经提取完整，下一步可以直接去补充新版细节。",
+    sourceLength,
+    qualityLevel,
+    message:
+      qualityLevel === "high"
+        ? "当前提取结果已经比较完整，通常足够直接生成第一版。"
+        : qualityLevel === "medium"
+          ? `当前先提取到了 ${extractedCount}/${importFieldLabels.length} 项，已经够先生成第一版，剩下的内容可以下一步再补。`
+          : `当前先提取到了 ${extractedCount}/${importFieldLabels.length} 项，建议再补一点旧 Skill 的用途、输入或输出说明，会更稳。`,
   };
 }
