@@ -369,6 +369,7 @@ export function SkillBuilderApp() {
                 title="新手常用模板"
                 action={<span className="text-sm text-slate-500">先选一个最接近的场景开始，后面都能改</span>}
               >
+                <p className="mb-4 text-sm text-slate-500">第一次使用时，先选一个最接近你需求的模板，通常会比从空白开始更省时间。</p>
                 <div className="grid gap-4 md:grid-cols-3">
                   {templates.map((template) => (
                     <div key={template.title} className="rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-5">
