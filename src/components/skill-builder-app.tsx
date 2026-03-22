@@ -313,6 +313,7 @@ export function SkillBuilderApp() {
                     <p className="mt-3 text-sm text-slate-500">先把你能想到的目标写下来就行，不需要一次写得很完整，后面还能继续补资料和细节。</p>
                     <p className="mt-2 text-xs text-slate-400">如果你已经能写出一个大概目标，就先从这里开始；如果还没有思路，再往下选模板通常更轻松。</p>
                     <p className="mt-2 text-xs text-slate-400">下面这些例子都可以直接点一下带入，不需要手动重写。</p>
+                    <p className="mt-2 text-xs text-slate-400">点进去以后，目标内容也还能继续改，不用担心一开始选错例子。</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {[
                         "帮我整理会议纪要，并列出待办事项",
