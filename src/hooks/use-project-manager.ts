@@ -6,10 +6,10 @@ import { createProjectImportPipelineService } from "@/lib/project-import-pipelin
 import { createProjectMediaProcessingService } from "@/lib/project-media-processing-service";
 import { createProjectResourceProcessingService } from "@/lib/project-resource-processing-service";
 import type { ProjectRepository } from "@/lib/project-repository";
+import { createProjectRuntimeService } from "@/lib/project-runtime-service";
 import { createProjectService } from "@/lib/project-service";
-import { createRuntimeBootstrapService } from "@/lib/runtime-bootstrap-service";
 import { loadImportedSkillText } from "@/lib/skill-import-loader";
-import { createSyncService, type SyncService } from "@/lib/sync-service";
+import type { SyncService } from "@/lib/sync-service";
 import { buildStructuredSpec } from "@/lib/skill-builder";
 import type {
   BuilderMode,
@@ -64,33 +64,28 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
   const cloudSyncClientRef = useRef(createCloudSyncClient());
 
   useEffect(() => {
-    const runtimeBootstrapService = createRuntimeBootstrapService(window.localStorage);
+    const projectRuntimeService = createProjectRuntimeService({
+      storage: window.localStorage,
+      backupInputRef,
+      cloudSyncClient: cloudSyncClientRef.current,
+    });
     let isMounted = true;
 
     async function loadProjects() {
       try {
-        const { repository, capabilities } = await runtimeBootstrapService.bootstrap();
+        const { repository, syncService, capabilities, projects: parsed, repositoryStatus: nextRepositoryStatus } =
+          await projectRuntimeService.bootstrap();
 
         if (!isMounted) {
           return;
         }
 
         repositoryRef.current = repository;
-        syncServiceRef.current = createSyncService({
-          repository,
-          cloudSyncClient: cloudSyncClientRef.current,
-          backupInputRef,
-        });
+        syncServiceRef.current = syncService;
         setRepositoryCapabilities(capabilities);
 
-        const parsed = await repository.loadProjects();
-
-        if (!isMounted) {
-          return;
-        }
-
         setProjects(parsed);
-        setRepositoryStatus(repository.getStatus(parsed));
+        setRepositoryStatus(nextRepositoryStatus);
         if (parsed[0]) {
           setActiveProjectId(parsed[0].id);
           setHomeGoal(parsed[0].goal);
