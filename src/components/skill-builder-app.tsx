@@ -385,17 +385,25 @@ export function SkillBuilderApp() {
                       <p className="mt-2 text-sm leading-7 text-slate-600">
                         最近更新：{formatDateLabel(latestProject.updatedAt)}
                       </p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        {latestProject.draft ? "这个项目已经生成过草稿，点进去会直接从预览开始。" : "这个项目还在制作中，点进去会从当前阶段继续。"}
+                      </p>
                     </div>
-                    <button
-                      className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white sm:w-auto"
-                      onClick={() => {
-                        setActiveProjectId(latestProject.id);
-                        setSection("builder");
-                        setBuilderStep(latestProject.draft ? 4 : 1);
-                      }}
-                    >
-                      继续上次项目
-                    </button>
+                    <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+                      <button
+                        className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white sm:w-auto"
+                        onClick={() => {
+                          setActiveProjectId(latestProject.id);
+                          setSection("builder");
+                          setBuilderStep(latestProject.draft ? 4 : 1);
+                        }}
+                      >
+                        继续上次项目
+                      </button>
+                      <button className="w-full rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => setSection("skills")}>
+                        查看我的项目
+                      </button>
+                    </div>
                   </div>
                 </SectionCard>
               ) : null}
@@ -951,6 +959,14 @@ export function SkillBuilderApp() {
 │  └─ sample.txt
 └─ meta.json`}
                       </pre>
+                    </div>
+                    <div className="flex flex-col gap-3 sm:flex-row">
+                      <button className="w-full rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => setBuilderStep(4)}>
+                        回到预览继续修改
+                      </button>
+                      <button className="w-full rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => setSection("skills")}>
+                        去我的项目
+                      </button>
                     </div>
                   </div>
                 </SectionCard>
