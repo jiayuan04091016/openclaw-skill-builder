@@ -12,6 +12,7 @@ import { buildDraftContent, buildStructuredSpec, createId, exportProjectZip } fr
 import type {
   BuilderMode,
   DraftContent,
+  ImportedSkillArchive,
   OcrResult,
   ProjectRecord,
   ResourceProcessingResult,
@@ -28,6 +29,16 @@ export type ProjectService = {
   duplicateProject: (project: ProjectRecord) => ProjectRecord;
   createResource: (type: ResourceType, name: string, content: string) => ResourceItem;
   applyImportedSkillPatch: (project: ProjectRecord, importedSkillText: string) => Partial<ProjectRecord>;
+  buildImportedSkillArchive: (
+    importedSkillText: string,
+    sourceName: string,
+    sourceType: ImportedSkillArchive["sourceType"],
+  ) => ImportedSkillArchive;
+  applyResourceProcessingResult: (
+    project: ProjectRecord,
+    resourceId: string,
+    processingResult: ResourceProcessingResult,
+  ) => Partial<ProjectRecord>;
   processResource: (resource: ResourceItem) => Promise<ResourceProcessingResult>;
   runOcrForResource: (resource: ResourceItem) => Promise<OcrResult>;
   enhanceVideoResource: (resource: ResourceItem) => Promise<VideoEnhancementResult>;
@@ -50,6 +61,8 @@ export function createProjectService(): ProjectService {
       type,
       name,
       content,
+      processingSummary: "",
+      processingUpdatedAt: null,
       createdAt: new Date().toISOString(),
     }),
     applyImportedSkillPatch: (project, importedSkillText) => {
@@ -66,6 +79,36 @@ export function createProjectService(): ProjectService {
         warnings: project.warnings || parsed.warnings,
       };
     },
+    buildImportedSkillArchive: (importedSkillText, sourceName, sourceType) => {
+      const parsed = parseImportedSkill(importedSkillText);
+
+      return {
+        sourceName,
+        sourceType,
+        importedAt: new Date().toISOString(),
+        extractedTitle: parsed.title,
+        extractedAudience: parsed.audience,
+        extractedMainTask: parsed.mainTask,
+        extractedInputFormat: parsed.inputFormat,
+        extractedOutputFormat: parsed.outputFormat,
+      };
+    },
+    applyResourceProcessingResult: (project, resourceId, processingResult) => ({
+      resources: project.resources.map((resource) =>
+        resource.id === resourceId
+          ? {
+              ...resource,
+              processingSummary:
+                processingResult.kind === "ocr"
+                  ? processingResult.result.text
+                  : processingResult.kind === "video"
+                    ? processingResult.result.summary
+                    : processingResult.result.message,
+              processingUpdatedAt: new Date().toISOString(),
+            }
+          : resource,
+      ),
+    }),
     processResource: (resource) => mediaProcessingService.processResource(resource),
     runOcrForResource: (resource) => resourceEnhancementService.runOcr(resource),
     enhanceVideoResource: (resource) => resourceEnhancementService.enhanceVideo(resource),

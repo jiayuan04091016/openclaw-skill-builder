@@ -17,7 +17,20 @@ export type ResourceItem = {
   type: ResourceType;
   name: string;
   content: string;
+  processingSummary?: string;
+  processingUpdatedAt?: string | null;
   createdAt: string;
+};
+
+export type ImportedSkillArchive = {
+  sourceName: string;
+  sourceType: "text" | "markdown" | "zip" | "manual";
+  importedAt: string;
+  extractedTitle: string;
+  extractedAudience: string;
+  extractedMainTask: string;
+  extractedInputFormat: string;
+  extractedOutputFormat: string;
 };
 
 export type StructuredSpec = {
@@ -57,6 +70,7 @@ export type ProjectRecord = {
   includeExamples: boolean;
   resources: ResourceItem[];
   importedSkillText: string;
+  importedSkillArchive: ImportedSkillArchive | null;
   draft: DraftContent | null;
   createdAt: string;
   updatedAt: string;
@@ -73,6 +87,8 @@ export type CloudResourceRecord = {
   type: ResourceType;
   name: string;
   content: string;
+  processingSummary?: string;
+  processingUpdatedAt?: string | null;
   createdAt: string;
 };
 
@@ -94,6 +110,7 @@ export type CloudProjectRecord = {
   includeExamples: boolean;
   resources: CloudResourceRecord[];
   importedSkillText: string;
+  importedSkillArchive: ImportedSkillArchive | null;
   draft: CloudDraftRecord | null;
   createdAt: string;
   updatedAt: string;

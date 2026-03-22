@@ -27,8 +27,22 @@ export function normalizeProjects(records: ProjectRecord[]): ProjectRecord[] {
       language: record.language || "zh-CN",
       warnings: record.warnings || "",
       includeExamples: record.includeExamples ?? true,
-      resources: Array.isArray(record.resources) ? record.resources : [],
+      resources: Array.isArray(record.resources)
+        ? record.resources.map((resource) => ({
+            id: resource.id || createId("res"),
+            type:
+              resource.type === "image" || resource.type === "video" || resource.type === "skill"
+                ? resource.type
+                : "text",
+            name: resource.name || "",
+            content: resource.content || "",
+            processingSummary: resource.processingSummary || "",
+            processingUpdatedAt: resource.processingUpdatedAt || null,
+            createdAt: resource.createdAt || createdAt,
+          }))
+        : [],
       importedSkillText: record.importedSkillText || "",
+      importedSkillArchive: record.importedSkillArchive || null,
       draft: record.draft || null,
       createdAt,
       updatedAt,

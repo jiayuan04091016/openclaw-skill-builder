@@ -24,6 +24,7 @@ export function createEmptyProject(mode: BuilderMode, seedGoal = ""): ProjectRec
     includeExamples: true,
     resources: [],
     importedSkillText: "",
+    importedSkillArchive: null,
     draft: null,
     createdAt,
     updatedAt: createdAt,
