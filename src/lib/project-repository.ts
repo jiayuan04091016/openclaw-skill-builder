@@ -1,3 +1,5 @@
+import { createCloudProjectGateway } from "@/lib/cloud-project-gateway";
+import { createCloudProjectRepository } from "@/lib/cloud-project-repository";
 import { buildCloudSyncBundle, restoreProjectsFromCloud } from "@/lib/cloud-project-sync";
 import { loadRepositoryStatus, buildBackupPayload, loadProjectsFromStorage, parseBackupPayload, saveProjectsToStorage } from "@/lib/project-store";
 import { getRuntimeCapabilities } from "@/lib/runtime-capabilities";
@@ -33,5 +35,11 @@ export function createBrowserProjectRepository(storage: Storage): ProjectReposit
 }
 
 export function createProjectRepository(storage: Storage): ProjectRepository {
+  const capabilities = getRuntimeCapabilities();
+
+  if (capabilities.cloudSyncEnabled) {
+    return createCloudProjectRepository(storage, createCloudProjectGateway());
+  }
+
   return createBrowserProjectRepository(storage);
 }
