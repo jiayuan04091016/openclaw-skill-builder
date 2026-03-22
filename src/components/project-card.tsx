@@ -10,6 +10,22 @@ type ProjectCardProps = {
   onDelete: () => void;
 };
 
+function getProjectStage(project: ProjectRecord) {
+  if (project.draft) {
+    return "已生成，可导出";
+  }
+
+  if (project.resources.length) {
+    return "已补资料";
+  }
+
+  if (project.goal.trim()) {
+    return "已写目标";
+  }
+
+  return "刚创建";
+}
+
 function downloadBlob(blob: Blob, fileName: string) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -21,6 +37,7 @@ function downloadBlob(blob: Blob, fileName: string) {
 
 export function ProjectCard({ project, onEdit, onDuplicate, onDelete }: ProjectCardProps) {
   const fallbackName = buildStructuredSpec(project).skillName;
+  const stage = getProjectStage(project);
 
   return (
     <div className="rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-5 shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
@@ -35,7 +52,7 @@ export function ProjectCard({ project, onEdit, onDuplicate, onDelete }: ProjectC
       </div>
       <div className="mt-4 flex items-center justify-between gap-3 text-sm text-slate-500">
         <span>最近更新：{formatDateLabel(project.updatedAt)}</span>
-        <span>{project.draft ? "已生成内容" : "进行中"}</span>
+        <span>{stage}</span>
       </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <div className="rounded-[18px] bg-slate-50 px-4 py-3">
