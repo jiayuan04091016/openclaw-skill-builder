@@ -720,6 +720,9 @@ export function SkillBuilderApp() {
                           <p className="mt-2 text-sm text-slate-600">
                             当前已提取 {importedInfoItems.filter((item) => item.done).length}/{importedInfoItems.length} 项
                           </p>
+                          <p className="mt-2 text-xs leading-6 text-slate-500">
+                            提取到这里后，下一步通常就是去第 3 步补充新版的适用对象、输入内容和输出结果。
+                          </p>
                           <dl className="mt-4 grid gap-3 text-sm leading-7 text-slate-700 sm:grid-cols-2">
                             <div>
                               <dt className="font-semibold text-slate-900">名称</dt>
