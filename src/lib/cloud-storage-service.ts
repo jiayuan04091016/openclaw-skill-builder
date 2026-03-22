@@ -1,24 +1,18 @@
-import { getRuntimeCapabilities } from "@/lib/runtime-capabilities";
+import { createCloudStorageProvider, type CloudStorageProviderResult } from "@/lib/cloud-storage-provider";
 import type { CloudProjectRecord, CloudSyncBundle } from "@/types/app";
 
 export type CloudStorageService = {
   isConfigured: () => boolean;
   fetchProjects: () => Promise<CloudProjectRecord[]>;
-  saveBundle: (bundle: CloudSyncBundle) => Promise<{ ok: boolean; message: string; projectCount: number }>;
+  saveBundle: (bundle: CloudSyncBundle) => Promise<CloudStorageProviderResult>;
 };
 
 export function createCloudStorageService(): CloudStorageService {
-  const capabilities = getRuntimeCapabilities();
+  const provider = createCloudStorageProvider();
 
   return {
-    isConfigured: () => capabilities.cloudSyncEnabled,
-    fetchProjects: async () => [],
-    saveBundle: async (bundle) => ({
-      ok: capabilities.cloudSyncEnabled,
-      message: capabilities.cloudSyncEnabled
-        ? `云端存储服务已预留，当前共有 ${bundle.projectCount} 个项目可继续接真实存储。`
-        : "当前还没有接入真实云端项目存储。",
-      projectCount: bundle.projectCount,
-    }),
+    isConfigured: () => provider.isConfigured(),
+    fetchProjects: () => provider.fetchProjects(),
+    saveBundle: (bundle) => provider.saveBundle(bundle),
   };
 }
