@@ -2,6 +2,8 @@ import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { createCloudSyncClient } from "@/lib/cloud-sync-client";
 import { buildImportReviewSnapshot } from "@/lib/import-review-service";
+import { createProjectImportPipelineService } from "@/lib/project-import-pipeline-service";
+import { createProjectResourceProcessingService } from "@/lib/project-resource-processing-service";
 import { createProjectRepository, type ProjectRepository } from "@/lib/project-repository";
 import { createProjectService } from "@/lib/project-service";
 import { loadImportedSkillText } from "@/lib/skill-import-loader";
@@ -54,6 +56,8 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
   const repositoryRef = useRef<ProjectRepository | null>(null);
   const syncServiceRef = useRef<SyncService | null>(null);
   const projectServiceRef = useRef(createProjectService());
+  const projectImportPipelineServiceRef = useRef(createProjectImportPipelineService());
+  const projectResourceProcessingServiceRef = useRef(createProjectResourceProcessingService());
   const cloudSyncClientRef = useRef(createCloudSyncClient());
 
   useEffect(() => {
@@ -188,6 +192,23 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       return;
     }
 
+    if (type === "skill") {
+      const imported = await projectImportPipelineServiceRef.current.importFromFile(activeProject, file);
+      const resource = projectServiceRef.current.createResource(
+        imported.resourceType,
+        imported.asset.sourceName,
+        imported.asset.importedSkillText || `${file.name} 已上传，可作为补充资料使用。`,
+      );
+
+      updateProject({
+        resources: [...activeProject.resources, resource],
+        ...imported.projectPatch,
+      });
+      onStatusChange(`已导入旧 Skill：${file.name}`);
+      event.target.value = "";
+      return;
+    }
+
     const content = await readFileContent(file);
     const resource = projectServiceRef.current.createResource(
       type,
@@ -195,14 +216,8 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       content || `${file.name} 已上传，可作为补充资料使用。`,
     );
 
-    const importedPatch =
-      type === "skill"
-        ? projectServiceRef.current.applyImportedSkillPatch(activeProject, content)
-        : { importedSkillText: activeProject.importedSkillText };
-
     updateProject({
       resources: [...activeProject.resources, resource],
-      ...importedPatch,
     });
     onStatusChange(`已添加资料：${file.name}`);
     event.target.value = "";
@@ -376,8 +391,17 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       return null;
     }
 
-    const processingResult = await projectServiceRef.current.processResource(resource);
-    updateProject(projectServiceRef.current.applyResourceProcessingResult(activeProject, resourceId, processingResult));
+    const nextProcessing = await projectResourceProcessingServiceRef.current.processProjectResource(
+      activeProject,
+      resourceId,
+    );
+
+    if (!nextProcessing) {
+      return null;
+    }
+
+    const { processingResult, projectPatch } = nextProcessing;
+    updateProject(projectPatch);
     onStatusChange(processingResult.result.message);
 
     return processingResult;
