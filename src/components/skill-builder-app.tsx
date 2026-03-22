@@ -406,6 +406,7 @@ export function SkillBuilderApp() {
                       <p className="mt-1 text-xs text-slate-500">
                         {latestProject.draft ? "这个项目已经生成过草稿，点进去会直接从预览开始。" : "这个项目还在制作中，点进去会从当前阶段继续。"}
                       </p>
+                      <p className="mt-2 text-xs text-slate-400">如果这里已经有最近项目，通常优先继续它会比重新开一个更省时间。</p>
                     </div>
                     <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
                       <button
@@ -434,6 +435,7 @@ export function SkillBuilderApp() {
                       <p className="mt-2 text-sm leading-7 text-slate-600">
                         你已经把目标写下来了，下一步直接开始创建就行，不需要再重写一遍。
                       </p>
+                      <p className="mt-2 text-xs text-slate-400">这个入口只会在你还没有历史项目时出现，用来把刚刚写下来的目标直接变成新项目。</p>
                     </div>
                     <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
                       <button className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white sm:w-auto" onClick={() => startFromScratch(homeGoal)}>
