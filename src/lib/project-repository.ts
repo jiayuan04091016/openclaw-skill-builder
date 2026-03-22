@@ -31,3 +31,7 @@ export function createBrowserProjectRepository(storage: Storage): ProjectReposit
     }),
   };
 }
+
+export function createProjectRepository(storage: Storage): ProjectRepository {
+  return createBrowserProjectRepository(storage);
+}

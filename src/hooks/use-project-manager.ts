@@ -1,23 +1,16 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { createCloudSyncClient } from "@/lib/cloud-sync-client";
-import { parseImportedSkill } from "@/lib/skill-import";
-import {
-  createEmptyProject,
-  duplicateProjectRecord,
-  patchProject,
-  removeProjectRecord,
-  upsertProjectRecord,
-} from "@/lib/project-operations";
-import { createBrowserProjectRepository } from "@/lib/project-repository";
-import { buildDraftContent, buildStructuredSpec, createId, exportProjectZip } from "@/lib/skill-builder";
+import { buildImportReviewSnapshot } from "@/lib/import-review-service";
+import { createProjectRepository, type ProjectRepository } from "@/lib/project-repository";
+import { createProjectService } from "@/lib/project-service";
+import { createSyncService, type SyncService } from "@/lib/sync-service";
+import { buildStructuredSpec } from "@/lib/skill-builder";
 import type {
   BuilderMode,
-  DraftContent,
   ProjectRecord,
   RepositoryCapabilities,
   RepositoryStatus,
-  ResourceItem,
   ResourceType,
 } from "@/types/app";
 
@@ -52,20 +45,27 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
   const [repositoryCapabilities, setRepositoryCapabilities] = useState<RepositoryCapabilities | null>(null);
   const [repositoryStatus, setRepositoryStatus] = useState<RepositoryStatus | null>(null);
   const backupInputRef = useRef<HTMLInputElement>(null);
-  const repositoryRef = useRef<ReturnType<typeof createBrowserProjectRepository> | null>(null);
+  const repositoryRef = useRef<ProjectRepository | null>(null);
+  const syncServiceRef = useRef<SyncService | null>(null);
+  const projectServiceRef = useRef(createProjectService());
   const cloudSyncClientRef = useRef(createCloudSyncClient());
 
   useEffect(() => {
-    repositoryRef.current = createBrowserProjectRepository(window.localStorage);
-    setRepositoryCapabilities(repositoryRef.current.getCapabilities());
-    const repository = repositoryRef.current;
+    const repository = createProjectRepository(window.localStorage);
+    repositoryRef.current = repository;
+    syncServiceRef.current = createSyncService({
+      repository,
+      cloudSyncClient: cloudSyncClientRef.current,
+      backupInputRef,
+    });
+    setRepositoryCapabilities(repository.getCapabilities());
     let isMounted = true;
 
     async function loadProjects() {
       try {
         const parsed = await repository.loadProjects();
 
-        if (!isMounted || !parsed) {
+        if (!isMounted) {
           return;
         }
 
@@ -77,7 +77,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
         }
       } catch {
         if (isMounted) {
-          onStatusChange("本地项目读取失败，已切换为空白状态。");
+          onStatusChange("本机项目读取失败，已切换为空白状态。");
         }
       } finally {
         if (isMounted) {
@@ -94,14 +94,12 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
   }, [onStatusChange]);
 
   useEffect(() => {
-    if (!hasLoadedProjects) {
+    if (!hasLoadedProjects || !repositoryRef.current) {
       return;
     }
 
-    void repositoryRef.current?.saveProjects(projects);
-    if (repositoryRef.current) {
-      setRepositoryStatus(repositoryRef.current.getStatus(projects));
-    }
+    void repositoryRef.current.saveProjects(projects);
+    setRepositoryStatus(repositoryRef.current.getStatus(projects));
   }, [projects, hasLoadedProjects]);
 
   const activeProject = useMemo(
@@ -114,13 +112,22 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     [activeProject],
   );
 
-  const currentDraft =
-    activeProject?.draft ??
-    (structuredSpec && activeProject ? buildDraftContent(structuredSpec, activeProject.includeExamples) : null);
+  const currentDraft = useMemo(() => {
+    if (!activeProject) {
+      return null;
+    }
+
+    return activeProject.draft ?? projectServiceRef.current.buildDraft(activeProject);
+  }, [activeProject]);
+
   const cloudSyncPlan = useMemo(() => cloudSyncClientRef.current.buildPlan(projects), [projects]);
+  const importReviewSnapshot = useMemo(
+    () => (activeProject?.mode === "import" ? buildImportReviewSnapshot(activeProject.importedSkillText) : null),
+    [activeProject?.mode, activeProject?.importedSkillText],
+  );
 
   function upsertProject(project: ProjectRecord) {
-    setProjects((current) => upsertProjectRecord(current, project));
+    setProjects((current) => projectServiceRef.current.upsertProject(current, project));
   }
 
   function ensureProject(mode: BuilderMode, seedGoal = "") {
@@ -128,7 +135,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       return activeProject;
     }
 
-    const project = createEmptyProject(mode, seedGoal);
+    const project = projectServiceRef.current.createProject(mode, seedGoal);
     upsertProject(project);
     setActiveProjectId(project.id);
     return project;
@@ -139,19 +146,19 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       return;
     }
 
-    upsertProject(patchProject(activeProject, patch));
+    upsertProject(projectServiceRef.current.patchProject(activeProject, patch));
   }
 
   function startFromScratch(goal = "") {
-    const project = createEmptyProject("create", goal);
+    const project = projectServiceRef.current.createProject("create", goal);
     upsertProject(project);
     setActiveProjectId(project.id);
-    onStatusChange("已创建新项目，可以开始填写目标。");
+    onStatusChange("已创建新项目，现在可以开始填写目标。");
     return project;
   }
 
   function startFromImport(goal = "") {
-    const project = createEmptyProject("import", goal);
+    const project = projectServiceRef.current.createProject("import", goal);
     upsertProject(project);
     setActiveProjectId(project.id);
     onStatusChange("已进入导入模式，请先添加已有 Skill 内容。");
@@ -176,30 +183,15 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     }
 
     const content = await readFileContent(file);
-    const resource: ResourceItem = {
-      id: createId("res"),
+    const resource = projectServiceRef.current.createResource(
       type,
-      name: file.name,
-      content: content || `${file.name} 已上传，可作为补充资料使用。`,
-      createdAt: new Date().toISOString(),
-    };
+      file.name,
+      content || `${file.name} 已上传，可作为补充资料使用。`,
+    );
 
     const importedPatch =
       type === "skill"
-        ? (() => {
-            const parsed = parseImportedSkill(content);
-
-            return {
-              importedSkillText: content,
-              title: activeProject.title || parsed.title,
-              description: activeProject.description || parsed.description,
-              audience: activeProject.audience || parsed.audience,
-              mainTask: activeProject.mainTask || parsed.mainTask,
-              inputFormat: activeProject.inputFormat || parsed.inputFormat,
-              outputFormat: activeProject.outputFormat || parsed.outputFormat,
-              warnings: activeProject.warnings || parsed.warnings,
-            };
-          })()
+        ? projectServiceRef.current.applyImportedSkillPatch(activeProject, content)
         : { importedSkillText: activeProject.importedSkillText };
 
     updateProject({
@@ -215,14 +207,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       return;
     }
 
-    const resource: ResourceItem = {
-      id: createId("res"),
-      type,
-      name,
-      content,
-      createdAt: new Date().toISOString(),
-    };
-
+    const resource = projectServiceRef.current.createResource(type, name, content);
     updateProject({ resources: [...activeProject.resources, resource] });
     onStatusChange(`已添加 ${name}`);
   }
@@ -232,9 +217,11 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       return;
     }
 
-    const spec = buildStructuredSpec(activeProject);
-    const nextDraft: DraftContent = buildDraftContent(spec, activeProject.includeExamples);
-    updateProject({ draft: nextDraft, title: activeProject.title || spec.skillName });
+    const nextDraft = projectServiceRef.current.buildDraft(activeProject);
+    updateProject({
+      draft: nextDraft,
+      title: activeProject.title || buildStructuredSpec(activeProject).skillName,
+    });
     onStatusChange("内容已生成，现在可以预览、调整并导出。");
   }
 
@@ -245,7 +232,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
 
     try {
       setLoading(true);
-      const { blob, fileName } = await exportProjectZip(activeProject);
+      const { blob, fileName } = await projectServiceRef.current.exportProject(activeProject);
       downloadBlob(blob, fileName);
       onStatusChange(`导出成功：${fileName}，压缩包已经开始下载。`);
       return true;
@@ -266,7 +253,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
 
     try {
       setLoading(true);
-      const { blob, fileName } = await exportProjectZip(target);
+      const { blob, fileName } = await projectServiceRef.current.exportProject(target);
       downloadBlob(blob, fileName);
       onStatusChange(`已开始导出：${fileName}`);
       return true;
@@ -279,31 +266,38 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
   }
 
   async function exportProjectBackup() {
-    const payload = await repositoryRef.current?.exportBackup(projects);
+    if (!syncServiceRef.current) {
+      onStatusChange("当前无法导出备份，请稍后重试。");
+      return;
+    }
+
+    const payload = await syncServiceRef.current.exportBackup(projects);
 
     if (!payload) {
       onStatusChange("当前无法导出备份，请稍后重试。");
       return;
     }
 
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-    const fileName = `openclaw-skill-builder-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    downloadBlob(blob, fileName);
-    onStatusChange(`备份文件已开始下载：${fileName}`);
+    downloadBlob(payload.blob, payload.fileName);
+    onStatusChange(`备份文件已经开始下载：${payload.fileName}`);
   }
 
   async function buildCloudSyncPreview() {
-    if (!repositoryRef.current) {
+    if (!syncServiceRef.current) {
       return null;
     }
 
-    return repositoryRef.current.buildCloudBundle(projects);
+    return syncServiceRef.current.buildCloudPreview(projects);
   }
 
   async function prepareCloudSync() {
+    if (!syncServiceRef.current) {
+      return null;
+    }
+
     try {
       setSyncPreparing(true);
-      const result = await cloudSyncClientRef.current.pushBundle(projects);
+      const result = await syncServiceRef.current.prepareCloudSync(projects);
       onStatusChange(result.message);
       return result;
     } finally {
@@ -312,15 +306,12 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
   }
 
   async function importProjectBackup(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-
-    if (!file) {
+    if (!syncServiceRef.current) {
       return;
     }
 
     try {
-      const content = await file.text();
-      const importedProjects = (await repositoryRef.current?.importBackup(content)) ?? [];
+      const importedProjects = await syncServiceRef.current.importBackup(event);
 
       setProjects(importedProjects);
       setActiveProjectId(importedProjects[0]?.id ?? null);
@@ -328,8 +319,6 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       onStatusChange(`已导入 ${importedProjects.length} 个项目，并切换到最新一个。`);
     } catch {
       onStatusChange("备份文件读取失败，请检查文件内容后重试。");
-    } finally {
-      event.target.value = "";
     }
   }
 
@@ -339,17 +328,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       return;
     }
 
-    const parsed = parseImportedSkill(activeProject.importedSkillText);
-
-    updateProject({
-      title: parsed.title || activeProject.title,
-      description: parsed.description || activeProject.description,
-      audience: parsed.audience || activeProject.audience,
-      mainTask: parsed.mainTask || activeProject.mainTask,
-      inputFormat: parsed.inputFormat || activeProject.inputFormat,
-      outputFormat: parsed.outputFormat || activeProject.outputFormat,
-      warnings: parsed.warnings || activeProject.warnings,
-    });
+    updateProject(projectServiceRef.current.applyImportedSkillPatch(activeProject, activeProject.importedSkillText));
     onStatusChange("已从已有 Skill 内容中提取主要信息。");
   }
 
@@ -359,14 +338,14 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       return;
     }
 
-    const duplicate = duplicateProjectRecord(source);
+    const duplicate = projectServiceRef.current.duplicateProject(source);
     upsertProject(duplicate);
     setActiveProjectId(duplicate.id);
     onStatusChange("已复制为新版本。");
   }
 
   function deleteProject(projectId: string) {
-    const nextProjects = removeProjectRecord(projects, projectId);
+    const nextProjects = projectServiceRef.current.removeProject(projects, projectId);
     setProjects(nextProjects);
     if (activeProjectId === projectId) {
       setActiveProjectId(nextProjects[0]?.id ?? null);
@@ -394,6 +373,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     repositoryCapabilities,
     repositoryStatus,
     cloudSyncPlan,
+    importReviewSnapshot,
     prepareCloudSync,
     ensureProject,
     updateProject,

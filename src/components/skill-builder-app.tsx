@@ -16,8 +16,7 @@ import {
   previewTabs,
   templates,
 } from "@/lib/content";
-import { buildImportAnalysisSummary } from "@/lib/import-analysis";
-import { formatParsedSkillImportSource, isWeakParsedSkillImportSource, parseImportedSkill } from "@/lib/skill-import";
+import { formatParsedSkillImportSource } from "@/lib/skill-import";
 import { formatDateLabel } from "@/lib/skill-builder";
 import type { AppSection, BuilderMode, OutputStyle } from "@/types/app";
 
@@ -43,6 +42,7 @@ export function SkillBuilderApp() {
     repositoryCapabilities,
     repositoryStatus,
     cloudSyncPlan,
+    importReviewSnapshot,
     prepareCloudSync,
     buildCloudSyncPreview,
     ensureProject,
@@ -256,36 +256,9 @@ export function SkillBuilderApp() {
         { label: "输出内容", done: Boolean(activeProject.outputFormat.trim()) },
       ]
     : [];
-  const importAnalysisSummary =
-    activeProject?.mode === "import" && activeProject.importedSkillText.trim()
-      ? buildImportAnalysisSummary(
-          parseImportedSkill(activeProject.importedSkillText),
-          activeProject.importedSkillText,
-        )
-      : null;
-  const parsedImportDetails =
-    activeProject?.mode === "import" && activeProject.importedSkillText.trim()
-      ? parseImportedSkill(activeProject.importedSkillText)
-      : null;
-  const importReviewPriority = ["输入内容", "输出内容", "主要任务", "适用对象", "名称"] as const;
-  const weakImportedFields = parsedImportDetails
-    ? (
-        [
-          { label: "名称", source: parsedImportDetails.sources.title },
-          { label: "适用对象", source: parsedImportDetails.sources.audience },
-          { label: "主要任务", source: parsedImportDetails.sources.mainTask },
-          { label: "输入内容", source: parsedImportDetails.sources.inputFormat },
-          { label: "输出内容", source: parsedImportDetails.sources.outputFormat },
-        ] as const
-      )
-        .filter((item) => isWeakParsedSkillImportSource(item.source))
-        .sort(
-          (left, right) =>
-            importReviewPriority.indexOf(left.label as (typeof importReviewPriority)[number]) -
-            importReviewPriority.indexOf(right.label as (typeof importReviewPriority)[number]),
-        )
-        .map((item) => item.label)
-    : [];
+  const importAnalysisSummary = importReviewSnapshot?.summary ?? null;
+  const parsedImportDetails = importReviewSnapshot?.parsed ?? null;
+  const weakImportedFields = importReviewSnapshot?.weakFields ?? [];
 
   const previewModeHint =
     previewMode === "guide"
