@@ -1,3 +1,4 @@
+import { getProviderConfig } from "@/lib/provider-config";
 import { getRuntimeCapabilities } from "@/lib/runtime-capabilities";
 import type { CloudProjectRecord, CloudSyncBundle } from "@/types/app";
 
@@ -13,7 +14,7 @@ export type CloudStorageProvider = {
   saveBundle: (bundle: CloudSyncBundle) => Promise<CloudStorageProviderResult>;
 };
 
-export function createCloudStorageProvider(): CloudStorageProvider {
+function createLocalCloudStorageProvider(): CloudStorageProvider {
   const capabilities = getRuntimeCapabilities();
 
   return {
@@ -27,4 +28,48 @@ export function createCloudStorageProvider(): CloudStorageProvider {
       projectCount: bundle.projectCount,
     }),
   };
+}
+
+function createRemoteCloudStorageProvider(cloudStorageProviderUrl: string): CloudStorageProvider {
+  return {
+    isConfigured: () => true,
+    fetchProjects: async () => {
+      const response = await fetch(`${cloudStorageProviderUrl}/projects`, { cache: "no-store" });
+
+      if (!response.ok) {
+        return [];
+      }
+
+      return (await response.json()) as CloudProjectRecord[];
+    },
+    saveBundle: async (bundle) => {
+      const response = await fetch(`${cloudStorageProviderUrl}/bundle`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(bundle),
+      });
+
+      if (!response.ok) {
+        return {
+          ok: false,
+          message: "远端云端存储 provider 调用失败。",
+          projectCount: bundle.projectCount,
+        };
+      }
+
+      return (await response.json()) as CloudStorageProviderResult;
+    },
+  };
+}
+
+export function createCloudStorageProvider(): CloudStorageProvider {
+  const providerConfig = getProviderConfig();
+
+  if (providerConfig.cloudStorageProviderUrl) {
+    return createRemoteCloudStorageProvider(providerConfig.cloudStorageProviderUrl);
+  }
+
+  return createLocalCloudStorageProvider();
 }

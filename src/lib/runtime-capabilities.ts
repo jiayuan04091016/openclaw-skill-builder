@@ -1,3 +1,4 @@
+import { getProviderConfig } from "@/lib/provider-config";
 import type { RepositoryCapabilities } from "@/types/app";
 
 function readFlag(value: string | undefined) {
@@ -5,8 +6,10 @@ function readFlag(value: string | undefined) {
 }
 
 export function getRuntimeCapabilities(): RepositoryCapabilities {
-  const authEnabled = readFlag(process.env.NEXT_PUBLIC_ENABLE_AUTH);
-  const cloudSyncEnabled = readFlag(process.env.NEXT_PUBLIC_ENABLE_CLOUD_SYNC);
+  const providerConfig = getProviderConfig();
+  const authEnabled = readFlag(process.env.NEXT_PUBLIC_ENABLE_AUTH) || Boolean(providerConfig.authProviderUrl);
+  const cloudSyncEnabled =
+    readFlag(process.env.NEXT_PUBLIC_ENABLE_CLOUD_SYNC) || Boolean(providerConfig.cloudStorageProviderUrl);
   const enhancedImport = readFlag(process.env.NEXT_PUBLIC_ENABLE_ENHANCED_IMPORT);
 
   return {
