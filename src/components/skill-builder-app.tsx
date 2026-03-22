@@ -829,6 +829,11 @@ export function SkillBuilderApp() {
                                   : " 目前还看不出明确章节"}
                                 。
                               </div>
+                              {importAnalysisSummary.suggestedNextFields.length ? (
+                                <div className="mt-1">
+                                  建议下一步优先补：{importAnalysisSummary.suggestedNextFields.join("、")}。
+                                </div>
+                              ) : null}
                               <div className="mt-1">
                                 当前判断：
                                 {importAnalysisSummary.readyForFirstDraft
