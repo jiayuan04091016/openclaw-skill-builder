@@ -8,6 +8,7 @@ import { createProjectResourceProcessingService } from "@/lib/project-resource-p
 import type { ProjectRepository } from "@/lib/project-repository";
 import { createProjectRuntimeService } from "@/lib/project-runtime-service";
 import { createProjectService } from "@/lib/project-service";
+import { createProjectTransferService } from "@/lib/project-transfer-service";
 import { loadImportedSkillText } from "@/lib/skill-import-loader";
 import type { SyncService } from "@/lib/sync-service";
 import { buildStructuredSpec } from "@/lib/skill-builder";
@@ -61,6 +62,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
   const projectImportPipelineServiceRef = useRef(createProjectImportPipelineService());
   const projectMediaProcessingServiceRef = useRef(createProjectMediaProcessingService());
   const projectResourceProcessingServiceRef = useRef(createProjectResourceProcessingService());
+  const projectTransferServiceRef = useRef(createProjectTransferService());
   const cloudSyncClientRef = useRef(createCloudSyncClient());
 
   useEffect(() => {
@@ -258,7 +260,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
 
     try {
       setLoading(true);
-      const { blob, fileName } = await projectServiceRef.current.exportProject(activeProject);
+      const { blob, fileName } = await projectTransferServiceRef.current.exportProject(activeProject);
       downloadBlob(blob, fileName);
       onStatusChange(`导出成功：${fileName}，压缩包已经开始下载。`);
       return true;
@@ -279,7 +281,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
 
     try {
       setLoading(true);
-      const { blob, fileName } = await projectServiceRef.current.exportProject(target);
+      const { blob, fileName } = await projectTransferServiceRef.current.exportProject(target);
       downloadBlob(blob, fileName);
       onStatusChange(`已开始导出：${fileName}`);
       return true;
@@ -297,7 +299,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       return;
     }
 
-    const payload = await syncServiceRef.current.exportBackup(projects);
+    const payload = await projectTransferServiceRef.current.exportBackup(syncServiceRef.current, projects);
 
     if (!payload) {
       onStatusChange("当前无法导出备份，请稍后重试。");
@@ -313,7 +315,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       return null;
     }
 
-    return syncServiceRef.current.buildCloudPreview(projects);
+    return projectTransferServiceRef.current.buildCloudPreview(syncServiceRef.current, projects);
   }
 
   async function prepareCloudSync() {
@@ -323,7 +325,12 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
 
     try {
       setSyncPreparing(true);
-      const result = await syncServiceRef.current.prepareCloudSync(projects);
+      const result = await projectTransferServiceRef.current.prepareCloudSync(syncServiceRef.current, projects);
+
+      if (!result) {
+        return null;
+      }
+
       onStatusChange(result.message);
       return result;
     } finally {
@@ -338,7 +345,11 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
 
     try {
       setSyncPreparing(true);
-      const mergedProjects = await syncServiceRef.current.refreshFromCloud(projects);
+      const mergedProjects = await projectTransferServiceRef.current.refreshFromCloud(syncServiceRef.current, projects);
+
+      if (!mergedProjects) {
+        return null;
+      }
 
       setProjects(mergedProjects);
       setActiveProjectId((currentActiveProjectId) =>
@@ -357,7 +368,11 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     }
 
     try {
-      const importedProjects = await syncServiceRef.current.importBackup(event);
+      const importedProjects = await projectTransferServiceRef.current.importBackup(syncServiceRef.current, event);
+
+      if (!importedProjects) {
+        return;
+      }
 
       setProjects(importedProjects);
       setActiveProjectId(importedProjects[0]?.id ?? null);
