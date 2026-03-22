@@ -10,7 +10,15 @@ import {
 } from "@/lib/project-operations";
 import { createBrowserProjectRepository } from "@/lib/project-repository";
 import { buildDraftContent, buildStructuredSpec, createId, exportProjectZip } from "@/lib/skill-builder";
-import type { BuilderMode, DraftContent, ProjectRecord, ResourceItem, ResourceType } from "@/types/app";
+import type {
+  BuilderMode,
+  DraftContent,
+  ProjectRecord,
+  RepositoryCapabilities,
+  RepositoryStatus,
+  ResourceItem,
+  ResourceType,
+} from "@/types/app";
 
 type UseProjectManagerOptions = {
   onStatusChange: (message: string) => void;
@@ -39,22 +47,27 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
   const [homeGoal, setHomeGoal] = useState("");
   const [loading, setLoading] = useState(false);
   const [hasLoadedProjects, setHasLoadedProjects] = useState(false);
+  const [repositoryCapabilities, setRepositoryCapabilities] = useState<RepositoryCapabilities | null>(null);
+  const [repositoryStatus, setRepositoryStatus] = useState<RepositoryStatus | null>(null);
   const backupInputRef = useRef<HTMLInputElement>(null);
   const repositoryRef = useRef<ReturnType<typeof createBrowserProjectRepository> | null>(null);
 
   useEffect(() => {
     repositoryRef.current = createBrowserProjectRepository(window.localStorage);
+    setRepositoryCapabilities(repositoryRef.current.getCapabilities());
+    const repository = repositoryRef.current;
     let isMounted = true;
 
     async function loadProjects() {
       try {
-        const parsed = await repositoryRef.current?.loadProjects();
+        const parsed = await repository.loadProjects();
 
         if (!isMounted || !parsed) {
           return;
         }
 
         setProjects(parsed);
+        setRepositoryStatus(repository.getStatus(parsed));
         if (parsed[0]) {
           setActiveProjectId(parsed[0].id);
           setHomeGoal(parsed[0].goal);
@@ -83,6 +96,9 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     }
 
     void repositoryRef.current?.saveProjects(projects);
+    if (repositoryRef.current) {
+      setRepositoryStatus(repositoryRef.current.getStatus(projects));
+    }
   }, [projects, hasLoadedProjects]);
 
   const activeProject = useMemo(
@@ -351,6 +367,8 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     backupInputRef,
     currentDraft,
     structuredSpec,
+    repositoryCapabilities,
+    repositoryStatus,
     ensureProject,
     updateProject,
     startFromScratch,

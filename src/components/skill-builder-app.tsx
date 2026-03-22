@@ -25,7 +25,6 @@ export function SkillBuilderApp() {
   const [previewMode, setPreviewMode] = useState<"guide" | "skill" | "result">("guide");
   const [projectKeyword, setProjectKeyword] = useState("");
   const [projectFilter, setProjectFilter] = useState<"all" | "draft" | "generated" | "import">("all");
-  const session = useSessionState();
   const {
     projects,
     activeProject,
@@ -36,6 +35,8 @@ export function SkillBuilderApp() {
     backupInputRef,
     currentDraft,
     structuredSpec,
+    repositoryCapabilities,
+    repositoryStatus,
     ensureProject,
     updateProject,
     startFromScratch: createProjectFromScratch,
@@ -52,6 +53,7 @@ export function SkillBuilderApp() {
     duplicateProject: duplicateManagedProject,
     deleteProject,
   } = useProjectManager({ onStatusChange: setStatusMessage });
+  const session = useSessionState({ capabilities: repositoryCapabilities, repositoryStatus });
 
   function startFromScratch(goal = "") {
     createProjectFromScratch(goal);

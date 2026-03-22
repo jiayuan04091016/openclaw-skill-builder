@@ -4,6 +4,8 @@ export type SessionMode = "guest" | "authenticated";
 
 export type StorageMode = "local" | "cloud";
 
+export type SyncState = "local-only" | "cloud-ready" | "syncing" | "error";
+
 export type BuilderMode = "create" | "import";
 
 export type OutputStyle = "simple" | "detailed" | "teaching";
@@ -64,6 +66,19 @@ export type BackupPayload = {
   version: 1;
   exportedAt: string;
   projects: ProjectRecord[];
+};
+
+export type RepositoryCapabilities = {
+  authEnabled: boolean;
+  cloudSyncEnabled: boolean;
+  importAnalysisLevel: "basic" | "enhanced";
+  storageMode: StorageMode;
+};
+
+export type RepositoryStatus = {
+  projectCount: number;
+  lastSavedAt: string | null;
+  syncState: SyncState;
 };
 
 export type SessionState = {
