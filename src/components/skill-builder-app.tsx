@@ -1114,6 +1114,22 @@ export function SkillBuilderApp() {
                     {projects.length
                       ? "没有符合当前筛选条件的项目，可以试试清空搜索词或切换筛选。"
                       : "你还没有创建过项目。先去首页或“开始制作”页面完成第一个版本，之后这里会自动保存你的历史记录。"}
+                    {projects.length ? (
+                      <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                        <button
+                          className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700"
+                          onClick={() => {
+                            setProjectKeyword("");
+                            setProjectFilter("all");
+                          }}
+                        >
+                          清空筛选后再看
+                        </button>
+                        <button className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700" onClick={() => setSection("home")}>
+                          回首页换个方向开始
+                        </button>
+                      </div>
+                    ) : null}
                     {!projects.length ? (
                       <div className="mt-5 flex flex-col gap-3 sm:flex-row">
                         <button className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white" onClick={() => startFromScratch(homeGoal)}>
