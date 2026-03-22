@@ -81,7 +81,9 @@ export async function buildProviderIntegrationPlan(): Promise<ProviderIntegratio
   return {
     readyForRealIntegration: readiness.allConfigured && readiness.allReachable && authContract.allValid,
     nextProvider: readiness.nextRequiredKey ?? readiness.unreachableKeys[0] ?? (authNeedsContractFix ? "auth" : null),
-    nextStep: authNeedsContractFix ? "先修正 auth provider 的返回结构，再继续联调。" : readiness.nextIntegrationStep,
+    nextStep: authNeedsContractFix
+      ? "先修正 auth provider 的返回结构，再继续联调。"
+      : readiness.nextIntegrationStep,
     items,
   };
 }
@@ -106,7 +108,7 @@ export function buildProviderIntegrationPlanMarkdown(plan: ProviderIntegrationPl
     }
 
     if (item.requiredEndpoints.length) {
-      lines.push(`  最小接口：${item.requiredEndpoints.join("；")}`);
+      lines.push(`  最小接口：${item.requiredEndpoints.join("、")}`);
     }
 
     if (item.contractIssues?.length) {

@@ -8,16 +8,16 @@
 - auth：未配置
   说明：先接账号登录，后续云端项目才能稳定归属到用户。
   环境变量：NEXT_PUBLIC_AUTH_PROVIDER_URL、NEXT_PUBLIC_AUTH_PROVIDER_HEALTH_PATH
-  最小接口：GET /health；GET /profile；POST /sign-in；POST /sign-out
+  最小接口：GET /health、GET /profile、POST /sign-in、POST /sign-out
 - cloud-storage：未配置
   说明：接完账号后，优先接项目存储和跨设备同步。
   环境变量：NEXT_PUBLIC_CLOUD_STORAGE_PROVIDER_URL、NEXT_PUBLIC_CLOUD_STORAGE_PROVIDER_HEALTH_PATH
-  最小接口：GET /health；GET /projects；POST /bundle
+  最小接口：GET /health、GET /projects、POST /bundle
 - ocr：未配置
   说明：OCR 会直接提升图片资料进入 Skill 生成链路的质量。
   环境变量：NEXT_PUBLIC_OCR_PROVIDER_URL、NEXT_PUBLIC_OCR_PROVIDER_HEALTH_PATH
-  最小接口：GET /health；POST /extract
+  最小接口：GET /health、POST /extract
 - video：未配置
   说明：视频增强放在最后接，避免一开始就引入高成本链路。
   环境变量：NEXT_PUBLIC_VIDEO_ENHANCEMENT_PROVIDER_URL、NEXT_PUBLIC_VIDEO_ENHANCEMENT_PROVIDER_HEALTH_PATH
-  最小接口：GET /health；POST /summarize
+  最小接口：GET /health、POST /summarize
