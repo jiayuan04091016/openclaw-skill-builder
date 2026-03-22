@@ -945,6 +945,9 @@ export function SkillBuilderApp() {
                       </pre>
                     </div>
                   </div>
+                  <p className="mt-5 text-sm text-slate-600">
+                    如果说明版能讲清楚用途，示例结果也大体符合预期，通常就可以进入下一步导出。
+                  </p>
                   <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-between">
                     <button className="w-full rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => setBuilderStep(3)}>
                       上一步
