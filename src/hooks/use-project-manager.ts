@@ -305,6 +305,26 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     }
   }
 
+  async function refreshProjectsFromCloud() {
+    if (!syncServiceRef.current) {
+      return null;
+    }
+
+    try {
+      setSyncPreparing(true);
+      const mergedProjects = await syncServiceRef.current.refreshFromCloud(projects);
+
+      setProjects(mergedProjects);
+      setActiveProjectId((currentActiveProjectId) =>
+        mergedProjects.some((project) => project.id === currentActiveProjectId) ? currentActiveProjectId : (mergedProjects[0]?.id ?? null),
+      );
+      onStatusChange("已完成一次云端项目刷新，后续接入真实服务后会从这里继续走。");
+      return mergedProjects;
+    } finally {
+      setSyncPreparing(false);
+    }
+  }
+
   async function importProjectBackup(event: ChangeEvent<HTMLInputElement>) {
     if (!syncServiceRef.current) {
       return;
@@ -375,6 +395,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     cloudSyncPlan,
     importReviewSnapshot,
     prepareCloudSync,
+    refreshProjectsFromCloud,
     ensureProject,
     updateProject,
     startFromScratch,

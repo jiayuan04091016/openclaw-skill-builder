@@ -9,6 +9,7 @@ export type SyncService = {
   importBackup: (event: ChangeEvent<HTMLInputElement>) => Promise<ProjectRecord[]>;
   buildCloudPreview: (projects: ProjectRecord[]) => Promise<CloudSyncBundle | null>;
   prepareCloudSync: (projects: ProjectRecord[]) => Promise<CloudSyncResult>;
+  refreshFromCloud: (projects: ProjectRecord[]) => Promise<ProjectRecord[]>;
   openBackupDialog: () => void;
 };
 
@@ -44,6 +45,7 @@ export function createSyncService(options: CreateSyncServiceOptions): SyncServic
     },
     buildCloudPreview: async (projects) => repository.buildCloudBundle(projects),
     prepareCloudSync: async (projects) => cloudSyncClient.pushBundle(projects),
+    refreshFromCloud: async (projects) => cloudSyncClient.pullAndMerge(projects),
     openBackupDialog: () => backupInputRef.current?.click(),
   };
 }
