@@ -417,6 +417,9 @@ export function SkillBuilderApp() {
                     <p>2. 再补资料：文字、说明、旧 Skill 都可以。</p>
                     <p>3. 生成内容：系统会先帮你整理出一版可继续调整的结果。</p>
                     <p>4. 导出安装：下载 ZIP 后放进 OpenClaw 的 skills 目录。</p>
+                    <button className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700" onClick={() => setSection("home")}>
+                      去首页写目标
+                    </button>
                   </div>
                 </SectionCard>
                 <SectionCard title="第二步：学会用资料">
@@ -424,6 +427,9 @@ export function SkillBuilderApp() {
                     <p>图片和视频目前主要作为补充资料使用，支持上传和备注。</p>
                     <p>如果资料里有关键说明，建议同步补一段文字说明，生成结果会更稳。</p>
                     <p>第一次使用时，优先上传最能说明任务目标的那一份资料。</p>
+                    <button className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700" onClick={() => setSection("builder")}>
+                      去补参考资料
+                    </button>
                   </div>
                 </SectionCard>
                 <SectionCard title="第三步：学会改旧版本">
@@ -431,6 +437,9 @@ export function SkillBuilderApp() {
                     <p>上传已有的 `SKILL.md` 或把内容粘贴进来。</p>
                     <p>再补一句你想新增的能力，例如“增加投诉安抚场景”。</p>
                     <p>系统会根据你的新目标重新整理内容，再导出成更适合当前需求的新版本。</p>
+                    <button className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700" onClick={() => startFromImport(homeGoal)}>
+                      直接试试导入模式
+                    </button>
                   </div>
                 </SectionCard>
               </div>
