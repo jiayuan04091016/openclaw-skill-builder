@@ -6,6 +6,7 @@ import { createProjectResourceInputService } from "@/lib/project-resource-input-
 import type { ProjectRepository } from "@/lib/project-repository";
 import { createProjectRuntimeService } from "@/lib/project-runtime-service";
 import { createProjectService } from "@/lib/project-service";
+import { createProjectSyncActionService } from "@/lib/project-sync-action-service";
 import { createProjectTransferService } from "@/lib/project-transfer-service";
 import { buildStructuredSpec } from "@/lib/skill-builder";
 import type {
@@ -45,6 +46,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
   const syncServiceRef = useRef<SyncService | null>(null);
   const projectServiceRef = useRef(createProjectService());
   const projectResourceInputServiceRef = useRef(createProjectResourceInputService());
+  const projectSyncActionServiceRef = useRef(createProjectSyncActionService());
   const projectTransferServiceRef = useRef(createProjectTransferService());
   const cloudSyncClientRef = useRef(createCloudSyncClient());
 
@@ -257,7 +259,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       return;
     }
 
-    const payload = await projectTransferServiceRef.current.exportBackup(syncServiceRef.current, projects);
+    const payload = await projectSyncActionServiceRef.current.exportBackup(syncServiceRef.current, projects);
 
     if (!payload) {
       onStatusChange("当前无法导出备份，请稍后重试。");
@@ -273,7 +275,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
       return null;
     }
 
-    return projectTransferServiceRef.current.buildCloudPreview(syncServiceRef.current, projects);
+    return projectSyncActionServiceRef.current.buildCloudPreview(syncServiceRef.current, projects);
   }
 
   async function prepareCloudSync() {
@@ -283,7 +285,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
 
     try {
       setSyncPreparing(true);
-      const result = await projectTransferServiceRef.current.prepareCloudSync(syncServiceRef.current, projects);
+      const result = await projectSyncActionServiceRef.current.prepareCloudSync(syncServiceRef.current, projects);
 
       if (!result) {
         return null;
@@ -303,19 +305,20 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
 
     try {
       setSyncPreparing(true);
-      const mergedProjects = await projectTransferServiceRef.current.refreshFromCloud(syncServiceRef.current, projects);
+      const refreshed = await projectSyncActionServiceRef.current.refreshFromCloud(syncServiceRef.current, projects);
 
-      if (!mergedProjects) {
+      if (!refreshed) {
         return null;
       }
 
+      const mergedProjects = refreshed.projects;
       setProjects(mergedProjects);
       setActiveProjectId((currentActiveProjectId) =>
         mergedProjects.some((project) => project.id === currentActiveProjectId)
           ? currentActiveProjectId
           : (mergedProjects[0]?.id ?? null),
       );
-      onStatusChange("已完成一次云端项目刷新，后续接入真实服务后会从这里继续。");
+      onStatusChange(refreshed.statusMessage);
       return mergedProjects;
     } finally {
       setSyncPreparing(false);
@@ -328,16 +331,17 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     }
 
     try {
-      const importedProjects = await projectTransferServiceRef.current.importBackup(syncServiceRef.current, event);
+      const imported = await projectSyncActionServiceRef.current.importBackup(syncServiceRef.current, event);
 
-      if (!importedProjects) {
+      if (!imported) {
         return;
       }
 
+      const importedProjects = imported.projects;
       setProjects(importedProjects);
       setActiveProjectId(importedProjects[0]?.id ?? null);
-      setHomeGoal(importedProjects[0]?.goal ?? "");
-      onStatusChange(`已导入 ${importedProjects.length} 个项目，并切换到最新一个。`);
+      setHomeGoal(imported.homeGoal);
+      onStatusChange(imported.statusMessage);
     } catch {
       onStatusChange("备份文件读取失败，请检查文件内容后重试。");
     }
