@@ -2,7 +2,7 @@ import JSZip from "jszip";
 
 import type { DraftContent, OutputStyle, ProjectRecord, ResourceItem, StructuredSpec } from "@/types/app";
 
-const stopWords = ["一个", "帮我", "帮助", "可以", "能够", "用于", "想做", "希望", "让", "把"];
+const stopWords = ["一个", "帮我", "帮助", "可以", "能够", "用于", "想做", "希望", "让我", "把"];
 
 export function createId(prefix = "proj") {
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
@@ -25,7 +25,7 @@ function cleanGoal(goal: string) {
     next = next.replaceAll(word, "");
   });
 
-  next = next.replace(/[，。！？、,.!?]/g, " ");
+  next = next.replace(/[，。！？,.!?]/g, " ");
   next = next.replace(/\s+/g, " ").trim();
 
   if (!next) {
@@ -43,7 +43,7 @@ function buildWarnings(goal: string, importedSkillText: string) {
   }
 
   if (goal.includes("客户") || goal.includes("客服")) {
-    notices.push("涉及客户信息时，请先脱敏再使用。");
+    notices.push("涉及客户信息时，请先脱敏后再使用。");
   }
 
   if (goal.includes("公司") || goal.includes("内部")) {
@@ -91,9 +91,9 @@ export function buildStructuredSpec(project: ProjectRecord): StructuredSpec {
 function styleHint(style: OutputStyle) {
   switch (style) {
     case "detailed":
-      return "输出更完整，适合希望看到更多步骤和说明的用户。";
+      return "输出更完整，适合希望看到更多步骤和解释的用户。";
     case "teaching":
-      return "输出带教学感，会更像一步一步带着用户完成。";
+      return "输出更像一步一步的教学说明，适合新手跟着操作。";
     default:
       return "输出简洁直接，适合第一次上手的用户。";
   }
@@ -114,7 +114,7 @@ export function buildDraftContent(spec: StructuredSpec, includeExamples: boolean
 
   const exampleBlock = includeExamples
     ? `## 示例\n### 示例输入\n${exampleInput}\n\n### 示例输出\n${exampleOutput}`
-    : "## 示例\n本版本未附带示例，可在应用中重新打开并勾选“附带示例”。";
+    : "## 示例\n当前版本未附带示例，可在应用中重新打开并勾选“附带示例”。";
 
   const skillMarkdown = `---
 name: ${spec.skillName}
@@ -144,7 +144,7 @@ ${spec.sourceSummary}
 
 ## 使用建议
 - 先用一段简单输入测试效果
-- 如果有参考资料，和目标一起提供给 Skill
+- 如果有参考资料，可以和目标一起提供给 Skill
 - 输出前再检查是否符合你的真实场景
 
 ## 注意事项
@@ -165,7 +165,7 @@ ${spec.mainTask}
 1. 解压导出的压缩包
 2. 将整个目录放入 OpenClaw 的 skills 目录
 3. 重启或刷新 OpenClaw
-4. 用示例输入先测试一次
+4. 先用示例输入测试一次
 
 ## 使用方法
 - 输入：${spec.inputFormat}
