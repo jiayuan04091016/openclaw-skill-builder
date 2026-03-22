@@ -268,6 +268,21 @@ export function SkillBuilderApp() {
                       value={homeGoal}
                       onChange={(event) => setHomeGoal(event.target.value)}
                     />
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {[
+                        "帮我整理会议纪要，并列出待办事项",
+                        "根据客户提问生成礼貌回复",
+                        "把网页内容总结成新手易懂的摘要",
+                      ].map((example) => (
+                        <button
+                          key={example}
+                          className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 transition hover:border-cyan-300 hover:text-cyan-700"
+                          onClick={() => setHomeGoal(example)}
+                        >
+                          试试：{example}
+                        </button>
+                      ))}
+                    </div>
                     <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                       <button className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white sm:w-auto" onClick={() => startFromScratch(homeGoal)}>
                         从零创建
