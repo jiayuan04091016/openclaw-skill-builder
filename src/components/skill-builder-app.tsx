@@ -310,6 +310,7 @@ export function SkillBuilderApp() {
                       value={homeGoal}
                       onChange={(event) => setHomeGoal(event.target.value)}
                     />
+                    <p className="mt-3 text-sm text-slate-500">先把你能想到的目标写下来就行，不需要一次写得很完整，后面还能继续补资料和细节。</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {[
                         "帮我整理会议纪要，并列出待办事项",
@@ -959,6 +960,7 @@ export function SkillBuilderApp() {
 │  └─ sample.txt
 └─ meta.json`}
                       </pre>
+                      <p className="mt-4 text-sm leading-7 text-slate-600">这些文件都会由系统自动准备好，你不需要自己手动创建目录或整理内容。</p>
                     </div>
                     <div className="flex flex-col gap-3 sm:flex-row">
                       <button className="w-full rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 sm:w-auto" onClick={() => setBuilderStep(4)}>
@@ -1006,9 +1008,9 @@ export function SkillBuilderApp() {
 
               <div className="mb-5 grid gap-4 md:grid-cols-3">
                 {[
-                  { label: "全部项目", value: projectStats.total, hint: "当前保存在本机的全部项目" },
-                  { label: "已生成内容", value: projectStats.generated, hint: "已经生成过草稿或导出内容的项目" },
-                  { label: "导入类项目", value: projectStats.imported, hint: "基于旧 Skill 改造的项目数量" },
+                  { label: "一共做了多少个", value: projectStats.total, hint: "当前保存在本机里的全部项目" },
+                  { label: "已经能导出的", value: projectStats.generated, hint: "已经生成过草稿，可以继续预览或导出" },
+                  { label: "基于旧 Skill 改的", value: projectStats.imported, hint: "从已有 Skill 继续改造出来的项目" },
                 ].map((item) => (
                   <div key={item.label} className="rounded-[22px] border border-slate-200 bg-white p-5">
                     <div className="text-sm font-medium text-slate-500">{item.label}</div>
@@ -1017,6 +1019,7 @@ export function SkillBuilderApp() {
                   </div>
                 ))}
               </div>
+              <div className="mb-5 text-xs text-slate-400">下面的项目卡都可以继续编辑、复制新版本，或重新导出。</div>
 
               <div className="mb-5 grid gap-3 lg:grid-cols-[1fr_auto]">
                 <input
