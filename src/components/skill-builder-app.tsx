@@ -203,6 +203,16 @@ export function SkillBuilderApp() {
       ]
     : [];
 
+  const importedInfoItems = activeProject
+    ? [
+        { label: "名称", done: Boolean(activeProject.title.trim()) },
+        { label: "适用对象", done: Boolean(activeProject.audience.trim()) },
+        { label: "主要任务", done: Boolean(activeProject.mainTask.trim()) },
+        { label: "输入内容", done: Boolean(activeProject.inputFormat.trim()) },
+        { label: "输出内容", done: Boolean(activeProject.outputFormat.trim()) },
+      ]
+    : [];
+
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,#fef3c7_0%,#f8fafc_28%,#eef6ff_60%,#f8fafc_100%)] text-slate-900">
       <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8">
@@ -610,6 +620,9 @@ export function SkillBuilderApp() {
                       {activeProject.mode === "import" ? (
                         <div className="rounded-[24px] border border-cyan-100 bg-cyan-50/60 p-5">
                           <h3 className="text-base font-semibold text-slate-900">已提取到的信息</h3>
+                          <p className="mt-2 text-sm text-slate-600">
+                            当前已提取 {importedInfoItems.filter((item) => item.done).length}/{importedInfoItems.length} 项
+                          </p>
                           <dl className="mt-4 grid gap-3 text-sm leading-7 text-slate-700 sm:grid-cols-2">
                             <div>
                               <dt className="font-semibold text-slate-900">名称</dt>
@@ -632,6 +645,14 @@ export function SkillBuilderApp() {
                               <dd>{activeProject.outputFormat || "还没有提取到"}</dd>
                             </div>
                           </dl>
+                          {importedInfoItems.some((item) => !item.done) ? (
+                            <button
+                              className="mt-4 rounded-full border border-cyan-600 px-4 py-2 text-sm font-semibold text-cyan-700"
+                              onClick={() => setBuilderStep(3)}
+                            >
+                              去补全剩余内容
+                            </button>
+                          ) : null}
                         </div>
                       ) : null}
                     </div>
