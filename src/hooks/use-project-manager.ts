@@ -288,6 +288,14 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     onStatusChange(`备份文件已开始下载：${fileName}`);
   }
 
+  async function buildCloudSyncPreview() {
+    if (!repositoryRef.current) {
+      return null;
+    }
+
+    return repositoryRef.current.buildCloudBundle(projects);
+  }
+
   async function importProjectBackup(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
 
@@ -380,6 +388,7 @@ export function useProjectManager({ onStatusChange }: UseProjectManagerOptions) 
     exportCurrentProject,
     exportProjectById,
     exportProjectBackup,
+    buildCloudSyncPreview,
     importProjectBackup,
     applyImportedSkillText,
     duplicateProject,
