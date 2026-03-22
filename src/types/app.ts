@@ -163,6 +163,10 @@ export type SessionProfile = {
   email: string | null;
 };
 
+export type StoredSessionProfile = SessionProfile & {
+  savedAt: string;
+};
+
 export type CloudSyncPlan = {
   enabled: boolean;
   projectCount: number;

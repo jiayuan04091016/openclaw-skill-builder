@@ -1,4 +1,5 @@
 import { createAuthService } from "@/lib/auth-service";
+import { createBrowserSessionRepository } from "@/lib/session-repository";
 import type { SessionProfile } from "@/types/app";
 
 export type SessionActionResult = {
@@ -15,12 +16,23 @@ export type SessionActionService = {
 
 export function createSessionActionService(): SessionActionService {
   const authService = createAuthService();
+  const sessionRepository = createBrowserSessionRepository();
+
+  function persistProfile(sessionProfile: SessionProfile) {
+    if (sessionProfile.mode === "authenticated") {
+      sessionRepository.saveSessionProfile(sessionProfile);
+    } else {
+      sessionRepository.clearStoredSessionProfile();
+    }
+
+    return sessionProfile;
+  }
 
   return {
-    refreshProfile: () => authService.getCurrentProfile(),
+    refreshProfile: async () => persistProfile(await authService.getCurrentProfile()),
     signIn: async () => {
       const result = await authService.signIn();
-      const sessionProfile = await authService.getCurrentProfile();
+      const sessionProfile = persistProfile(await authService.getCurrentProfile());
 
       return {
         ...result,
@@ -29,7 +41,7 @@ export function createSessionActionService(): SessionActionService {
     },
     signOut: async () => {
       const result = await authService.signOut();
-      const sessionProfile = await authService.getCurrentProfile();
+      const sessionProfile = persistProfile(await authService.getCurrentProfile());
 
       return {
         ...result,

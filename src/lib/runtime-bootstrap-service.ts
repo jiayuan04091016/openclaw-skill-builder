@@ -18,12 +18,12 @@ export function createRuntimeBootstrapService(storage: Storage): RuntimeBootstra
     bootstrap: async () => {
       const repository = createProjectRepository(storage);
       const sessionRepository = createBrowserSessionRepository();
-      const sessionProfile = await loadSessionProfile(sessionRepository);
+      const session = await loadSessionProfile(sessionRepository);
 
       return {
         repository,
         capabilities: repository.getCapabilities(),
-        sessionProfile,
+        sessionProfile: session.sessionProfile,
       };
     },
   };
