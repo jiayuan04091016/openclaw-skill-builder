@@ -167,5 +167,6 @@ export type ImportAnalysisSummary = {
   sourceLength: number;
   qualityLevel: "low" | "medium" | "high";
   coveredSections: string[];
+  readyForFirstDraft: boolean;
   message: string;
 };

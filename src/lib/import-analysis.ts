@@ -24,6 +24,7 @@ export function buildImportAnalysisSummary(parsed: ParsedSkillImport, sourceText
   ].filter(Boolean);
   const qualityLevel =
     extractedCount >= 5 && sourceLength >= 120 ? "high" : extractedCount >= 3 && sourceLength >= 60 ? "medium" : "low";
+  const readyForFirstDraft = extractedCount >= 3 && coveredSections.includes("输入内容") && coveredSections.includes("输出内容");
 
   return {
     extractedCount,
@@ -32,6 +33,7 @@ export function buildImportAnalysisSummary(parsed: ParsedSkillImport, sourceText
     sourceLength,
     qualityLevel,
     coveredSections,
+    readyForFirstDraft,
     message:
       qualityLevel === "high"
         ? "当前提取结果已经比较完整，通常足够直接生成第一版。"

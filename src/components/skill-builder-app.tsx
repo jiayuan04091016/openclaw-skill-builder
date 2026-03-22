@@ -811,6 +811,12 @@ export function SkillBuilderApp() {
                                   : " 目前还看不出明确章节"}
                                 。
                               </div>
+                              <div className="mt-1">
+                                当前判断：
+                                {importAnalysisSummary.readyForFirstDraft
+                                  ? " 已经适合直接继续做第一版。"
+                                  : " 还建议先多补一点旧 Skill 的输入、输出或任务说明。"}
+                              </div>
                             </div>
                           ) : null}
                           <p className="mt-2 text-xs leading-6 text-slate-500">
