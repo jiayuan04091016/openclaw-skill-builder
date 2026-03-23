@@ -26,3 +26,4 @@ export async function runSyncIntegrationSmoke(): Promise<SyncIntegrationSmokeRep
     ok: builtBundle && restoredProjectCount >= 1 && mergedProjectCount >= 1,
   };
 }
+

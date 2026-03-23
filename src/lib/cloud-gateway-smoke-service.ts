@@ -24,3 +24,4 @@ export async function runCloudGatewaySmoke(): Promise<CloudGatewaySmokeReport> {
     ok: projects.length === 0 && bundleResult.ok === false && bundleResult.projectCount === 1,
   };
 }
+

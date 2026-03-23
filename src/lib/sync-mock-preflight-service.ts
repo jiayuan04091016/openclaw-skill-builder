@@ -11,7 +11,11 @@ export async function buildSyncMockPreflightReport(): Promise<SyncMockPreflightR
   const readiness = await buildSyncReadinessReport();
   const usingMockMode = readiness.providerMode === "mock";
   const mockChainReady =
-    usingMockMode && readiness.cloudReachable && readiness.cloudContractValid && readiness.syncSmokeReady;
+    usingMockMode &&
+    readiness.cloudReachable &&
+    readiness.cloudContractValid &&
+    readiness.cloudGatewayReady &&
+    readiness.syncSmokeReady;
 
   let nextStep = "当前还没有切到 cloud-storage mock provider，因此跨设备同步仍在本机准备态。";
 
@@ -28,3 +32,4 @@ export async function buildSyncMockPreflightReport(): Promise<SyncMockPreflightR
     issues: readiness.issues,
   };
 }
+

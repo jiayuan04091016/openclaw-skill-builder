@@ -60,3 +60,4 @@ export async function buildCloudReadinessReport(): Promise<CloudReadinessReport>
     issues,
   };
 }
+
