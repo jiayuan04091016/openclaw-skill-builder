@@ -1,4 +1,5 @@
 import { writeProviderIntegrationPlanSnapshot } from "@/lib/provider-integration-plan-service";
+import { writeProviderGatewaySnapshot } from "@/lib/provider-gateway-snapshot-service";
 import { writeV2CapabilitySnapshot } from "@/lib/v2-capability-snapshot-service";
 
 export type StageSnapshotResult = {
@@ -12,9 +13,10 @@ export type StageSnapshotResult = {
 };
 
 export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
-  const [readinessSnapshot, providerSnapshot] = await Promise.all([
+  const [readinessSnapshot, providerSnapshot, providerGatewaySnapshot] = await Promise.all([
     writeV2CapabilitySnapshot(),
     writeProviderIntegrationPlanSnapshot(),
+    writeProviderGatewaySnapshot(),
   ]);
 
   return {
@@ -28,8 +30,12 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
         fileName: providerSnapshot.fileName,
         filePath: providerSnapshot.filePath,
       },
+      {
+        fileName: providerGatewaySnapshot.fileName,
+        filePath: providerGatewaySnapshot.filePath,
+      },
     ],
     readyForUnifiedTesting: readinessSnapshot.reportReady,
-    readyForRealIntegration: providerSnapshot.readyForRealIntegration,
+    readyForRealIntegration: providerSnapshot.readyForRealIntegration && providerGatewaySnapshot.readyForIntegration,
   };
 }
