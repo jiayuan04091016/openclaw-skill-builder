@@ -12,7 +12,19 @@ export type CloudGatewayBundleResult = {
   projectCount: number;
 };
 
-export async function fetchCloudGatewayProjects(): Promise<CloudProjectRecord[]> {
+function buildGatewayHeaders(baseHeaders: HeadersInit | undefined, sessionToken: string) {
+  const token = sessionToken.trim();
+  if (!token) {
+    return baseHeaders;
+  }
+
+  return {
+    ...(baseHeaders ?? {}),
+    Authorization: `Bearer ${token}`,
+  };
+}
+
+export async function fetchCloudGatewayProjects(sessionToken = ""): Promise<CloudProjectRecord[]> {
   const config = getServerProviderConfig();
 
   if (!config.cloudStorage.url) {
@@ -21,14 +33,17 @@ export async function fetchCloudGatewayProjects(): Promise<CloudProjectRecord[]>
 
   const projects = normalizeRemoteCloudProjectList(
     await requestRemoteJson<unknown>(buildRemoteProviderUrl(config.cloudStorage.url, "/projects"), {
-      headers: buildServerProviderHeaders(config.cloudStorage),
+      headers: buildGatewayHeaders(buildServerProviderHeaders(config.cloudStorage), sessionToken),
     }),
   );
 
   return projects ?? [];
 }
 
-export async function saveCloudGatewayBundle(bundle: CloudSyncBundle): Promise<CloudGatewayBundleResult> {
+export async function saveCloudGatewayBundle(
+  bundle: CloudSyncBundle,
+  sessionToken = "",
+): Promise<CloudGatewayBundleResult> {
   const config = getServerProviderConfig();
 
   if (!config.cloudStorage.url) {
@@ -43,7 +58,7 @@ export async function saveCloudGatewayBundle(bundle: CloudSyncBundle): Promise<C
     await requestRemoteJson<unknown>(buildRemoteProviderUrl(config.cloudStorage.url, "/bundle"), {
       method: "POST",
       payload: bundle,
-      headers: buildServerProviderHeaders(config.cloudStorage),
+      headers: buildGatewayHeaders(buildServerProviderHeaders(config.cloudStorage), sessionToken),
     }),
     bundle.projectCount,
   );
@@ -56,3 +71,4 @@ export async function saveCloudGatewayBundle(bundle: CloudSyncBundle): Promise<C
     }
   );
 }
+

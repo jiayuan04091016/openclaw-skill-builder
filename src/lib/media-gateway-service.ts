@@ -6,7 +6,19 @@ import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider
 import { buildServerProviderHeaders, getServerProviderConfig } from "@/lib/server-provider-config";
 import type { OcrResult, ResourceItem, VideoEnhancementResult } from "@/types/app";
 
-export async function runOcrGateway(resource: ResourceItem): Promise<OcrResult> {
+function buildGatewayHeaders(baseHeaders: HeadersInit | undefined, sessionToken: string) {
+  const token = sessionToken.trim();
+  if (!token) {
+    return baseHeaders;
+  }
+
+  return {
+    ...(baseHeaders ?? {}),
+    Authorization: `Bearer ${token}`,
+  };
+}
+
+export async function runOcrGateway(resource: ResourceItem, sessionToken = ""): Promise<OcrResult> {
   const config = getServerProviderConfig();
 
   if (!config.ocr.url) {
@@ -21,7 +33,7 @@ export async function runOcrGateway(resource: ResourceItem): Promise<OcrResult> 
     await requestRemoteJson<unknown>(buildRemoteProviderUrl(config.ocr.url, "/extract"), {
       method: "POST",
       payload: resource,
-      headers: buildServerProviderHeaders(config.ocr),
+      headers: buildGatewayHeaders(buildServerProviderHeaders(config.ocr), sessionToken),
     }),
   );
 
@@ -34,7 +46,10 @@ export async function runOcrGateway(resource: ResourceItem): Promise<OcrResult> 
   );
 }
 
-export async function runVideoGateway(resource: ResourceItem): Promise<VideoEnhancementResult> {
+export async function runVideoGateway(
+  resource: ResourceItem,
+  sessionToken = "",
+): Promise<VideoEnhancementResult> {
   const config = getServerProviderConfig();
 
   if (!config.video.url) {
@@ -49,7 +64,7 @@ export async function runVideoGateway(resource: ResourceItem): Promise<VideoEnha
     await requestRemoteJson<unknown>(buildRemoteProviderUrl(config.video.url, "/summarize"), {
       method: "POST",
       payload: resource,
-      headers: buildServerProviderHeaders(config.video),
+      headers: buildGatewayHeaders(buildServerProviderHeaders(config.video), sessionToken),
     }),
   );
 
@@ -61,3 +76,4 @@ export async function runVideoGateway(resource: ResourceItem): Promise<VideoEnha
     }
   );
 }
+

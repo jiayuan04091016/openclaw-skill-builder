@@ -54,6 +54,15 @@ export function normalizeRemoteSessionProfile(value: unknown): SessionProfile | 
   };
 }
 
+function readSessionToken(record: UnknownRecord) {
+  return (
+    readString(record.sessionToken) ||
+    readString(record.accessToken) ||
+    readString(record.token) ||
+    readString(record.idToken)
+  );
+}
+
 export function normalizeRemoteAuthResult(value: unknown): AuthProviderResult | null {
   const record = asRecord(value);
 
@@ -70,9 +79,13 @@ export function normalizeRemoteAuthResult(value: unknown): AuthProviderResult | 
     return null;
   }
 
+  const sessionToken = readSessionToken(record);
+
   return {
     ok,
-    message: readString(record.message) || readString(record.detail) || (ok ? "认证动作执行成功。" : "认证动作执行失败。"),
+    message:
+      readString(record.message) || readString(record.detail) || (ok ? "认证动作执行成功。" : "认证动作执行失败。"),
+    ...(sessionToken ? { sessionToken } : {}),
   };
 }
 
@@ -85,3 +98,4 @@ export function isNormalizedAuthResult(value: unknown): value is AuthProviderRes
   const result = normalizeRemoteAuthResult(value);
   return Boolean(result);
 }
+

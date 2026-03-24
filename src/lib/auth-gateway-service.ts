@@ -2,13 +2,25 @@ import {
   normalizeRemoteAuthResult,
   normalizeRemoteSessionProfile,
 } from "@/lib/auth-remote-contracts";
+import type { AuthProviderResult } from "@/lib/auth-provider";
 import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
 import { buildServerProviderHeaders, getServerProviderConfig } from "@/lib/server-provider-config";
 import { buildGuestSessionProfile } from "@/lib/session-service";
-import type { AuthProviderResult } from "@/lib/auth-provider";
 import type { SessionProfile } from "@/types/app";
 
-export async function getAuthGatewayProfile(): Promise<SessionProfile> {
+function buildGatewayHeaders(baseHeaders: HeadersInit | undefined, sessionToken: string) {
+  const token = sessionToken.trim();
+  if (!token) {
+    return baseHeaders;
+  }
+
+  return {
+    ...(baseHeaders ?? {}),
+    Authorization: `Bearer ${token}`,
+  };
+}
+
+export async function getAuthGatewayProfile(sessionToken = ""): Promise<SessionProfile> {
   const config = getServerProviderConfig();
 
   if (!config.auth.url) {
@@ -17,7 +29,7 @@ export async function getAuthGatewayProfile(): Promise<SessionProfile> {
 
   const profile = normalizeRemoteSessionProfile(
     await requestRemoteJson<unknown>(buildRemoteProviderUrl(config.auth.url, "/profile"), {
-      headers: buildServerProviderHeaders(config.auth),
+      headers: buildGatewayHeaders(buildServerProviderHeaders(config.auth), sessionToken),
     }),
   );
 
@@ -49,7 +61,7 @@ export async function runAuthGatewaySignIn(): Promise<AuthProviderResult> {
   );
 }
 
-export async function runAuthGatewaySignOut(): Promise<AuthProviderResult> {
+export async function runAuthGatewaySignOut(sessionToken = ""): Promise<AuthProviderResult> {
   const config = getServerProviderConfig();
 
   if (!config.auth.url) {
@@ -62,7 +74,7 @@ export async function runAuthGatewaySignOut(): Promise<AuthProviderResult> {
   const result = normalizeRemoteAuthResult(
     await requestRemoteJson<unknown>(buildRemoteProviderUrl(config.auth.url, "/sign-out"), {
       method: "POST",
-      headers: buildServerProviderHeaders(config.auth),
+      headers: buildGatewayHeaders(buildServerProviderHeaders(config.auth), sessionToken),
     }),
   );
 
@@ -73,3 +85,4 @@ export async function runAuthGatewaySignOut(): Promise<AuthProviderResult> {
     }
   );
 }
+

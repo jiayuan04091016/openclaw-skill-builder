@@ -1,17 +1,18 @@
-import { getProviderConfig } from "@/lib/provider-config";
-import { getClientGatewayUrl } from "@/lib/provider-gateway-client";
-import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
-import { getRuntimeCapabilities } from "@/lib/runtime-capabilities";
 import {
   normalizeRemoteAuthResult,
   normalizeRemoteSessionProfile,
 } from "@/lib/auth-remote-contracts";
+import { getProviderConfig } from "@/lib/provider-config";
+import { getClientGatewayUrl } from "@/lib/provider-gateway-client";
+import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
+import { getRuntimeCapabilities } from "@/lib/runtime-capabilities";
 import { buildGuestSessionProfile } from "@/lib/session-service";
 import type { SessionProfile } from "@/types/app";
 
 export type AuthProviderResult = {
   ok: boolean;
   message: string;
+  sessionToken?: string;
 };
 
 export type AuthProvider = {
@@ -102,3 +103,4 @@ export function createAuthProvider(): AuthProvider {
 
   return createLocalAuthProvider();
 }
+
