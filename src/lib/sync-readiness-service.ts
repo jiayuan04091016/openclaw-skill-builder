@@ -2,6 +2,7 @@ import { runAuthCloudBridgeSmoke } from "@/lib/auth-cloud-bridge-smoke-service";
 import { buildCloudReadinessReport } from "@/lib/cloud-readiness-service";
 import { runCloudGatewaySmoke } from "@/lib/cloud-gateway-smoke-service";
 import { runSyncIntegrationSmoke } from "@/lib/sync-integration-smoke-service";
+import { runSyncRoundtripSmoke } from "@/lib/sync-roundtrip-smoke-service";
 
 export type SyncReadinessReport = {
   providerMode: "local" | "mock" | "remote";
@@ -13,6 +14,7 @@ export type SyncReadinessReport = {
   cloudGatewayReady: boolean;
   authCloudBridgeReady: boolean;
   syncSmokeReady: boolean;
+  syncRoundtripReady: boolean;
   readyForIntegration: boolean;
   nextStep: string;
   issues: string[];
@@ -23,6 +25,7 @@ export async function buildSyncReadinessReport(): Promise<SyncReadinessReport> {
   const cloudGatewaySmoke = await runCloudGatewaySmoke();
   const authCloudBridgeSmoke = await runAuthCloudBridgeSmoke();
   const syncSmoke = await runSyncIntegrationSmoke();
+  const syncRoundtripSmoke = await runSyncRoundtripSmoke();
   const issues = [...cloudReadiness.issues];
 
   if (!cloudGatewaySmoke.ok) {
@@ -35,6 +38,10 @@ export async function buildSyncReadinessReport(): Promise<SyncReadinessReport> {
 
   if (!syncSmoke.ok) {
     issues.push("跨设备同步烟雾链路未通过。");
+  }
+
+  if (!syncRoundtripSmoke.ok) {
+    issues.push("跨设备同步往返链路未通过。");
   }
 
   let nextStep = "跨设备同步已具备联调条件。";
@@ -51,6 +58,8 @@ export async function buildSyncReadinessReport(): Promise<SyncReadinessReport> {
     nextStep = "先打通登录会话到云端网关的 token 透传链路。";
   } else if (!syncSmoke.ok) {
     nextStep = "先修正跨设备同步烟雾链路。";
+  } else if (!syncRoundtripSmoke.ok) {
+    nextStep = "先修正跨设备同步往返链路（push/pull/merge）。";
   }
 
   return {
@@ -63,13 +72,15 @@ export async function buildSyncReadinessReport(): Promise<SyncReadinessReport> {
     cloudGatewayReady: cloudGatewaySmoke.ok,
     authCloudBridgeReady: authCloudBridgeSmoke.ok,
     syncSmokeReady: syncSmoke.ok,
+    syncRoundtripReady: syncRoundtripSmoke.ok,
     readyForIntegration:
       cloudReadiness.configured &&
       cloudReadiness.reachable &&
       cloudReadiness.contractValid &&
       cloudGatewaySmoke.ok &&
       authCloudBridgeSmoke.ok &&
-      syncSmoke.ok,
+      syncSmoke.ok &&
+      syncRoundtripSmoke.ok,
     nextStep,
     issues,
   };

@@ -16,7 +16,8 @@ export async function buildSyncMockPreflightReport(): Promise<SyncMockPreflightR
     readiness.cloudContractValid &&
     readiness.cloudGatewayReady &&
     readiness.authCloudBridgeReady &&
-    readiness.syncSmokeReady;
+    readiness.syncSmokeReady &&
+    readiness.syncRoundtripReady;
 
   let nextStep = "当前还没有切到 cloud-storage mock provider，因此跨设备同步仍在本机准备态。";
 
@@ -33,4 +34,3 @@ export async function buildSyncMockPreflightReport(): Promise<SyncMockPreflightR
     issues: readiness.issues,
   };
 }
-
