@@ -40,3 +40,4 @@ export function runImportIntegrationSmoke(): ImportIntegrationSmokeReport {
     ok: Boolean(result.archive && result.review && result.review.summary.extractedCount >= 4),
   };
 }
+

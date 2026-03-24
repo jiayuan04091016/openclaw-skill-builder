@@ -32,7 +32,7 @@ export async function buildOcrReadinessReport(): Promise<OcrReadinessReport> {
   const configured = ocrReadiness?.configured ?? false;
   const reachable = ocrReadiness?.reachable === true;
   const contractValid = contractReport.allValid;
-  const integrationSmokeReady = integrationSmoke.ok;
+  const integrationSmokeReady = integrationSmoke.ok && integrationSmoke.completed;
   const readyForIntegration = configured && reachable && contractValid && integrationSmokeReady;
 
   let nextStep = "OCR 已具备联调条件。";
@@ -60,4 +60,3 @@ export async function buildOcrReadinessReport(): Promise<OcrReadinessReport> {
     issues,
   };
 }
-

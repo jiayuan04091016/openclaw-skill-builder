@@ -28,9 +28,10 @@ export function createMediaProcessingService(): MediaProcessingService {
         kind: "unsupported",
         result: {
           status: "not-configured",
-          message: "当前资源类型不需要走 OCR 或视频增强流程。",
+          message: "当前资源类型不需要 OCR 或视频增强流程。",
         },
       };
     },
   };
 }
+

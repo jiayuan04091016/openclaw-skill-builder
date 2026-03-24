@@ -18,7 +18,12 @@ export function createProjectImportPipelineService(): ProjectImportPipelineServi
   const skillImportArchiveService = createSkillImportArchiveService();
   const skillImportPipelineService = createSkillImportPipelineService();
 
-  function buildProjectPatch(project: ProjectRecord, importedSkillText: string, sourceName: string, sourceType: "text" | "markdown" | "zip" | "manual") {
+  function buildProjectPatch(
+    project: ProjectRecord,
+    importedSkillText: string,
+    sourceName: string,
+    sourceType: "text" | "markdown" | "zip" | "manual",
+  ) {
     return {
       ...projectService.applyImportedSkillPatch(project, importedSkillText),
       importedSkillArchive: importedSkillText
@@ -34,7 +39,12 @@ export function createProjectImportPipelineService(): ProjectImportPipelineServi
       return {
         ...imported,
         resourceType: "skill",
-        projectPatch: buildProjectPatch(project, imported.asset.importedSkillText, imported.asset.sourceName, imported.asset.sourceType),
+        projectPatch: buildProjectPatch(
+          project,
+          imported.asset.importedSkillText,
+          imported.asset.sourceName,
+          imported.asset.sourceType,
+        ),
       };
     },
     importFromText: (project, text, sourceName = "手动粘贴的旧 Skill") => {
@@ -43,8 +53,14 @@ export function createProjectImportPipelineService(): ProjectImportPipelineServi
       return {
         ...imported,
         resourceType: "skill",
-        projectPatch: buildProjectPatch(project, imported.asset.importedSkillText, imported.asset.sourceName, imported.asset.sourceType),
+        projectPatch: buildProjectPatch(
+          project,
+          imported.asset.importedSkillText,
+          imported.asset.sourceName,
+          imported.asset.sourceType,
+        ),
       };
     },
   };
 }
+

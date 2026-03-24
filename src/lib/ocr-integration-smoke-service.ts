@@ -19,3 +19,4 @@ export async function runOcrIntegrationSmoke(): Promise<OcrIntegrationSmokeRepor
     ok: result.kind === "ocr",
   };
 }
+

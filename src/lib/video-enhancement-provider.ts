@@ -1,3 +1,4 @@
+import { buildLocalVideoSummary } from "@/lib/media-local-enhancement";
 import { normalizeRemoteVideoEnhancementResult } from "@/lib/media-remote-contracts";
 import { getProviderConfig } from "@/lib/provider-config";
 import { getClientGatewayUrl } from "@/lib/provider-gateway-client";
@@ -10,14 +11,21 @@ export type VideoEnhancementProvider = {
 
 function createLocalVideoEnhancementProvider(): VideoEnhancementProvider {
   return {
-    summarize: async (resource) => ({
-      status: "not-configured",
-      summary: resource.content,
-      message:
-        resource.type === "video"
-          ? "视频增强 provider 已预留，后续可以直接接真实摘要或转写服务。"
-          : "当前资源不是视频，暂时不需要走视频增强流程。",
-    }),
+    summarize: async (resource) => {
+      if (resource.type !== "video") {
+        return {
+          status: "not-configured",
+          summary: resource.content,
+          message: "当前资源不是视频，不需要走视频增强流程。",
+        };
+      }
+
+      return {
+        status: "completed",
+        summary: buildLocalVideoSummary(resource),
+        message: "已使用本地视频摘要规则生成要点，可继续接入真实视频理解服务提升质量。",
+      };
+    },
   };
 }
 
@@ -61,3 +69,4 @@ export function createVideoEnhancementProvider(): VideoEnhancementProvider {
 
   return createLocalVideoEnhancementProvider();
 }
+

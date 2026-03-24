@@ -66,7 +66,7 @@ export function isWeakParsedSkillImportSource(source: ParsedSkillImportSource) {
 export function parseImportedSkill(content: string): ParsedSkillImport {
   const sections = parseSkillImportSections(content);
 
-  const title = sections.frontmatterName || sections.headingTitle || sections.description.slice(0, 20);
+  const title = sections.frontmatterName || sections.headingTitle || sections.description.slice(0, 28);
   const titleSource = sections.frontmatterName
     ? "frontmatter:name"
     : sections.headingTitle
@@ -103,3 +103,4 @@ export function parseImportedSkill(content: string): ParsedSkillImport {
     },
   };
 }
+

@@ -1,3 +1,4 @@
+import { buildLocalOcrText } from "@/lib/media-local-enhancement";
 import { normalizeRemoteOcrResult } from "@/lib/media-remote-contracts";
 import { getProviderConfig } from "@/lib/provider-config";
 import { getClientGatewayUrl } from "@/lib/provider-gateway-client";
@@ -10,14 +11,21 @@ export type OcrProvider = {
 
 function createLocalOcrProvider(): OcrProvider {
   return {
-    extractText: async (resource) => ({
-      status: "not-configured",
-      text: resource.content,
-      message:
-        resource.type === "image"
-          ? "OCR provider 已预留，后续可以直接接真实图片识别服务。"
-          : "当前资源不是图片，暂时不需要走 OCR 识别。",
-    }),
+    extractText: async (resource) => {
+      if (resource.type !== "image") {
+        return {
+          status: "not-configured",
+          text: resource.content,
+          message: "当前资源不是图片，不需要走 OCR 处理。",
+        };
+      }
+
+      return {
+        status: "completed",
+        text: buildLocalOcrText(resource),
+        message: "已使用本地 OCR 规则提取文字，可继续接入真实 OCR 服务提升准确率。",
+      };
+    },
   };
 }
 
@@ -61,3 +69,4 @@ export function createOcrProvider(): OcrProvider {
 
   return createLocalOcrProvider();
 }
+

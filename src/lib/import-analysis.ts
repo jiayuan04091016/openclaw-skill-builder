@@ -52,7 +52,8 @@ export function buildImportAnalysisSummary(parsed: ParsedSkillImport, sourceText
       qualityLevel === "high"
         ? "当前提取结果已经比较完整，通常足够直接生成第一版。"
         : qualityLevel === "medium"
-          ? `当前先提取到 ${extractedCount}/${importFieldLabels.length} 项，已经够先生成第一版，剩下的内容可以下一步再补。`
+          ? `当前先提取到 ${extractedCount}/${importFieldLabels.length} 项，已可先生成第一版，剩余内容下一步再补。`
           : `当前先提取到 ${extractedCount}/${importFieldLabels.length} 项，建议再补一点旧 Skill 的用途、输入或输出说明，会更稳。`,
   };
 }
+

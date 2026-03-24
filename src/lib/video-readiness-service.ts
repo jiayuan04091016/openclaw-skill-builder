@@ -32,7 +32,7 @@ export async function buildVideoReadinessReport(): Promise<VideoReadinessReport>
   const configured = videoReadiness?.configured ?? false;
   const reachable = videoReadiness?.reachable === true;
   const contractValid = contractReport.allValid;
-  const integrationSmokeReady = integrationSmoke.ok;
+  const integrationSmokeReady = integrationSmoke.ok && integrationSmoke.completed;
   const readyForIntegration = configured && reachable && contractValid && integrationSmokeReady;
 
   let nextStep = "video 已具备联调条件。";
@@ -60,4 +60,3 @@ export async function buildVideoReadinessReport(): Promise<VideoReadinessReport>
     issues,
   };
 }
-
