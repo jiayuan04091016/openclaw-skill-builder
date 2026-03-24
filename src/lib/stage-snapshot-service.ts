@@ -1,5 +1,6 @@
 import { writeProviderIntegrationPlanSnapshot } from "@/lib/provider-integration-plan-service";
 import { writeProviderGatewaySnapshot } from "@/lib/provider-gateway-snapshot-service";
+import { writeSyncPipelineSnapshot } from "@/lib/sync-pipeline-snapshot-service";
 import { writeSyncReadinessSnapshot } from "@/lib/sync-readiness-snapshot-service";
 import { writeV2CapabilitySnapshot } from "@/lib/v2-capability-snapshot-service";
 
@@ -14,12 +15,14 @@ export type StageSnapshotResult = {
 };
 
 export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
-  const [readinessSnapshot, providerSnapshot, providerGatewaySnapshot, syncReadinessSnapshot] = await Promise.all([
-    writeV2CapabilitySnapshot(),
-    writeProviderIntegrationPlanSnapshot(),
-    writeProviderGatewaySnapshot(),
-    writeSyncReadinessSnapshot(),
-  ]);
+  const [readinessSnapshot, providerSnapshot, providerGatewaySnapshot, syncReadinessSnapshot, syncPipelineSnapshot] =
+    await Promise.all([
+      writeV2CapabilitySnapshot(),
+      writeProviderIntegrationPlanSnapshot(),
+      writeProviderGatewaySnapshot(),
+      writeSyncReadinessSnapshot(),
+      writeSyncPipelineSnapshot(),
+    ]);
 
   return {
     generatedAt: new Date().toISOString(),
@@ -40,11 +43,16 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
         fileName: syncReadinessSnapshot.fileName,
         filePath: syncReadinessSnapshot.filePath,
       },
+      {
+        fileName: syncPipelineSnapshot.fileName,
+        filePath: syncPipelineSnapshot.filePath,
+      },
     ],
     readyForUnifiedTesting: readinessSnapshot.reportReady,
     readyForRealIntegration:
       providerSnapshot.readyForRealIntegration &&
       providerGatewaySnapshot.readyForIntegration &&
-      syncReadinessSnapshot.readyForIntegration,
+      syncReadinessSnapshot.readyForIntegration &&
+      syncPipelineSnapshot.readyForIntegration,
   };
 }

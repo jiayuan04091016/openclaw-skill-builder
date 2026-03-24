@@ -12,6 +12,7 @@ POST `/api/internal/stage-snapshot`
   - `provider-integration-plan.md`
   - `provider-gateway-readiness.md`
   - `sync-readiness.md`
+  - `sync-pipeline-snapshot.md`
 
 ## 2) 检查同步闭环
 
@@ -29,10 +30,20 @@ GET `/api/internal/sync-readiness?format=markdown`
 
 GET `/api/internal/auth-cloud-bridge-smoke`  
 GET `/api/internal/sync-roundtrip-smoke`
+GET `/api/internal/auth-cloud-bridge-smoke?format=markdown`  
+GET `/api/internal/sync-roundtrip-smoke?format=markdown`
 
 预期：
 - HTTP 200（通过）
 - `ok: true`
+
+## 5) 生成同步闭环快照
+
+POST `/api/internal/sync-pipeline-snapshot`
+
+预期：
+- 生成 `docs/sync-pipeline-snapshot.md`
+- `readyForIntegration: true`（在 mock/真实链路满足时）
 
 ## 4) 检查 mock 隔离
 
@@ -41,4 +52,3 @@ GET `/api/internal/mock-cloud-isolation-smoke`
 预期：
 - `isolated: true`
 - `ok: true`
-
