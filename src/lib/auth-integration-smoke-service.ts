@@ -61,3 +61,4 @@ export function runAuthIntegrationSmoke(): AuthIntegrationSmokeReport {
     ok: stored.mode === "authenticated" && loaded?.displayName === sampleProfile.displayName,
   };
 }
+

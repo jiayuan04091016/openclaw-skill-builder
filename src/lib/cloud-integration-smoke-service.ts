@@ -27,3 +27,4 @@ export async function runCloudIntegrationSmoke(): Promise<CloudIntegrationSmokeR
     ok: gateway.isEnabled() ? result.projectCount === 1 : true,
   };
 }
+

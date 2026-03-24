@@ -58,3 +58,4 @@ export function buildSessionState(options: BuildSessionStateOptions = {}): Sessi
     nextSyncActionHint: nextSyncStep.hint,
   };
 }
+
