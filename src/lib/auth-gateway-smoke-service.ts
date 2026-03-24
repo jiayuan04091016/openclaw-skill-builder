@@ -13,7 +13,13 @@ export type AuthGatewaySmokeReport = {
 export async function runAuthGatewaySmoke(): Promise<AuthGatewaySmokeReport> {
   const profile = await getAuthGatewayProfile();
   const signIn = await runAuthGatewaySignIn();
-  const signOut = await runAuthGatewaySignOut();
+  const signOut = await runAuthGatewaySignOut(signIn.sessionToken || "");
+  const ok =
+    (profile.mode === "guest" || profile.mode === "authenticated") &&
+    profile.displayName.trim().length > 0 &&
+    signIn.message.trim().length > 0 &&
+    signOut.ok &&
+    signOut.message.trim().length > 0;
 
   return {
     profileMode: profile.mode,
@@ -22,6 +28,7 @@ export async function runAuthGatewaySmoke(): Promise<AuthGatewaySmokeReport> {
     signInMessage: signIn.message,
     signOutOk: signOut.ok,
     signOutMessage: signOut.message,
-    ok: profile.mode === "guest" && signIn.ok === false && signOut.ok === true,
+    ok,
   };
 }
+

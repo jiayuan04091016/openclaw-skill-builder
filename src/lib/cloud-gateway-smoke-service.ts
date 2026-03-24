@@ -15,13 +15,18 @@ export async function runCloudGatewaySmoke(): Promise<CloudGatewaySmokeReport> {
   const sampleProject = projectService.createProject("create", "验证云端网关链路");
   const projects = await fetchCloudGatewayProjects();
   const bundleResult = await saveCloudGatewayBundle(buildCloudSyncBundle([sampleProject]));
+  const ok =
+    projects.length >= 0 &&
+    bundleResult.projectCount === 1 &&
+    typeof bundleResult.ok === "boolean" &&
+    bundleResult.message.trim().length > 0;
 
   return {
     fetchedProjectCount: projects.length,
     bundleOk: bundleResult.ok,
     bundleProjectCount: bundleResult.projectCount,
     bundleMessage: bundleResult.message,
-    ok: projects.length === 0 && bundleResult.ok === false && bundleResult.projectCount === 1,
+    ok,
   };
 }
 

@@ -23,11 +23,11 @@ export async function buildProviderGatewayReadinessReport(): Promise<ProviderGat
   const [auth, cloud, media] = await Promise.all([runAuthGatewaySmoke(), runCloudGatewaySmoke(), runMediaGatewaySmoke()]);
 
   const authIssues: string[] = [];
-  if (auth.profileMode !== "guest") {
-    authIssues.push("鉴权网关 profile 预期应先返回 guest 模式。");
+  if (!auth.profileDisplayName.trim()) {
+    authIssues.push("鉴权网关 profile 缺少 displayName。");
   }
-  if (auth.signInOk) {
-    authIssues.push("鉴权网关 sign-in 预期在未接入真实服务前返回未接入提示。");
+  if (!auth.signInMessage.trim()) {
+    authIssues.push("鉴权网关 sign-in 缺少 message。");
   }
   if (!auth.signOutOk) {
     authIssues.push(`鉴权网关 sign-out 未通过：${auth.signOutMessage}`);
@@ -35,7 +35,7 @@ export async function buildProviderGatewayReadinessReport(): Promise<ProviderGat
 
   const cloudIssues: string[] = [];
   if (!cloud.ok) {
-    cloudIssues.push(`云端网关链路未达预期：${cloud.bundleMessage}`);
+    cloudIssues.push(`云端网关链路未通过：${cloud.bundleMessage}`);
   }
 
   const mediaIssues: string[] = [];

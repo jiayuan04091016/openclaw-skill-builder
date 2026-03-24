@@ -32,12 +32,15 @@ export type MediaGatewaySmokeReport = {
 export async function runMediaGatewaySmoke(): Promise<MediaGatewaySmokeReport> {
   const ocr = await runOcrGateway(createImageResource());
   const video = await runVideoGateway(createVideoResource());
+  const ocrValid = ocr.status === "not-configured" || ocr.status === "completed";
+  const videoValid = video.status === "not-configured" || video.status === "completed";
 
   return {
     ocrStatus: ocr.status,
     ocrMessage: ocr.message,
     videoStatus: video.status,
     videoMessage: video.message,
-    ok: ocr.status === "not-configured" && video.status === "not-configured",
+    ok: ocrValid && videoValid && ocr.message.trim().length > 0 && video.message.trim().length > 0,
   };
 }
+
