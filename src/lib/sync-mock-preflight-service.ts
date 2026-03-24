@@ -15,6 +15,7 @@ export async function buildSyncMockPreflightReport(): Promise<SyncMockPreflightR
     readiness.cloudReachable &&
     readiness.cloudContractValid &&
     readiness.cloudGatewayReady &&
+    readiness.authCloudBridgeReady &&
     readiness.syncSmokeReady;
 
   let nextStep = "当前还没有切到 cloud-storage mock provider，因此跨设备同步仍在本机准备态。";

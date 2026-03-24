@@ -96,9 +96,7 @@ export function buildV2CapabilityReadinessMarkdown(report: V2CapabilityReadiness
     "# 第二版能力 readiness 快照",
     "",
     `整体状态：${report.allReadyForUnifiedTesting ? "已可进入统一测试" : "暂未全部就绪"}`,
-    report.nextBlockingCapability
-      ? `当前第一阻塞项：${report.nextBlockingCapability}`
-      : "当前第一阻塞项：无",
+    report.nextBlockingCapability ? `当前第一阻塞项：${report.nextBlockingCapability}` : "当前第一阻塞项：无",
     `下一步：${report.nextStep}`,
     "",
     "## 能力清单",
