@@ -10,24 +10,78 @@ function decodeText(buffer: ArrayBuffer) {
   return new TextDecoder("utf-8").decode(buffer).replace(/\r\n/g, "\n").trim();
 }
 
-function chooseZipCandidate(entries: string[]) {
-  const normalizedEntries = entries.filter((entry) => !entry.endsWith("/"));
+function isTextCandidate(entry: string) {
+  return /\.(md|txt)$/i.test(entry);
+}
 
-  return (
-    normalizedEntries.find((entry) => /(^|\/)SKILL\.md$/i.test(entry)) ??
-    normalizedEntries.find((entry) => /(^|\/)README\.md$/i.test(entry)) ??
-    normalizedEntries.find((entry) => /\.md$/i.test(entry)) ??
-    normalizedEntries.find((entry) => /\.txt$/i.test(entry)) ??
-    null
-  );
+function scoreSkillTextCandidate(path: string, content: string) {
+  const normalizedPath = path.toLowerCase();
+  const normalizedContent = content.toLowerCase();
+  let score = 0;
+
+  if (/(^|\/)skill\.md$/.test(normalizedPath)) {
+    score += 120;
+  }
+  if (/(^|\/)readme\.md$/.test(normalizedPath)) {
+    score += 80;
+  }
+  if (normalizedPath.endsWith(".md")) {
+    score += 25;
+  }
+  if (/^---\n[\s\S]*?\n---/.test(content)) {
+    score += 20;
+  }
+  if (/^#\s+/.test(content)) {
+    score += 20;
+  }
+
+  const keywordHits = [
+    "name:",
+    "description:",
+    "## 适用对象",
+    "## 主要任务",
+    "## 输入内容",
+    "## 输出内容",
+    "## audience",
+    "## input",
+    "## output",
+  ].filter((keyword) => normalizedContent.includes(keyword.toLowerCase())).length;
+
+  score += keywordHits * 10;
+  score += Math.min(content.length, 2400) / 120;
+
+  return score;
+}
+
+async function chooseBestZipCandidate(zip: JSZip) {
+  const candidates = Object.keys(zip.files)
+    .filter((entry) => !entry.endsWith("/"))
+    .filter(isTextCandidate)
+    .slice(0, 40);
+
+  let best: { path: string; text: string; score: number } | null = null;
+
+  for (const candidate of candidates) {
+    const text = (await zip.file(candidate)?.async("text"))?.replace(/\r\n/g, "\n").trim() ?? "";
+    if (!text) {
+      continue;
+    }
+
+    const score = scoreSkillTextCandidate(candidate, text);
+    if (!best || score > best.score) {
+      best = { path: candidate, text, score };
+    }
+  }
+
+  return best;
 }
 
 export async function loadImportedSkillAsset(file: File): Promise<ImportedSkillAsset> {
   if (file.name.toLowerCase().endsWith(".zip")) {
     const zip = await JSZip.loadAsync(await file.arrayBuffer());
-    const candidate = chooseZipCandidate(Object.keys(zip.files));
+    const best = await chooseBestZipCandidate(zip);
 
-    if (!candidate) {
+    if (!best) {
       return {
         sourceType: "zip",
         sourceName: file.name,
@@ -35,11 +89,10 @@ export async function loadImportedSkillAsset(file: File): Promise<ImportedSkillA
       };
     }
 
-    const importedSkillText = await zip.file(candidate)!.async("text");
     return {
       sourceType: "zip",
-      sourceName: file.name,
-      importedSkillText: importedSkillText.replace(/\r\n/g, "\n").trim(),
+      sourceName: `${file.name}::${best.path}`,
+      importedSkillText: best.text,
     };
   }
 
@@ -62,3 +115,4 @@ export async function loadImportedSkillText(file: File) {
   const asset = await loadImportedSkillAsset(file);
   return asset.importedSkillText;
 }
+
