@@ -37,3 +37,4 @@ export function buildCloudProviderModeReport(): CloudProviderModeReport {
     reason: "当前云端存储已指向真实远端 provider。",
   };
 }
+

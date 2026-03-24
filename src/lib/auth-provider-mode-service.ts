@@ -38,3 +38,4 @@ export function buildAuthProviderModeReport(): AuthProviderModeReport {
     reason: "当前 auth 已指向真实远端 provider。",
   };
 }
+

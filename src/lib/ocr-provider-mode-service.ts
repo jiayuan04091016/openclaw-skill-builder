@@ -37,3 +37,4 @@ export function buildOcrProviderModeReport(): OcrProviderModeReport {
     reason: "当前 OCR 已指向真实远端 provider。",
   };
 }
+

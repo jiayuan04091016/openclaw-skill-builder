@@ -23,14 +23,14 @@ export function resolveNextSyncStep(
   if (cloudSyncEnabled && !authEnabled) {
     return {
       action: "优先补登录接入",
-      hint: "云端同步底座已经准备好，下一步最值钱的是把登录和用户身份接进来。",
+      hint: "云端同步底座已经准备好，下一步最值得做的是把登录和用户身份接进来。",
     };
   }
 
   if (authEnabled && !cloudSyncEnabled) {
     return {
       action: "优先补云端项目存储",
-      hint: "账号入口已经有了，下一步应该把项目、资料和草稿接到云端存储里。",
+      hint: "账号入口已经有了，下一步应把项目、资料和草稿接到云端存储里。",
     };
   }
 
@@ -41,3 +41,4 @@ export function resolveNextSyncStep(
       : "当前还不需要被登录和同步打断，先把第一个能跑通的项目做出来最划算。",
   };
 }
+
