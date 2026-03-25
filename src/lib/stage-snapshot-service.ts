@@ -1,11 +1,13 @@
 import { writeMediaProviderContractSnapshot } from "@/lib/media-provider-contract-snapshot-service";
 import { writeImportReadinessSnapshot } from "@/lib/import-readiness-snapshot-service";
 import { writeRealIntegrationReadinessSnapshot } from "@/lib/real-integration-readiness-service";
+import { writeReleaseReadinessSnapshot } from "@/lib/release-readiness-snapshot-service";
 import { writeProviderIntegrationPlanSnapshot } from "@/lib/provider-integration-plan-service";
 import { writeProviderGatewaySnapshot } from "@/lib/provider-gateway-snapshot-service";
 import { writeSyncPipelineSnapshot } from "@/lib/sync-pipeline-snapshot-service";
 import { writeSyncReadinessSnapshot } from "@/lib/sync-readiness-snapshot-service";
 import { writeV2CapabilitySnapshot } from "@/lib/v2-capability-snapshot-service";
+import { writeV2InfraStatusSnapshot } from "@/lib/v2-infra-status-snapshot-service";
 
 export type StageSnapshotResult = {
   generatedAt: string;
@@ -27,6 +29,8 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
     mediaProviderContractSnapshot,
     importSnapshot,
     realIntegrationReadinessSnapshot,
+    v2InfraStatusSnapshot,
+    releaseReadinessSnapshot,
   ] =
     await Promise.all([
       writeV2CapabilitySnapshot(),
@@ -37,6 +41,8 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
       writeMediaProviderContractSnapshot(),
       writeImportReadinessSnapshot(),
       writeRealIntegrationReadinessSnapshot(),
+      writeV2InfraStatusSnapshot(),
+      writeReleaseReadinessSnapshot(),
     ]);
 
   return {
@@ -78,8 +84,16 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
         fileName: realIntegrationReadinessSnapshot.fileName,
         filePath: realIntegrationReadinessSnapshot.filePath,
       },
+      {
+        fileName: v2InfraStatusSnapshot.fileName,
+        filePath: v2InfraStatusSnapshot.filePath,
+      },
+      {
+        fileName: releaseReadinessSnapshot.fileName,
+        filePath: releaseReadinessSnapshot.filePath,
+      },
     ],
-    readyForUnifiedTesting: readinessSnapshot.reportReady,
+    readyForUnifiedTesting: readinessSnapshot.reportReady && v2InfraStatusSnapshot.readyForUnifiedTesting,
     readyForRealIntegration:
       providerSnapshot.readyForRealIntegration &&
       providerGatewaySnapshot.readyForIntegration &&
@@ -88,6 +102,7 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
       importSnapshot.contract.valid &&
       mediaProviderContractSnapshot.readyForIntegration &&
       syncPipelineSnapshot.readyForIntegration &&
-      realIntegrationReadinessSnapshot.readyForRealIntegration,
+      realIntegrationReadinessSnapshot.readyForRealIntegration &&
+      releaseReadinessSnapshot.readyForBetaRelease,
   };
 }

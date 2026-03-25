@@ -18,6 +18,11 @@ const checks = [
     validate: (payload) => Boolean(payload && typeof payload.scorePercent === "number"),
   },
   {
+    key: "release-readiness",
+    path: "/api/internal/release-readiness",
+    validate: (payload) => Boolean(payload && typeof payload.readyForBetaRelease === "boolean"),
+  },
+  {
     key: "real-integration-readiness",
     path: "/api/internal/real-integration-readiness",
     validate: (payload) => Boolean(payload && typeof payload.readyForRealIntegration === "boolean"),

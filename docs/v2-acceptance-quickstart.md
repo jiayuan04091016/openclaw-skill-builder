@@ -26,6 +26,8 @@ GET `/api/internal/real-integration-readiness?format=markdown`
   - `import-readiness.md`
   - `import-provider-contract.md`
   - `real-integration-readiness.md`
+  - `v2-infra-status.md`
+  - `release-readiness.md`
 
 可选：命令行一键验收
 
