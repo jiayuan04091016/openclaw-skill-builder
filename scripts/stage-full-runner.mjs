@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn } from "node:child_process";
-import { mkdir, writeFile } from "node:fs/promises";
+import { appendFile, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const baseUrl = process.env.V2_CHECK_BASE_URL || "http://127.0.0.1:3000";
@@ -161,11 +161,13 @@ async function persistRunSummary(summary) {
   const docsDir = path.join(process.cwd(), "docs");
   const jsonPath = path.join(docsDir, "stage-full-last-run.json");
   const markdownPath = path.join(docsDir, "stage-full-last-run.md");
+  const historyPath = path.join(docsDir, "stage-full-run-history.jsonl");
 
   await mkdir(docsDir, { recursive: true });
   await Promise.all([
     writeFile(jsonPath, `${JSON.stringify(summary, null, 2)}\n`, "utf8"),
     writeFile(markdownPath, buildRunMarkdown(summary), "utf8"),
+    appendFile(historyPath, `${JSON.stringify(summary)}\n`, "utf8"),
   ]);
 }
 

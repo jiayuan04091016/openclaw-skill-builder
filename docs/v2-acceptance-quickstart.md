@@ -17,6 +17,8 @@ GET `/api/internal/stage-artifacts`
 GET `/api/internal/stage-artifacts?format=markdown`
 GET `/api/internal/stage-gates`
 GET `/api/internal/stage-gates?format=markdown`
+GET `/api/internal/stage-run-history`
+GET `/api/internal/stage-run-history?format=markdown`
 GET `/api/internal/real-integration-readiness`
 GET `/api/internal/real-integration-readiness?format=markdown`
 
@@ -43,6 +45,7 @@ GET `/api/internal/real-integration-readiness?format=markdown`
   - `stage-gates.md`
   - `stage-full-last-run.json`
   - `stage-full-last-run.md`
+  - `stage-full-run-history.jsonl`
   - `stage-delivery-bundle-latest.txt`
 
 可选：命令行一键验收

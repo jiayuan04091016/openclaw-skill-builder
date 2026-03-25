@@ -43,6 +43,11 @@ const checks = [
     validate: (payload) => Boolean(payload && typeof payload.passPercent === "number"),
   },
   {
+    key: "stage-run-history",
+    path: "/api/internal/stage-run-history",
+    validate: (payload) => Boolean(payload && typeof payload.successRatePercent === "number"),
+  },
+  {
     key: "real-integration-readiness",
     path: "/api/internal/real-integration-readiness",
     validate: (payload) => Boolean(payload && typeof payload.readyForRealIntegration === "boolean"),
