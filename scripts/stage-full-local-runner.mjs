@@ -6,6 +6,7 @@ const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
 const baseUrl = process.env.V2_CHECK_BASE_URL || "http://127.0.0.1:3000";
 const hostArg = process.env.STAGE_LOCAL_HOST || "127.0.0.1";
 const portArg = process.env.STAGE_LOCAL_PORT || "3000";
+const bootTimeoutSeconds = Number(process.env.STAGE_LOCAL_BOOT_TIMEOUT_SECONDS || "50");
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -25,7 +26,7 @@ async function isReachable(url) {
 
 function runNpm(args, options = {}) {
   return spawn(npmCmd, args, {
-    stdio: options.silent ? "pipe" : "inherit",
+    stdio: options.silent ? "ignore" : "inherit",
     shell: false,
     env: process.env,
   });
@@ -69,7 +70,7 @@ async function main() {
   };
 
   try {
-    const attempts = await waitUntilReachable(baseUrl, 50);
+    const attempts = await waitUntilReachable(baseUrl, Math.max(5, bootTimeoutSeconds));
     if (!attempts) {
       console.error(
         JSON.stringify(

@@ -67,6 +67,14 @@ jobs:
           path: docs/stage-snapshot-manifest.md
           if-no-files-found: ignore
 
+      - name: Upload Stage Delivery Status
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage-delivery-status
+          path: docs/stage-delivery-status.md
+          if-no-files-found: ignore
+
       - name: Upload Stage Delivery Bundle
         if: always()
         uses: actions/upload-artifact@v4

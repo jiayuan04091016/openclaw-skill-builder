@@ -50,6 +50,11 @@ npm run stage:full
 npm run stage:local
 ```
 
+可选环境变量（`stage:local`）：
+- `STAGE_LOCAL_HOST`（默认 `127.0.0.1`）
+- `STAGE_LOCAL_PORT`（默认 `3000`）
+- `STAGE_LOCAL_BOOT_TIMEOUT_SECONDS`（默认 `50`）
+
 ## 2) 检查同步闭环
 
 GET `/api/internal/sync-readiness`  
