@@ -5,6 +5,7 @@ export type ImportReadinessReport = {
   contractValid: boolean;
   integrationSmokeReady: boolean;
   archiveReady: boolean;
+  formatCoverage: Array<"markdown" | "json" | "yaml">;
   readyForIntegration: boolean;
   nextStep: string;
   issues: string[];
@@ -31,9 +32,34 @@ export function buildImportReadinessReport(): ImportReadinessReport {
     contractValid: contractReport.allValid,
     integrationSmokeReady: integrationSmoke.ok,
     archiveReady: integrationSmoke.archiveReady,
+    formatCoverage: contractReport.formatCoverage,
     readyForIntegration: contractReport.allValid && integrationSmoke.ok,
     nextStep,
     issues,
   };
 }
 
+export function buildImportReadinessMarkdown(report: ImportReadinessReport) {
+  const lines = [
+    "# Import Readiness",
+    "",
+    `- contractValid: ${report.contractValid}`,
+    `- integrationSmokeReady: ${report.integrationSmokeReady}`,
+    `- archiveReady: ${report.archiveReady}`,
+    `- formatCoverage: ${report.formatCoverage.join(", ")}`,
+    `- readyForIntegration: ${report.readyForIntegration}`,
+    `- nextStep: ${report.nextStep}`,
+    "",
+    "## Issues",
+  ];
+
+  if (!report.issues.length) {
+    lines.push("- none");
+  } else {
+    for (const issue of report.issues) {
+      lines.push(`- ${issue}`);
+    }
+  }
+
+  return lines.join("\n");
+}

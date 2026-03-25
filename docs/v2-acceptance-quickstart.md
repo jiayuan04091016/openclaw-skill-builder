@@ -73,3 +73,15 @@ POST `/api/internal/media-provider-contract-snapshot`
 预期：
 - HTTP 200（通过）
 - `allValid: true`
+
+## 7) 检查旧 Skill 导入能力
+
+GET `/api/internal/import-provider-contract`  
+GET `/api/internal/import-provider-contract?format=markdown`  
+GET `/api/internal/import-readiness`  
+GET `/api/internal/import-readiness?format=markdown`
+
+预期：
+- `allValid: true`
+- `readyForIntegration: true`
+- `formatCoverage` 包含 `markdown`、`json`、`yaml`

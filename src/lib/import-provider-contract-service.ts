@@ -4,6 +4,9 @@ export type ImportProviderContractReport = {
   parseShapeValid: boolean;
   reviewShapeValid: boolean;
   archiveShapeValid: boolean;
+  jsonFormatValid: boolean;
+  yamlFormatValid: boolean;
+  formatCoverage: Array<"markdown" | "json" | "yaml">;
   allValid: boolean;
   issues: string[];
 };
@@ -31,9 +34,29 @@ description: 帮助整理会议内容并输出纪要
 不要输入敏感信息
 `;
 
+const sampleImportedSkillJson = JSON.stringify({
+  name: "JSON 导入助手",
+  description: "从 JSON 结构提取 skill 字段",
+  audience: "内容整理人员",
+  mainTask: "解析结构化字段",
+  inputFormat: "JSON 文本",
+  outputFormat: "Skill 字段",
+});
+
+const sampleImportedSkillYaml = `
+name: YAML 导入助手
+description: 从 YAML 结构提取 skill 字段
+audience: 内容整理人员
+mainTask: 解析结构化字段
+inputFormat: YAML 文本
+outputFormat: Skill 字段
+`;
+
 export function buildImportProviderContractReport(): ImportProviderContractReport {
   const pipeline = createSkillImportPipelineService();
   const result = pipeline.importFromText(sampleImportedSkill, "sample-skill.md");
+  const jsonResult = pipeline.importFromText(sampleImportedSkillJson, "sample-skill.json");
+  const yamlResult = pipeline.importFromText(sampleImportedSkillYaml, "sample-skill.yaml");
   const issues: string[] = [];
   const parseShapeValid = Boolean(
     result.review?.parsed.title &&
@@ -53,6 +76,27 @@ export function buildImportProviderContractReport(): ImportProviderContractRepor
       typeof result.archive.extractedTitle === "string" &&
       typeof result.archive.extractedInputFormat === "string",
   );
+  const jsonFormatValid = Boolean(
+    jsonResult.review?.parsed.title.trim() &&
+      jsonResult.review?.parsed.description.trim() &&
+      jsonResult.review?.parsed.inputFormat.trim() &&
+      jsonResult.review?.parsed.outputFormat.trim(),
+  );
+  const yamlFormatValid = Boolean(
+    yamlResult.review?.parsed.title.trim() &&
+      yamlResult.review?.parsed.description.trim() &&
+      yamlResult.review?.parsed.inputFormat.trim() &&
+      yamlResult.review?.parsed.outputFormat.trim(),
+  );
+  const formatCoverage: Array<"markdown" | "json" | "yaml"> = ["markdown"];
+
+  if (jsonFormatValid) {
+    formatCoverage.push("json");
+  }
+
+  if (yamlFormatValid) {
+    formatCoverage.push("yaml");
+  }
 
   if (!parseShapeValid) {
     issues.push("旧 Skill 解析结果结构不符合当前业务约定。");
@@ -66,12 +110,48 @@ export function buildImportProviderContractReport(): ImportProviderContractRepor
     issues.push("旧 Skill 导入归档结构不符合当前业务约定。");
   }
 
+  if (!jsonFormatValid) {
+    issues.push("旧 Skill JSON 结构解析未通过。");
+  }
+
+  if (!yamlFormatValid) {
+    issues.push("旧 Skill YAML 结构解析未通过。");
+  }
+
   return {
     parseShapeValid,
     reviewShapeValid,
     archiveShapeValid,
-    allValid: parseShapeValid && reviewShapeValid && archiveShapeValid,
+    jsonFormatValid,
+    yamlFormatValid,
+    formatCoverage,
+    allValid: parseShapeValid && reviewShapeValid && archiveShapeValid && jsonFormatValid && yamlFormatValid,
     issues,
   };
 }
 
+export function buildImportProviderContractMarkdown(report: ImportProviderContractReport) {
+  const lines = [
+    "# Import Provider Contract",
+    "",
+    `- allValid: ${report.allValid}`,
+    `- parseShapeValid: ${report.parseShapeValid}`,
+    `- reviewShapeValid: ${report.reviewShapeValid}`,
+    `- archiveShapeValid: ${report.archiveShapeValid}`,
+    `- jsonFormatValid: ${report.jsonFormatValid}`,
+    `- yamlFormatValid: ${report.yamlFormatValid}`,
+    `- formatCoverage: ${report.formatCoverage.join(", ")}`,
+    "",
+    "## Issues",
+  ];
+
+  if (!report.issues.length) {
+    lines.push("- none");
+  } else {
+    for (const issue of report.issues) {
+      lines.push(`- ${issue}`);
+    }
+  }
+
+  return lines.join("\n");
+}
