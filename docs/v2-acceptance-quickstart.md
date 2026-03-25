@@ -53,3 +53,13 @@ POST `/api/internal/sync-pipeline-snapshot`
 - 生成 `docs/sync-pipeline-snapshot.md`
 - `readyForIntegration: true`（在 mock/真实链路满足时）
 
+## 6) 检查 OCR/视频合约
+
+GET `/api/internal/ocr-provider-contract`  
+GET `/api/internal/video-provider-contract`  
+GET `/api/internal/ocr-provider-contract?format=markdown`  
+GET `/api/internal/video-provider-contract?format=markdown`
+
+预期：
+- HTTP 200（通过）
+- `allValid: true`
