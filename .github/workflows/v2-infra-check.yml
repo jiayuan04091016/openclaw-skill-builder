@@ -75,6 +75,14 @@ jobs:
           path: docs/stage-delivery-status.md
           if-no-files-found: ignore
 
+      - name: Upload Stage Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage-artifacts
+          path: docs/stage-artifacts.md
+          if-no-files-found: ignore
+
       - name: Upload Stage Delivery Bundle
         if: always()
         uses: actions/upload-artifact@v4
