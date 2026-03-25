@@ -28,6 +28,11 @@ const checks = [
     validate: (payload) => Boolean(payload && typeof payload.readyForBetaRelease === "boolean"),
   },
   {
+    key: "stage-delivery-status",
+    path: "/api/internal/stage-delivery-status",
+    validate: (payload) => Boolean(payload && typeof payload.readyForDelivery === "boolean"),
+  },
+  {
     key: "real-integration-readiness",
     path: "/api/internal/real-integration-readiness",
     validate: (payload) => Boolean(payload && typeof payload.readyForRealIntegration === "boolean"),

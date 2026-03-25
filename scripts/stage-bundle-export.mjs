@@ -53,8 +53,10 @@ async function main() {
 
   const outputFileName = `stage-delivery-bundle-${nowStamp()}.zip`;
   const outputPath = path.join(docsDir, outputFileName);
+  const latestRefPath = path.join(docsDir, "stage-delivery-bundle-latest.txt");
   const blob = await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
   await writeFile(outputPath, blob);
+  await writeFile(latestRefPath, `${outputFileName}\n`, "utf8");
 
   console.log(
     JSON.stringify(

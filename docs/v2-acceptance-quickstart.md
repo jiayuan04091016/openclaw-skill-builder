@@ -11,6 +11,8 @@ GET `/api/internal/release-readiness`
 GET `/api/internal/release-readiness?format=markdown`
 GET `/api/internal/stage-report`
 GET `/api/internal/stage-report?format=markdown`
+GET `/api/internal/stage-delivery-status`
+GET `/api/internal/stage-delivery-status?format=markdown`
 GET `/api/internal/real-integration-readiness`
 GET `/api/internal/real-integration-readiness?format=markdown`
 
@@ -32,6 +34,7 @@ GET `/api/internal/real-integration-readiness?format=markdown`
   - `release-readiness.md`
   - `stage-report.md`
   - `stage-snapshot-manifest.md`
+  - `stage-delivery-bundle-latest.txt`
 
 可选：命令行一键验收
 先保证本地服务已启动（默认 `http://127.0.0.1:3000`）。
