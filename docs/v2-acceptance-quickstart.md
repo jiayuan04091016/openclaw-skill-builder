@@ -59,6 +59,8 @@ GET `/api/internal/ocr-provider-contract`
 GET `/api/internal/video-provider-contract`  
 GET `/api/internal/ocr-provider-contract?format=markdown`  
 GET `/api/internal/video-provider-contract?format=markdown`
+GET `/api/internal/media-provider-contract`  
+GET `/api/internal/media-provider-contract?format=markdown`
 
 预期：
 - HTTP 200（通过）
