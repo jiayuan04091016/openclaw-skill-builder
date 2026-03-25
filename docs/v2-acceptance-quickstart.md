@@ -34,6 +34,7 @@ GET `/api/internal/real-integration-readiness?format=markdown`
   - `release-readiness.md`
   - `stage-report.md`
   - `stage-snapshot-manifest.md`
+  - `stage-delivery-status.md`
   - `stage-delivery-bundle-latest.txt`
 
 可选：命令行一键验收
