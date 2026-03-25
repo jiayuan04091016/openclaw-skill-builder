@@ -12,6 +12,9 @@ export type ProviderConfig = {
   videoEnhancementProviderUrl: string;
   videoEnhancementProviderHealthPath: string;
   providerHealthTimeoutMs: number;
+  providerRequestRetryAttempts: number;
+  providerRequestRetryInitialDelayMs: number;
+  providerRequestRetryBackoffFactor: number;
 };
 
 function readNumber(value: string | undefined, fallback: number) {
@@ -32,5 +35,8 @@ export function getProviderConfig(): ProviderConfig {
     videoEnhancementProviderHealthPath:
       readValue(process.env.NEXT_PUBLIC_VIDEO_ENHANCEMENT_PROVIDER_HEALTH_PATH) || "/health",
     providerHealthTimeoutMs: readNumber(process.env.NEXT_PUBLIC_PROVIDER_HEALTH_TIMEOUT_MS, 5000),
+    providerRequestRetryAttempts: readNumber(process.env.NEXT_PUBLIC_PROVIDER_REQUEST_RETRY_ATTEMPTS, 3),
+    providerRequestRetryInitialDelayMs: readNumber(process.env.NEXT_PUBLIC_PROVIDER_REQUEST_RETRY_INITIAL_DELAY_MS, 250),
+    providerRequestRetryBackoffFactor: readNumber(process.env.NEXT_PUBLIC_PROVIDER_REQUEST_RETRY_BACKOFF_FACTOR, 2),
   };
 }

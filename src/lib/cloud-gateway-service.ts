@@ -26,7 +26,6 @@ function buildGatewayHeaders(baseHeaders: HeadersInit | undefined, sessionToken:
 
 export async function fetchCloudGatewayProjects(sessionToken = ""): Promise<CloudProjectRecord[]> {
   const config = getServerProviderConfig();
-  const retryAttempts = 3;
 
   if (!config.cloudStorage.url) {
     return [];
@@ -39,9 +38,9 @@ export async function fetchCloudGatewayProjects(sessionToken = ""): Promise<Clou
         headers: buildGatewayHeaders(buildServerProviderHeaders(config.cloudStorage), sessionToken),
       },
       {
-        attempts: retryAttempts,
-        initialDelayMs: 250,
-        backoffFactor: 2,
+        attempts: config.providerRequestRetryAttempts,
+        initialDelayMs: config.providerRequestRetryInitialDelayMs,
+        backoffFactor: config.providerRequestRetryBackoffFactor,
       },
     ),
   );
@@ -54,7 +53,6 @@ export async function saveCloudGatewayBundle(
   sessionToken = "",
 ): Promise<CloudGatewayBundleResult> {
   const config = getServerProviderConfig();
-  const retryAttempts = 3;
 
   if (!config.cloudStorage.url) {
     return {
@@ -73,9 +71,9 @@ export async function saveCloudGatewayBundle(
         headers: buildGatewayHeaders(buildServerProviderHeaders(config.cloudStorage), sessionToken),
       },
       {
-        attempts: retryAttempts,
-        initialDelayMs: 250,
-        backoffFactor: 2,
+        attempts: config.providerRequestRetryAttempts,
+        initialDelayMs: config.providerRequestRetryInitialDelayMs,
+        backoffFactor: config.providerRequestRetryBackoffFactor,
       },
     ),
     bundle.projectCount,

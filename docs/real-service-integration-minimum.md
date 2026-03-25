@@ -14,6 +14,18 @@
 
 当前默认行为：
 - 未配置远端地址时，全部自动回退到本地占位 provider
+- 所有 provider 请求默认启用自动重试（3 次、250ms 起步指数退避）
+
+## 可选：请求重试调优
+
+如果你的真实服务网络较稳定、希望降低等待时间，或网络抖动较明显、希望更稳，可以调这些变量：
+
+- `PROVIDER_REQUEST_RETRY_ATTEMPTS`
+- `PROVIDER_REQUEST_RETRY_INITIAL_DELAY_MS`
+- `PROVIDER_REQUEST_RETRY_BACKOFF_FACTOR`
+- `NEXT_PUBLIC_PROVIDER_REQUEST_RETRY_ATTEMPTS`
+- `NEXT_PUBLIC_PROVIDER_REQUEST_RETRY_INITIAL_DELAY_MS`
+- `NEXT_PUBLIC_PROVIDER_REQUEST_RETRY_BACKOFF_FACTOR`
 
 ## 后续真正需要提供的最小信息
 

@@ -20,7 +20,6 @@ function buildGatewayHeaders(baseHeaders: HeadersInit | undefined, sessionToken:
 
 export async function runOcrGateway(resource: ResourceItem, sessionToken = ""): Promise<OcrResult> {
   const config = getServerProviderConfig();
-  const retryAttempts = 3;
 
   if (!config.ocr.url) {
     return {
@@ -39,9 +38,9 @@ export async function runOcrGateway(resource: ResourceItem, sessionToken = ""): 
         headers: buildGatewayHeaders(buildServerProviderHeaders(config.ocr), sessionToken),
       },
       {
-        attempts: retryAttempts,
-        initialDelayMs: 250,
-        backoffFactor: 2,
+        attempts: config.providerRequestRetryAttempts,
+        initialDelayMs: config.providerRequestRetryInitialDelayMs,
+        backoffFactor: config.providerRequestRetryBackoffFactor,
       },
     ),
   );
@@ -60,7 +59,6 @@ export async function runVideoGateway(
   sessionToken = "",
 ): Promise<VideoEnhancementResult> {
   const config = getServerProviderConfig();
-  const retryAttempts = 3;
 
   if (!config.video.url) {
     return {
@@ -79,9 +77,9 @@ export async function runVideoGateway(
         headers: buildGatewayHeaders(buildServerProviderHeaders(config.video), sessionToken),
       },
       {
-        attempts: retryAttempts,
-        initialDelayMs: 250,
-        backoffFactor: 2,
+        attempts: config.providerRequestRetryAttempts,
+        initialDelayMs: config.providerRequestRetryInitialDelayMs,
+        backoffFactor: config.providerRequestRetryBackoffFactor,
       },
     ),
   );

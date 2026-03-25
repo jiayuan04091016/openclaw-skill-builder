@@ -24,6 +24,9 @@ export type ServerProviderConfig = {
   ocr: ServerProviderTargetConfig;
   video: ServerProviderTargetConfig;
   providerHealthTimeoutMs: number;
+  providerRequestRetryAttempts: number;
+  providerRequestRetryInitialDelayMs: number;
+  providerRequestRetryBackoffFactor: number;
 };
 
 function buildTargetConfig(prefix: string, publicPrefix: string): ServerProviderTargetConfig {
@@ -46,6 +49,20 @@ export function getServerProviderConfig(): ServerProviderConfig {
     providerHealthTimeoutMs: readNumber(
       process.env.PROVIDER_HEALTH_TIMEOUT_MS ?? process.env.NEXT_PUBLIC_PROVIDER_HEALTH_TIMEOUT_MS,
       5000,
+    ),
+    providerRequestRetryAttempts: readNumber(
+      process.env.PROVIDER_REQUEST_RETRY_ATTEMPTS ?? process.env.NEXT_PUBLIC_PROVIDER_REQUEST_RETRY_ATTEMPTS,
+      3,
+    ),
+    providerRequestRetryInitialDelayMs: readNumber(
+      process.env.PROVIDER_REQUEST_RETRY_INITIAL_DELAY_MS ??
+        process.env.NEXT_PUBLIC_PROVIDER_REQUEST_RETRY_INITIAL_DELAY_MS,
+      250,
+    ),
+    providerRequestRetryBackoffFactor: readNumber(
+      process.env.PROVIDER_REQUEST_RETRY_BACKOFF_FACTOR ??
+        process.env.NEXT_PUBLIC_PROVIDER_REQUEST_RETRY_BACKOFF_FACTOR,
+      2,
     ),
   };
 }
