@@ -42,6 +42,36 @@ async function ensureBaseUrlReachable(url) {
   };
 }
 
+async function readDeliveryStatus(url) {
+  const endpoint = `${url.replace(/\/+$/, "")}/api/internal/stage-delivery-status`;
+
+  try {
+    const response = await fetch(endpoint, { method: "GET", cache: "no-store" });
+    if (!response.ok) {
+      return {
+        ok: false,
+        status: response.status,
+        readyForDelivery: false,
+      };
+    }
+
+    const payload = await response.json();
+    return {
+      ok: true,
+      status: response.status,
+      readyForDelivery: payload?.readyForDelivery === true,
+      latestBundleFileName: typeof payload?.latestBundleFileName === "string" ? payload.latestBundleFileName : null,
+      nextStep: typeof payload?.nextStep === "string" ? payload.nextStep : "",
+    };
+  } catch {
+    return {
+      ok: false,
+      status: 0,
+      readyForDelivery: false,
+    };
+  }
+}
+
 function runNpmStep(step) {
   return new Promise((resolve) => {
     const startedAt = Date.now();
@@ -94,19 +124,23 @@ async function main() {
   }
 
   const failed = results.find((item) => !item.ok) ?? null;
+  const deliveryStatus = failed ? null : await readDeliveryStatus(baseUrl);
+  const deliveryBlocked = Boolean(deliveryStatus && !deliveryStatus.readyForDelivery);
+  const finalFailedStep = failed?.key ?? (deliveryBlocked ? "stage-delivery-status" : null);
   const summary = {
-    ok: !failed,
+    ok: !failed && !deliveryBlocked,
     baseUrl,
     reachableAfterAttempts: reachability.attempts,
     durationMs: Date.now() - startedAt,
     finishedStep: results.at(-1)?.key ?? null,
-    failedStep: failed?.key ?? null,
+    failedStep: finalFailedStep,
+    deliveryStatus,
     steps: results,
   };
 
   console.log(JSON.stringify(summary, null, 2));
 
-  if (failed) {
+  if (failed || deliveryBlocked) {
     process.exit(1);
   }
 }
