@@ -13,6 +13,8 @@ GET `/api/internal/stage-report`
 GET `/api/internal/stage-report?format=markdown`
 GET `/api/internal/stage-delivery-status`
 GET `/api/internal/stage-delivery-status?format=markdown`
+GET `/api/internal/stage-artifacts`
+GET `/api/internal/stage-artifacts?format=markdown`
 GET `/api/internal/real-integration-readiness`
 GET `/api/internal/real-integration-readiness?format=markdown`
 
