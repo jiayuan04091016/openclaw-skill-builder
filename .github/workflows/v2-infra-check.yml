@@ -91,6 +91,16 @@ jobs:
           path: docs/stage-gates.md
           if-no-files-found: ignore
 
+      - name: Upload Stage Full Last Run
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage-full-last-run
+          path: |
+            docs/stage-full-last-run.json
+            docs/stage-full-last-run.md
+          if-no-files-found: ignore
+
       - name: Upload Stage Delivery Bundle
         if: always()
         uses: actions/upload-artifact@v4

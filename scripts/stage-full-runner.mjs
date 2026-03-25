@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 import { spawn } from "node:child_process";
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
 
 const baseUrl = process.env.V2_CHECK_BASE_URL || "http://127.0.0.1:3000";
 const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
@@ -124,6 +126,49 @@ function runNpmStep(step) {
   });
 }
 
+function buildRunMarkdown(summary) {
+  const lines = [
+    "# Stage Full Last Run",
+    "",
+    `- ok: ${summary.ok}`,
+    `- baseUrl: ${summary.baseUrl}`,
+    `- durationMs: ${summary.durationMs}`,
+    `- reachableAfterAttempts: ${summary.reachableAfterAttempts}`,
+    `- finishedStep: ${summary.finishedStep ?? "none"}`,
+    `- failedStep: ${summary.failedStep ?? "none"}`,
+    "",
+    "## Delivery Status",
+    `- readyForDelivery: ${summary.deliveryStatus?.readyForDelivery ?? "unknown"}`,
+    `- latestBundleFileName: ${summary.deliveryStatus?.latestBundleFileName ?? "none"}`,
+    `- nextStep: ${summary.deliveryStatus?.nextStep ?? "unknown"}`,
+    "",
+    "## Artifacts Status",
+    `- missingCount: ${summary.artifactsStatus?.missingCount ?? "unknown"}`,
+    `- latestBundleExists: ${summary.artifactsStatus?.latestBundleExists ?? "unknown"}`,
+    `- nextStep: ${summary.artifactsStatus?.nextStep ?? "unknown"}`,
+    "",
+    "## Steps",
+  ];
+
+  for (const step of summary.steps) {
+    lines.push(`- ${step.key}: ${step.ok ? "PASS" : "FAIL"} (code=${step.code}, durationMs=${step.durationMs})`);
+  }
+
+  return lines.join("\n");
+}
+
+async function persistRunSummary(summary) {
+  const docsDir = path.join(process.cwd(), "docs");
+  const jsonPath = path.join(docsDir, "stage-full-last-run.json");
+  const markdownPath = path.join(docsDir, "stage-full-last-run.md");
+
+  await mkdir(docsDir, { recursive: true });
+  await Promise.all([
+    writeFile(jsonPath, `${JSON.stringify(summary, null, 2)}\n`, "utf8"),
+    writeFile(markdownPath, buildRunMarkdown(summary), "utf8"),
+  ]);
+}
+
 async function main() {
   const startedAt = Date.now();
   const reachability = await ensureBaseUrlReachable(baseUrl);
@@ -168,6 +213,7 @@ async function main() {
   const finalFailedStep =
     failed?.key ?? (deliveryBlocked ? "stage-delivery-status" : artifactsBlocked ? "stage-artifacts" : null);
   const summary = {
+    generatedAt: new Date().toISOString(),
     ok: !failed && !deliveryBlocked && !artifactsBlocked,
     baseUrl,
     reachableAfterAttempts: reachability.attempts,
@@ -179,6 +225,7 @@ async function main() {
     steps: results,
   };
 
+  await persistRunSummary(summary);
   console.log(JSON.stringify(summary, null, 2));
 
   if (failed || deliveryBlocked || artifactsBlocked) {
