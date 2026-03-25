@@ -53,6 +53,19 @@ npm run build
 npm run start
 ```
 
+## V2 infrastructure check
+
+Run once your local app is up on `http://127.0.0.1:3000`:
+
+```bash
+npm run check:v2
+npm run check:v2:md
+```
+
+This verifies key internal readiness endpoints and can generate:
+
+- `docs/v2-acceptance-check.md`
+
 ## Deployment
 
 Recommended:
