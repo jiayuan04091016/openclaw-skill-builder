@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn } from "node:child_process";
-import { appendFile, mkdir, writeFile } from "node:fs/promises";
+import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const baseUrl = process.env.V2_CHECK_BASE_URL || "http://127.0.0.1:3000";
@@ -162,13 +162,48 @@ async function persistRunSummary(summary) {
   const jsonPath = path.join(docsDir, "stage-full-last-run.json");
   const markdownPath = path.join(docsDir, "stage-full-last-run.md");
   const historyPath = path.join(docsDir, "stage-full-run-history.jsonl");
+  const historyMarkdownPath = path.join(docsDir, "stage-run-history.md");
 
   await mkdir(docsDir, { recursive: true });
-  await Promise.all([
-    writeFile(jsonPath, `${JSON.stringify(summary, null, 2)}\n`, "utf8"),
-    writeFile(markdownPath, buildRunMarkdown(summary), "utf8"),
-    appendFile(historyPath, `${JSON.stringify(summary)}\n`, "utf8"),
-  ]);
+  await writeFile(jsonPath, `${JSON.stringify(summary, null, 2)}\n`, "utf8");
+  await writeFile(markdownPath, buildRunMarkdown(summary), "utf8");
+  await appendFile(historyPath, `${JSON.stringify(summary)}\n`, "utf8");
+
+  const historyRaw = await readFile(historyPath, "utf8");
+  const historyItems = historyRaw
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      try {
+        return JSON.parse(line);
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean);
+  const sampled = historyItems.slice(-20).reverse();
+  const successCount = sampled.filter((item) => item.ok === true).length;
+  const successRatePercent = sampled.length ? Math.round((successCount / sampled.length) * 100) : 0;
+  const historyLines = [
+    "# Stage Run History",
+    "",
+    `- generatedAt: ${new Date().toISOString()}`,
+    `- totalRuns: ${historyItems.length}`,
+    `- sampledRuns: ${sampled.length}`,
+    `- successCount: ${successCount}`,
+    `- successRatePercent: ${successRatePercent}%`,
+    "",
+    "## Recent Runs",
+  ];
+
+  for (const item of sampled) {
+    historyLines.push(
+      `- ${item.generatedAt ?? "unknown"}: ${item.ok ? "PASS" : "FAIL"} (failedStep=${item.failedStep ?? "none"}, durationMs=${item.durationMs ?? 0})`,
+    );
+  }
+
+  await writeFile(historyMarkdownPath, historyLines.join("\n"), "utf8");
 }
 
 async function main() {
