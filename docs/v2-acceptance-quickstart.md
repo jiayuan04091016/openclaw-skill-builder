@@ -59,6 +59,7 @@ npm run check:v2:md
 npm run snapshot:stage
 npm run snapshot:bundle
 npm run snapshot:prune
+npm run snapshot:history:rebuild
 npm run stage:full
 npm run stage:local
 ```

@@ -12,6 +12,7 @@
     "snapshot:stage": "node ./scripts/stage-snapshot-trigger.mjs",
     "snapshot:bundle": "node ./scripts/stage-bundle-export.mjs",
     "snapshot:prune": "node ./scripts/stage-bundle-prune.mjs",
+    "snapshot:history:rebuild": "node ./scripts/stage-history-rebuild.mjs",
     "stage:full": "node ./scripts/stage-full-runner.mjs",
     "stage:local": "node ./scripts/stage-full-local-runner.mjs"
   },
