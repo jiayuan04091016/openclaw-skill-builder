@@ -34,6 +34,7 @@ GET `/api/internal/real-integration-readiness?format=markdown`
   - `stage-snapshot-manifest.md`
 
 可选：命令行一键验收
+先保证本地服务已启动（默认 `http://127.0.0.1:3000`）。
 
 ```bash
 npm run check:v2

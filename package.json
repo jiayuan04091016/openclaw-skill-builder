@@ -11,7 +11,7 @@
     "check:v2:md": "node ./scripts/v2-acceptance-check.mjs --markdown",
     "snapshot:stage": "node ./scripts/stage-snapshot-trigger.mjs",
     "snapshot:bundle": "node ./scripts/stage-bundle-export.mjs",
-    "stage:full": "npm run check:v2:md && npm run snapshot:stage && npm run snapshot:bundle"
+    "stage:full": "node ./scripts/stage-full-runner.mjs"
   },
   "dependencies": {
     "jszip": "^3.10.1",
