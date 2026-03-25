@@ -51,12 +51,23 @@ jobs:
       - name: V2 Acceptance Check
         run: npm run check:v2:md
 
+      - name: Stage Snapshot Trigger
+        run: npm run snapshot:stage
+
       - name: Upload Acceptance Markdown
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: v2-acceptance-check
           path: docs/v2-acceptance-check.md
+          if-no-files-found: ignore
+
+      - name: Upload Stage Snapshot Manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage-snapshot-manifest
+          path: docs/stage-snapshot-manifest.md
           if-no-files-found: ignore
 
       - name: Stop App
