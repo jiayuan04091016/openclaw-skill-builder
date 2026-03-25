@@ -1,3 +1,4 @@
+import { writeMediaProviderContractSnapshot } from "@/lib/media-provider-contract-snapshot-service";
 import { writeProviderIntegrationPlanSnapshot } from "@/lib/provider-integration-plan-service";
 import { writeProviderGatewaySnapshot } from "@/lib/provider-gateway-snapshot-service";
 import { writeSyncPipelineSnapshot } from "@/lib/sync-pipeline-snapshot-service";
@@ -15,13 +16,21 @@ export type StageSnapshotResult = {
 };
 
 export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
-  const [readinessSnapshot, providerSnapshot, providerGatewaySnapshot, syncReadinessSnapshot, syncPipelineSnapshot] =
+  const [
+    readinessSnapshot,
+    providerSnapshot,
+    providerGatewaySnapshot,
+    syncReadinessSnapshot,
+    syncPipelineSnapshot,
+    mediaProviderContractSnapshot,
+  ] =
     await Promise.all([
       writeV2CapabilitySnapshot(),
       writeProviderIntegrationPlanSnapshot(),
       writeProviderGatewaySnapshot(),
       writeSyncReadinessSnapshot(),
       writeSyncPipelineSnapshot(),
+      writeMediaProviderContractSnapshot(),
     ]);
 
   return {
@@ -47,12 +56,17 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
         fileName: syncPipelineSnapshot.fileName,
         filePath: syncPipelineSnapshot.filePath,
       },
+      {
+        fileName: mediaProviderContractSnapshot.fileName,
+        filePath: mediaProviderContractSnapshot.filePath,
+      },
     ],
     readyForUnifiedTesting: readinessSnapshot.reportReady,
     readyForRealIntegration:
       providerSnapshot.readyForRealIntegration &&
       providerGatewaySnapshot.readyForIntegration &&
       syncReadinessSnapshot.readyForIntegration &&
+      mediaProviderContractSnapshot.readyForIntegration &&
       syncPipelineSnapshot.readyForIntegration,
   };
 }

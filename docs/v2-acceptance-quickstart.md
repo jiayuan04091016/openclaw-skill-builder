@@ -13,6 +13,7 @@ POST `/api/internal/stage-snapshot`
   - `provider-gateway-readiness.md`
   - `sync-readiness.md`
   - `sync-pipeline-snapshot.md`
+  - `media-provider-contract.md`
 
 ## 2) 检查同步闭环
 
@@ -61,6 +62,7 @@ GET `/api/internal/ocr-provider-contract?format=markdown`
 GET `/api/internal/video-provider-contract?format=markdown`
 GET `/api/internal/media-provider-contract`  
 GET `/api/internal/media-provider-contract?format=markdown`
+POST `/api/internal/media-provider-contract-snapshot`
 
 预期：
 - HTTP 200（通过）
