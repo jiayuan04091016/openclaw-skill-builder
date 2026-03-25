@@ -26,6 +26,11 @@ export type RealIntegrationReadinessItem = {
 
 export type RealIntegrationReadinessReport = {
   generatedAt: string;
+  retryPolicy: {
+    attempts: number;
+    initialDelayMs: number;
+    backoffFactor: number;
+  };
   allConfigured: boolean;
   allReachable: boolean;
   allUsingRemoteTarget: boolean;
@@ -161,6 +166,13 @@ export async function buildRealIntegrationReadinessReport(): Promise<RealIntegra
 
   return {
     generatedAt: new Date().toISOString(),
+    retryPolicy: {
+      attempts: serverConfig.providerRequestRetryAttempts || publicConfig.providerRequestRetryAttempts,
+      initialDelayMs:
+        serverConfig.providerRequestRetryInitialDelayMs || publicConfig.providerRequestRetryInitialDelayMs,
+      backoffFactor:
+        serverConfig.providerRequestRetryBackoffFactor || publicConfig.providerRequestRetryBackoffFactor,
+    },
     allConfigured,
     allReachable,
     allUsingRemoteTarget,
@@ -179,6 +191,7 @@ export function buildRealIntegrationReadinessMarkdown(report: RealIntegrationRea
     `- allReachable: ${report.allReachable}`,
     `- allUsingRemoteTarget: ${report.allUsingRemoteTarget}`,
     `- readyForRealIntegration: ${report.readyForRealIntegration}`,
+    `- retryPolicy: attempts=${report.retryPolicy.attempts}, initialDelayMs=${report.retryPolicy.initialDelayMs}, backoffFactor=${report.retryPolicy.backoffFactor}`,
     `- nextStep: ${report.nextStep}`,
     "",
     "## Items",
