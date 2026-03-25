@@ -37,6 +37,7 @@ GET `/api/internal/real-integration-readiness?format=markdown`
 ```bash
 npm run check:v2
 npm run check:v2:md
+npm run snapshot:stage
 ```
 
 ## 2) 检查同步闭环
