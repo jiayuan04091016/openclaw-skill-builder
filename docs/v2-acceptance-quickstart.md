@@ -3,10 +3,13 @@
 ## 1) 生成阶段快照
 
 POST `/api/internal/stage-snapshot`
+GET `/api/internal/v2-acceptance`
+GET `/api/internal/v2-acceptance?format=markdown`
 
 预期：
 - 返回 `readyForUnifiedTesting`
 - 返回 `readyForRealIntegration`
+- `v2-acceptance` 返回 `scorePercent`、`passedCount/totalCount`、`nextStep`
 - `files` 包含：
   - `v2-capability-readiness.md`
   - `provider-integration-plan.md`
