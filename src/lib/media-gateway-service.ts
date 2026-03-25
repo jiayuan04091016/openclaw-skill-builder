@@ -2,7 +2,7 @@ import {
   normalizeRemoteOcrResult,
   normalizeRemoteVideoEnhancementResult,
 } from "@/lib/media-remote-contracts";
-import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
+import { buildRemoteProviderUrl, requestRemoteJsonWithRetry } from "@/lib/remote-provider-client";
 import { buildServerProviderHeaders, getServerProviderConfig } from "@/lib/server-provider-config";
 import type { OcrResult, ResourceItem, VideoEnhancementResult } from "@/types/app";
 
@@ -20,6 +20,7 @@ function buildGatewayHeaders(baseHeaders: HeadersInit | undefined, sessionToken:
 
 export async function runOcrGateway(resource: ResourceItem, sessionToken = ""): Promise<OcrResult> {
   const config = getServerProviderConfig();
+  const retryAttempts = 3;
 
   if (!config.ocr.url) {
     return {
@@ -30,11 +31,19 @@ export async function runOcrGateway(resource: ResourceItem, sessionToken = ""): 
   }
 
   const result = normalizeRemoteOcrResult(
-    await requestRemoteJson<unknown>(buildRemoteProviderUrl(config.ocr.url, "/extract"), {
-      method: "POST",
-      payload: resource,
-      headers: buildGatewayHeaders(buildServerProviderHeaders(config.ocr), sessionToken),
-    }),
+    await requestRemoteJsonWithRetry<unknown>(
+      buildRemoteProviderUrl(config.ocr.url, "/extract"),
+      {
+        method: "POST",
+        payload: resource,
+        headers: buildGatewayHeaders(buildServerProviderHeaders(config.ocr), sessionToken),
+      },
+      {
+        attempts: retryAttempts,
+        initialDelayMs: 250,
+        backoffFactor: 2,
+      },
+    ),
   );
 
   return (
@@ -51,6 +60,7 @@ export async function runVideoGateway(
   sessionToken = "",
 ): Promise<VideoEnhancementResult> {
   const config = getServerProviderConfig();
+  const retryAttempts = 3;
 
   if (!config.video.url) {
     return {
@@ -61,11 +71,19 @@ export async function runVideoGateway(
   }
 
   const result = normalizeRemoteVideoEnhancementResult(
-    await requestRemoteJson<unknown>(buildRemoteProviderUrl(config.video.url, "/summarize"), {
-      method: "POST",
-      payload: resource,
-      headers: buildGatewayHeaders(buildServerProviderHeaders(config.video), sessionToken),
-    }),
+    await requestRemoteJsonWithRetry<unknown>(
+      buildRemoteProviderUrl(config.video.url, "/summarize"),
+      {
+        method: "POST",
+        payload: resource,
+        headers: buildGatewayHeaders(buildServerProviderHeaders(config.video), sessionToken),
+      },
+      {
+        attempts: retryAttempts,
+        initialDelayMs: 250,
+        backoffFactor: 2,
+      },
+    ),
   );
 
   return (
@@ -76,4 +94,3 @@ export async function runVideoGateway(
     }
   );
 }
-
