@@ -38,6 +38,11 @@ const checks = [
     validate: (payload) => Boolean(payload && typeof payload.existingCount === "number"),
   },
   {
+    key: "stage-gates",
+    path: "/api/internal/stage-gates",
+    validate: (payload) => Boolean(payload && typeof payload.passPercent === "number"),
+  },
+  {
     key: "real-integration-readiness",
     path: "/api/internal/real-integration-readiness",
     validate: (payload) => Boolean(payload && typeof payload.readyForRealIntegration === "boolean"),
