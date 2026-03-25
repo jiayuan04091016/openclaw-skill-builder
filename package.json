@@ -9,7 +9,8 @@
     "lint": "eslint",
     "check:v2": "node ./scripts/v2-acceptance-check.mjs",
     "check:v2:md": "node ./scripts/v2-acceptance-check.mjs --markdown",
-    "snapshot:stage": "node ./scripts/stage-snapshot-trigger.mjs"
+    "snapshot:stage": "node ./scripts/stage-snapshot-trigger.mjs",
+    "snapshot:bundle": "node ./scripts/stage-bundle-export.mjs"
   },
   "dependencies": {
     "jszip": "^3.10.1",
