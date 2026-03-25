@@ -1,3 +1,6 @@
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
+
 import { writeMediaProviderContractSnapshot } from "@/lib/media-provider-contract-snapshot-service";
 import { writeImportReadinessSnapshot } from "@/lib/import-readiness-snapshot-service";
 import { writeRealIntegrationReadinessSnapshot } from "@/lib/real-integration-readiness-service";
@@ -19,6 +22,39 @@ export type StageSnapshotResult = {
   readyForUnifiedTesting: boolean;
   readyForRealIntegration: boolean;
 };
+
+function buildStageSnapshotManifestMarkdown(result: StageSnapshotResult) {
+  const lines = [
+    "# Stage Snapshot Manifest",
+    "",
+    `- generatedAt: ${result.generatedAt}`,
+    `- readyForUnifiedTesting: ${result.readyForUnifiedTesting}`,
+    `- readyForRealIntegration: ${result.readyForRealIntegration}`,
+    "",
+    "## Files",
+  ];
+
+  for (const file of result.files) {
+    lines.push(`- ${file.fileName}: ${file.filePath}`);
+  }
+
+  return lines.join("\n");
+}
+
+async function writeStageSnapshotManifest(result: StageSnapshotResult) {
+  const docsDir = path.join(process.cwd(), "docs");
+  const fileName = "stage-snapshot-manifest.md";
+  const filePath = path.join(docsDir, fileName);
+  const markdown = buildStageSnapshotManifestMarkdown(result);
+
+  await mkdir(docsDir, { recursive: true });
+  await writeFile(filePath, markdown, "utf8");
+
+  return {
+    fileName,
+    filePath,
+  };
+}
 
 export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
   const [
@@ -48,7 +84,7 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
       writeStageReportSnapshot(),
     ]);
 
-  return {
+  const result: StageSnapshotResult = {
     generatedAt: new Date().toISOString(),
     files: [
       {
@@ -112,5 +148,11 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
       realIntegrationReadinessSnapshot.readyForRealIntegration &&
       releaseReadinessSnapshot.readyForBetaRelease &&
       stageReportSnapshot.readyForBetaRelease,
+  };
+
+  const manifest = await writeStageSnapshotManifest(result);
+  return {
+    ...result,
+    files: [...result.files, manifest],
   };
 }
