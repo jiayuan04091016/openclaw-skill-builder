@@ -6,6 +6,7 @@ import { writeProviderIntegrationPlanSnapshot } from "@/lib/provider-integration
 import { writeProviderGatewaySnapshot } from "@/lib/provider-gateway-snapshot-service";
 import { writeSyncPipelineSnapshot } from "@/lib/sync-pipeline-snapshot-service";
 import { writeSyncReadinessSnapshot } from "@/lib/sync-readiness-snapshot-service";
+import { writeStageReportSnapshot } from "@/lib/stage-report-snapshot-service";
 import { writeV2CapabilitySnapshot } from "@/lib/v2-capability-snapshot-service";
 import { writeV2InfraStatusSnapshot } from "@/lib/v2-infra-status-snapshot-service";
 
@@ -31,6 +32,7 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
     realIntegrationReadinessSnapshot,
     v2InfraStatusSnapshot,
     releaseReadinessSnapshot,
+    stageReportSnapshot,
   ] =
     await Promise.all([
       writeV2CapabilitySnapshot(),
@@ -43,6 +45,7 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
       writeRealIntegrationReadinessSnapshot(),
       writeV2InfraStatusSnapshot(),
       writeReleaseReadinessSnapshot(),
+      writeStageReportSnapshot(),
     ]);
 
   return {
@@ -92,6 +95,10 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
         fileName: releaseReadinessSnapshot.fileName,
         filePath: releaseReadinessSnapshot.filePath,
       },
+      {
+        fileName: stageReportSnapshot.fileName,
+        filePath: stageReportSnapshot.filePath,
+      },
     ],
     readyForUnifiedTesting: readinessSnapshot.reportReady && v2InfraStatusSnapshot.readyForUnifiedTesting,
     readyForRealIntegration:
@@ -103,6 +110,7 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
       mediaProviderContractSnapshot.readyForIntegration &&
       syncPipelineSnapshot.readyForIntegration &&
       realIntegrationReadinessSnapshot.readyForRealIntegration &&
-      releaseReadinessSnapshot.readyForBetaRelease,
+      releaseReadinessSnapshot.readyForBetaRelease &&
+      stageReportSnapshot.readyForBetaRelease,
   };
 }

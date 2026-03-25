@@ -30,6 +30,7 @@ GET `/api/internal/real-integration-readiness?format=markdown`
   - `real-integration-readiness.md`
   - `v2-infra-status.md`
   - `release-readiness.md`
+  - `stage-report.md`
 
 可选：命令行一键验收
 
