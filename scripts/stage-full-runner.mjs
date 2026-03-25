@@ -72,6 +72,38 @@ async function readDeliveryStatus(url) {
   }
 }
 
+async function readArtifactsStatus(url) {
+  const endpoint = `${url.replace(/\/+$/, "")}/api/internal/stage-artifacts`;
+
+  try {
+    const response = await fetch(endpoint, { method: "GET", cache: "no-store" });
+    if (!response.ok) {
+      return {
+        ok: false,
+        status: response.status,
+        missingCount: null,
+        latestBundleExists: false,
+      };
+    }
+
+    const payload = await response.json();
+    return {
+      ok: true,
+      status: response.status,
+      missingCount: typeof payload?.missingCount === "number" ? payload.missingCount : null,
+      latestBundleExists: payload?.latestBundleExists === true,
+      nextStep: typeof payload?.nextStep === "string" ? payload.nextStep : "",
+    };
+  } catch {
+    return {
+      ok: false,
+      status: 0,
+      missingCount: null,
+      latestBundleExists: false,
+    };
+  }
+}
+
 function runNpmStep(step) {
   return new Promise((resolve) => {
     const startedAt = Date.now();
@@ -125,22 +157,31 @@ async function main() {
 
   const failed = results.find((item) => !item.ok) ?? null;
   const deliveryStatus = failed ? null : await readDeliveryStatus(baseUrl);
+  const artifactsStatus = failed ? null : await readArtifactsStatus(baseUrl);
   const deliveryBlocked = Boolean(deliveryStatus && !deliveryStatus.readyForDelivery);
-  const finalFailedStep = failed?.key ?? (deliveryBlocked ? "stage-delivery-status" : null);
+  const artifactsBlocked = Boolean(
+    artifactsStatus &&
+      (artifactsStatus.missingCount === null ||
+        artifactsStatus.missingCount > 0 ||
+        artifactsStatus.latestBundleExists !== true),
+  );
+  const finalFailedStep =
+    failed?.key ?? (deliveryBlocked ? "stage-delivery-status" : artifactsBlocked ? "stage-artifacts" : null);
   const summary = {
-    ok: !failed && !deliveryBlocked,
+    ok: !failed && !deliveryBlocked && !artifactsBlocked,
     baseUrl,
     reachableAfterAttempts: reachability.attempts,
     durationMs: Date.now() - startedAt,
     finishedStep: results.at(-1)?.key ?? null,
     failedStep: finalFailedStep,
     deliveryStatus,
+    artifactsStatus,
     steps: results,
   };
 
   console.log(JSON.stringify(summary, null, 2));
 
-  if (failed || deliveryBlocked) {
+  if (failed || deliveryBlocked || artifactsBlocked) {
     process.exit(1);
   }
 }
