@@ -9,3 +9,4 @@ export async function POST(request: Request) {
     message: "本地 mock OCR 已返回识别结果。",
   });
 }
+

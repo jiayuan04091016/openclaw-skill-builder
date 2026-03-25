@@ -29,12 +29,20 @@ GET `/api/internal/sync-readiness?format=markdown`
 ## 3) 检查桥接链路
 
 GET `/api/internal/auth-cloud-bridge-smoke`  
-GET `/api/internal/sync-roundtrip-smoke`
+GET `/api/internal/sync-roundtrip-smoke`  
 GET `/api/internal/auth-cloud-bridge-smoke?format=markdown`  
 GET `/api/internal/sync-roundtrip-smoke?format=markdown`
 
 预期：
 - HTTP 200（通过）
+- `ok: true`
+
+## 4) 检查 mock 隔离
+
+GET `/api/internal/mock-cloud-isolation-smoke`
+
+预期：
+- `isolated: true`
 - `ok: true`
 
 ## 5) 生成同步闭环快照
@@ -45,10 +53,3 @@ POST `/api/internal/sync-pipeline-snapshot`
 - 生成 `docs/sync-pipeline-snapshot.md`
 - `readyForIntegration: true`（在 mock/真实链路满足时）
 
-## 4) 检查 mock 隔离
-
-GET `/api/internal/mock-cloud-isolation-smoke`
-
-预期：
-- `isolated: true`
-- `ok: true`

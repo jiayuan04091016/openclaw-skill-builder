@@ -57,3 +57,4 @@ export function isNormalizedOcrResult(value: unknown): value is OcrResult {
 export function isNormalizedVideoEnhancementResult(value: unknown): value is VideoEnhancementResult {
   return Boolean(normalizeRemoteVideoEnhancementResult(value));
 }
+

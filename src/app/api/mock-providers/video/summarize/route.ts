@@ -9,3 +9,4 @@ export async function POST(request: Request) {
     message: "本地 mock 视频增强已返回摘要结果。",
   });
 }
+
