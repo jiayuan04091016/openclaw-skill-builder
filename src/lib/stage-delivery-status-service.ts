@@ -20,6 +20,7 @@ export type StageDeliveryStatusReport = {
   readyForDelivery: boolean;
   missingCount: number;
   nextStep: string;
+  bundlePointerValid: boolean;
   latestBundleFileName: string | null;
   latestBundleFilePath: string | null;
   files: StageDeliveryFileStatus[];
@@ -77,16 +78,20 @@ export async function buildStageDeliveryStatusReport(): Promise<StageDeliverySta
   );
 
   const latestBundle = await findLatestBundle(docsDir);
+  const bundlePointerValid = latestBundle ? await pathExists(latestBundle.filePath) : false;
   const missingCount = files.filter((file) => !file.exists).length;
-  const readyForDelivery = missingCount === 0 && Boolean(latestBundle);
+  const readyForDelivery = missingCount === 0 && bundlePointerValid;
 
   return {
     generatedAt: new Date().toISOString(),
     readyForDelivery,
     missingCount,
+    bundlePointerValid,
     nextStep: readyForDelivery
       ? "交付包已就绪，可直接发送 stage-delivery-bundle。"
-      : "先运行 npm run stage:full 生成完整报告与交付包。",
+      : bundlePointerValid
+        ? "先运行 npm run stage:full 生成完整报告与交付包。"
+        : "交付包指针无效或文件缺失，请先运行 npm run snapshot:bundle。",
     latestBundleFileName: latestBundle?.fileName ?? null,
     latestBundleFilePath: latestBundle?.filePath ?? null,
     files,
@@ -100,6 +105,7 @@ export function buildStageDeliveryStatusMarkdown(report: StageDeliveryStatusRepo
     `- generatedAt: ${report.generatedAt}`,
     `- readyForDelivery: ${report.readyForDelivery}`,
     `- missingCount: ${report.missingCount}`,
+    `- bundlePointerValid: ${report.bundlePointerValid}`,
     `- latestBundleFileName: ${report.latestBundleFileName ?? "none"}`,
     `- nextStep: ${report.nextStep}`,
     "",
