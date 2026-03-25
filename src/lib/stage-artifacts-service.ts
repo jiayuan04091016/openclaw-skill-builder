@@ -16,6 +16,7 @@ type StageArtifactKey =
   | "stage-report"
   | "stage-snapshot-manifest"
   | "stage-delivery-status"
+  | "stage-gates"
   | "v2-acceptance-check"
   | "stage-delivery-bundle-latest";
 
@@ -55,6 +56,7 @@ const REQUIRED_ARTIFACTS: Array<{ key: StageArtifactKey; fileName: string }> = [
   { key: "stage-report", fileName: "stage-report.md" },
   { key: "stage-snapshot-manifest", fileName: "stage-snapshot-manifest.md" },
   { key: "stage-delivery-status", fileName: "stage-delivery-status.md" },
+  { key: "stage-gates", fileName: "stage-gates.md" },
   { key: "v2-acceptance-check", fileName: "v2-acceptance-check.md" },
   { key: "stage-delivery-bundle-latest", fileName: "stage-delivery-bundle-latest.txt" },
 ];
