@@ -11,7 +11,7 @@ function decodeText(buffer: ArrayBuffer) {
 }
 
 function isTextCandidate(entry: string) {
-  return /\.(md|txt)$/i.test(entry);
+  return /\.(md|txt|json)$/i.test(entry);
 }
 
 function scoreSkillTextCandidate(path: string, content: string) {
@@ -25,8 +25,26 @@ function scoreSkillTextCandidate(path: string, content: string) {
   if (/(^|\/)readme\.md$/.test(normalizedPath)) {
     score += 80;
   }
+  if (/(^|\/)skill\.json$/.test(normalizedPath)) {
+    score += 110;
+  }
+  if (/(^|\/)package\.json$/.test(normalizedPath)) {
+    score -= 120;
+  }
   if (normalizedPath.endsWith(".md")) {
     score += 25;
+  }
+  if (normalizedPath.endsWith(".json")) {
+    score += 20;
+    if (normalizedContent.includes("\"name\"") || normalizedContent.includes("\"title\"")) {
+      score += 16;
+    }
+    if (normalizedContent.includes("\"description\"")) {
+      score += 16;
+    }
+    if (normalizedContent.includes("\"input\"") || normalizedContent.includes("\"output\"")) {
+      score += 12;
+    }
   }
   if (/^---\n[\s\S]*?\n---/.test(content)) {
     score += 20;
@@ -96,7 +114,7 @@ export async function loadImportedSkillAsset(file: File): Promise<ImportedSkillA
     };
   }
 
-  if (file.type.startsWith("text/") || /\.(md|txt)$/i.test(file.name)) {
+  if (file.type.startsWith("text/") || file.type === "application/json" || /\.(md|txt|json)$/i.test(file.name)) {
     return {
       sourceType: /\.md$/i.test(file.name) ? "markdown" : "text",
       sourceName: file.name,
@@ -115,4 +133,3 @@ export async function loadImportedSkillText(file: File) {
   const asset = await loadImportedSkillAsset(file);
   return asset.importedSkillText;
 }
-

@@ -7,6 +7,8 @@ const sectionAliases = {
   warnings: ["注意事项", "风险提示", "Warnings", "Notes", "Cautions"],
 } as const;
 
+type JsonSkillObject = Record<string, unknown>;
+
 export type ParsedSkillSections = {
   frontmatterName: string;
   frontmatterDescription: string;
@@ -22,6 +24,158 @@ export type ParsedSkillSections = {
 
 export function normalizeImportText(value: string) {
   return value.replace(/\r\n/g, "\n").trim();
+}
+
+function asObject(value: unknown): JsonSkillObject | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  return value as JsonSkillObject;
+}
+
+function normalizeJsonValue(value: unknown): string {
+  if (typeof value === "string") {
+    return value.trim();
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => normalizeJsonValue(item))
+      .filter(Boolean)
+      .join("；")
+      .trim();
+  }
+
+  const obj = asObject(value);
+  if (obj) {
+    return Object.values(obj)
+      .map((item) => normalizeJsonValue(item))
+      .filter(Boolean)
+      .join("；")
+      .trim();
+  }
+
+  return "";
+}
+
+function readJsonPathValue(source: JsonSkillObject, paths: string[]) {
+  for (const path of paths) {
+    const segments = path.split(".");
+    let current: unknown = source;
+
+    for (const segment of segments) {
+      const obj = asObject(current);
+      if (!obj || !(segment in obj)) {
+        current = undefined;
+        break;
+      }
+      current = obj[segment];
+    }
+
+    const value = normalizeJsonValue(current);
+    if (value) {
+      return value;
+    }
+  }
+
+  return "";
+}
+
+function parseJsonSkillContent(content: string): ParsedSkillSections | null {
+  const trimmed = content.trim();
+  if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(trimmed) as unknown;
+    const root = Array.isArray(parsed) ? asObject(parsed[0]) : asObject(parsed);
+    if (!root) {
+      return null;
+    }
+
+    const frontmatterName = readJsonPathValue(root, [
+      "name",
+      "title",
+      "skillName",
+      "skill.name",
+      "metadata.name",
+      "meta.name",
+    ]);
+    const frontmatterDescription = readJsonPathValue(root, [
+      "description",
+      "summary",
+      "purpose",
+      "overview",
+      "skill.description",
+      "metadata.description",
+      "meta.description",
+    ]);
+    const audience = readJsonPathValue(root, [
+      "audience",
+      "targetAudience",
+      "targetUsers",
+      "target_users",
+      "skill.audience",
+      "spec.audience",
+    ]);
+    const mainTask = readJsonPathValue(root, [
+      "mainTask",
+      "task",
+      "tasks",
+      "useCases",
+      "use_cases",
+      "scenario",
+      "skill.mainTask",
+      "spec.mainTask",
+    ]);
+    const inputFormat = readJsonPathValue(root, [
+      "inputFormat",
+      "input",
+      "inputs",
+      "input_format",
+      "spec.input",
+      "spec.inputFormat",
+    ]);
+    const outputFormat = readJsonPathValue(root, [
+      "outputFormat",
+      "output",
+      "outputs",
+      "output_format",
+      "spec.output",
+      "spec.outputFormat",
+    ]);
+    const warnings = readJsonPathValue(root, [
+      "warnings",
+      "notes",
+      "cautions",
+      "risk",
+      "spec.warnings",
+      "spec.notes",
+    ]);
+
+    const summaryParts = [frontmatterDescription, mainTask, inputFormat, outputFormat].filter(Boolean);
+
+    return {
+      frontmatterName,
+      frontmatterDescription,
+      headingTitle: frontmatterName,
+      description: frontmatterDescription,
+      audience,
+      mainTask,
+      inputFormat,
+      outputFormat,
+      warnings,
+      summary: summaryParts.join(" ").slice(0, 180),
+    };
+  } catch {
+    return null;
+  }
 }
 
 function extractFrontmatter(content: string) {
@@ -106,6 +260,12 @@ export function buildFallbackSummary(content: string) {
 
 export function parseSkillImportSections(content: string): ParsedSkillSections {
   const normalized = normalizeImportText(content);
+  const jsonParsed = parseJsonSkillContent(normalized);
+
+  if (jsonParsed) {
+    return jsonParsed;
+  }
+
   const description = extractFirstAvailableSection(normalized, sectionAliases.description).value;
   const audience = extractFirstAvailableSection(normalized, sectionAliases.audience).value;
   const mainTask = extractFirstAvailableSection(normalized, sectionAliases.mainTask).value;
@@ -126,4 +286,3 @@ export function parseSkillImportSections(content: string): ParsedSkillSections {
     summary: buildFallbackSummary(normalized),
   };
 }
-
