@@ -52,6 +52,65 @@ export function restoreProjectsFromCloud(bundle: CloudSyncBundle | CloudProjectR
   return normalizeProjects(bundle.projects);
 }
 
+function toTimestamp(value: string) {
+  const parsed = new Date(value).getTime();
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function calcProjectCompletenessScore(project: ProjectRecord) {
+  let score = 0;
+
+  if (project.title.trim()) score += 2;
+  if (project.goal.trim()) score += 2;
+  if (project.description.trim()) score += 2;
+  if (project.mainTask.trim()) score += 2;
+  if (project.inputFormat.trim()) score += 1;
+  if (project.outputFormat.trim()) score += 1;
+  if (project.warnings.trim()) score += 1;
+  if (project.importedSkillText.trim()) score += 2;
+  if (project.draft) score += 2;
+  score += project.resources.length * 2;
+
+  return score;
+}
+
+function pickPreferredProject(localProject: ProjectRecord, cloudProject: ProjectRecord) {
+  const localUpdated = toTimestamp(localProject.updatedAt);
+  const cloudUpdated = toTimestamp(cloudProject.updatedAt);
+
+  if (cloudUpdated > localUpdated) {
+    return cloudProject;
+  }
+
+  if (cloudUpdated < localUpdated) {
+    return localProject;
+  }
+
+  const localCreated = toTimestamp(localProject.createdAt);
+  const cloudCreated = toTimestamp(cloudProject.createdAt);
+
+  if (cloudCreated > localCreated) {
+    return cloudProject;
+  }
+
+  if (cloudCreated < localCreated) {
+    return localProject;
+  }
+
+  const localScore = calcProjectCompletenessScore(localProject);
+  const cloudScore = calcProjectCompletenessScore(cloudProject);
+
+  if (cloudScore > localScore) {
+    return cloudProject;
+  }
+
+  if (cloudScore < localScore) {
+    return localProject;
+  }
+
+  return localProject;
+}
+
 export function mergeProjectsForCloudSync(localProjects: ProjectRecord[], cloudProjects: ProjectRecord[]) {
   const all = [...localProjects];
 
@@ -65,9 +124,20 @@ export function mergeProjectsForCloudSync(localProjects: ProjectRecord[], cloudP
 
     const existing = all[existingIndex];
 
-    all[existingIndex] =
-      new Date(cloudProject.updatedAt).getTime() >= new Date(existing.updatedAt).getTime() ? cloudProject : existing;
+    all[existingIndex] = pickPreferredProject(existing, cloudProject);
   }
 
-  return normalizeProjects(all).sort((a, b) => +new Date(b.updatedAt) - +new Date(a.updatedAt));
+  return normalizeProjects(all).sort((a, b) => {
+    const updatedDiff = toTimestamp(b.updatedAt) - toTimestamp(a.updatedAt);
+    if (updatedDiff !== 0) {
+      return updatedDiff;
+    }
+
+    const createdDiff = toTimestamp(b.createdAt) - toTimestamp(a.createdAt);
+    if (createdDiff !== 0) {
+      return createdDiff;
+    }
+
+    return a.id.localeCompare(b.id);
+  });
 }

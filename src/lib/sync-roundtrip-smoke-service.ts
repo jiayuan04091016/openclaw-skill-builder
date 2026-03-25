@@ -10,6 +10,7 @@ export type SyncRoundtripSmokeReport = {
   bundleOk: boolean;
   fetchedProjectCount: number;
   mergedProjectCount: number;
+  tieBreakerStable: boolean;
   signOutOk: boolean;
   ok: boolean;
 };
@@ -25,6 +26,23 @@ export async function runSyncRoundtripSmoke(): Promise<SyncRoundtripSmokeReport>
   const remoteProjects = await fetchCloudGatewayProjects(sessionToken);
   const restoredProjects = restoreProjectsFromCloud(remoteProjects);
   const mergedProjects = mergeProjectsForCloudSync([localA], restoredProjects);
+  const tieStamp = new Date().toISOString();
+  const localTie = {
+    ...localA,
+    id: "sync-tie-project",
+    updatedAt: tieStamp,
+    createdAt: tieStamp,
+    description: "local richer project",
+    resources: [...localA.resources, projectService.createResource("text", "local-note", "content")],
+  };
+  const cloudTie = {
+    ...localTie,
+    description: "",
+    resources: [],
+  };
+  const tieMerged = mergeProjectsForCloudSync([localTie], [cloudTie]);
+  const tieWinner = tieMerged.find((project) => project.id === localTie.id);
+  const tieBreakerStable = Boolean(tieWinner && tieWinner.description === "local richer project");
   const signOut = await runAuthGatewaySignOut(sessionToken);
 
   const ok =
@@ -32,6 +50,7 @@ export async function runSyncRoundtripSmoke(): Promise<SyncRoundtripSmokeReport>
     pushResult.projectCount >= 1 &&
     restoredProjects.length >= 1 &&
     mergedProjects.length >= 1 &&
+    tieBreakerStable &&
     signOut.ok;
 
   return {
@@ -41,8 +60,8 @@ export async function runSyncRoundtripSmoke(): Promise<SyncRoundtripSmokeReport>
     bundleOk: pushResult.ok,
     fetchedProjectCount: restoredProjects.length,
     mergedProjectCount: mergedProjects.length,
+    tieBreakerStable,
     signOutOk: signOut.ok,
     ok,
   };
 }
-
