@@ -46,6 +46,7 @@ GET `/api/internal/real-integration-readiness?format=markdown`
   - `stage-full-last-run.json`
   - `stage-full-last-run.md`
   - `stage-full-run-history.jsonl`
+  - `stage-run-history.md`
   - `stage-delivery-bundle-latest.txt`
 
 可选：命令行一键验收

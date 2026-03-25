@@ -20,6 +20,7 @@ type StageArtifactKey =
   | "stage-full-last-run-json"
   | "stage-full-last-run-markdown"
   | "stage-full-run-history"
+  | "stage-run-history-markdown"
   | "v2-acceptance-check"
   | "stage-delivery-bundle-latest";
 
@@ -63,6 +64,7 @@ const REQUIRED_ARTIFACTS: Array<{ key: StageArtifactKey; fileName: string }> = [
   { key: "stage-full-last-run-json", fileName: "stage-full-last-run.json" },
   { key: "stage-full-last-run-markdown", fileName: "stage-full-last-run.md" },
   { key: "stage-full-run-history", fileName: "stage-full-run-history.jsonl" },
+  { key: "stage-run-history-markdown", fileName: "stage-run-history.md" },
   { key: "v2-acceptance-check", fileName: "v2-acceptance-check.md" },
   { key: "stage-delivery-bundle-latest", fileName: "stage-delivery-bundle-latest.txt" },
 ];

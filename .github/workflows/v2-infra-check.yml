@@ -101,6 +101,16 @@ jobs:
             docs/stage-full-last-run.md
           if-no-files-found: ignore
 
+      - name: Upload Stage Run History
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage-run-history
+          path: |
+            docs/stage-full-run-history.jsonl
+            docs/stage-run-history.md
+          if-no-files-found: ignore
+
       - name: Upload Stage Delivery Bundle
         if: always()
         uses: actions/upload-artifact@v4

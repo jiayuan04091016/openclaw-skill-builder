@@ -13,6 +13,7 @@ import { writeStageArtifactsSnapshot } from "@/lib/stage-artifacts-snapshot-serv
 import { writeStageDeliveryStatusSnapshot } from "@/lib/stage-delivery-status-snapshot-service";
 import { writeStageGatesSnapshot } from "@/lib/stage-gates-snapshot-service";
 import { writeStageReportSnapshot } from "@/lib/stage-report-snapshot-service";
+import { writeStageRunHistorySnapshot } from "@/lib/stage-run-history-snapshot-service";
 import { writeV2CapabilitySnapshot } from "@/lib/v2-capability-snapshot-service";
 import { writeV2InfraStatusSnapshot } from "@/lib/v2-infra-status-snapshot-service";
 
@@ -75,6 +76,7 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
     stageDeliveryStatusSnapshot,
     stageArtifactsSnapshot,
     stageGatesSnapshot,
+    stageRunHistorySnapshot,
   ] =
     await Promise.all([
       writeV2CapabilitySnapshot(),
@@ -91,6 +93,7 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
       writeStageDeliveryStatusSnapshot(),
       writeStageArtifactsSnapshot(),
       writeStageGatesSnapshot(),
+      writeStageRunHistorySnapshot(),
     ]);
 
   const result: StageSnapshotResult = {
@@ -155,6 +158,10 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
       {
         fileName: stageGatesSnapshot.fileName,
         filePath: stageGatesSnapshot.filePath,
+      },
+      {
+        fileName: stageRunHistorySnapshot.fileName,
+        filePath: stageRunHistorySnapshot.filePath,
       },
     ],
     readyForUnifiedTesting: readinessSnapshot.reportReady && v2InfraStatusSnapshot.readyForUnifiedTesting,
