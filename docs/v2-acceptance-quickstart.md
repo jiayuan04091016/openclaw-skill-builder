@@ -19,6 +19,8 @@ GET `/api/internal/real-integration-readiness?format=markdown`
   - `sync-readiness.md`
   - `sync-pipeline-snapshot.md`
   - `media-provider-contract.md`
+  - `import-readiness.md`
+  - `import-provider-contract.md`
   - `real-integration-readiness.md`
 
 ## 2) 检查同步闭环

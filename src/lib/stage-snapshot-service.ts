@@ -1,4 +1,5 @@
 import { writeMediaProviderContractSnapshot } from "@/lib/media-provider-contract-snapshot-service";
+import { writeImportReadinessSnapshot } from "@/lib/import-readiness-snapshot-service";
 import { writeRealIntegrationReadinessSnapshot } from "@/lib/real-integration-readiness-service";
 import { writeProviderIntegrationPlanSnapshot } from "@/lib/provider-integration-plan-service";
 import { writeProviderGatewaySnapshot } from "@/lib/provider-gateway-snapshot-service";
@@ -24,6 +25,7 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
     syncReadinessSnapshot,
     syncPipelineSnapshot,
     mediaProviderContractSnapshot,
+    importSnapshot,
     realIntegrationReadinessSnapshot,
   ] =
     await Promise.all([
@@ -33,6 +35,7 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
       writeSyncReadinessSnapshot(),
       writeSyncPipelineSnapshot(),
       writeMediaProviderContractSnapshot(),
+      writeImportReadinessSnapshot(),
       writeRealIntegrationReadinessSnapshot(),
     ]);
 
@@ -64,6 +67,14 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
         filePath: mediaProviderContractSnapshot.filePath,
       },
       {
+        fileName: importSnapshot.readiness.fileName,
+        filePath: importSnapshot.readiness.filePath,
+      },
+      {
+        fileName: importSnapshot.contract.fileName,
+        filePath: importSnapshot.contract.filePath,
+      },
+      {
         fileName: realIntegrationReadinessSnapshot.fileName,
         filePath: realIntegrationReadinessSnapshot.filePath,
       },
@@ -73,6 +84,8 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
       providerSnapshot.readyForRealIntegration &&
       providerGatewaySnapshot.readyForIntegration &&
       syncReadinessSnapshot.readyForIntegration &&
+      importSnapshot.readiness.readyForIntegration &&
+      importSnapshot.contract.valid &&
       mediaProviderContractSnapshot.readyForIntegration &&
       syncPipelineSnapshot.readyForIntegration &&
       realIntegrationReadinessSnapshot.readyForRealIntegration,
