@@ -40,6 +40,7 @@ npm run check:v2
 npm run check:v2:md
 npm run snapshot:stage
 npm run snapshot:bundle
+npm run stage:full
 ```
 
 ## 2) 检查同步闭环

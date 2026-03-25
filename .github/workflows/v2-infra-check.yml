@@ -48,14 +48,8 @@ jobs:
           tail -n 120 .next/dev.log || true
           exit 1
 
-      - name: V2 Acceptance Check
-        run: npm run check:v2:md
-
-      - name: Stage Snapshot Trigger
-        run: npm run snapshot:stage
-
-      - name: Stage Bundle Export
-        run: npm run snapshot:bundle
+      - name: Full Stage Pipeline
+        run: npm run stage:full
 
       - name: Upload Acceptance Markdown
         if: always()
