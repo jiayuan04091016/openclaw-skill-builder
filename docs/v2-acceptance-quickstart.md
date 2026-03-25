@@ -9,6 +9,8 @@ GET `/api/internal/v2-infra-status`
 GET `/api/internal/v2-infra-status?format=markdown`
 GET `/api/internal/release-readiness`
 GET `/api/internal/release-readiness?format=markdown`
+GET `/api/internal/stage-report`
+GET `/api/internal/stage-report?format=markdown`
 GET `/api/internal/real-integration-readiness`
 GET `/api/internal/real-integration-readiness?format=markdown`
 
