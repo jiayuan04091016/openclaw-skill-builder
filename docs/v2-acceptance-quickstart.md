@@ -47,6 +47,7 @@ npm run snapshot:stage
 npm run snapshot:bundle
 npm run snapshot:prune
 npm run stage:full
+npm run stage:local
 ```
 
 ## 2) 检查同步闭环
