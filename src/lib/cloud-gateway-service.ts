@@ -2,7 +2,7 @@ import {
   normalizeRemoteCloudProjectList,
   normalizeRemoteCloudStorageResult,
 } from "@/lib/cloud-remote-contracts";
-import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
+import { buildRemoteProviderUrl, requestRemoteJsonWithRetry } from "@/lib/remote-provider-client";
 import { buildServerProviderHeaders, getServerProviderConfig } from "@/lib/server-provider-config";
 import type { CloudProjectRecord, CloudSyncBundle } from "@/types/app";
 
@@ -26,15 +26,24 @@ function buildGatewayHeaders(baseHeaders: HeadersInit | undefined, sessionToken:
 
 export async function fetchCloudGatewayProjects(sessionToken = ""): Promise<CloudProjectRecord[]> {
   const config = getServerProviderConfig();
+  const retryAttempts = 3;
 
   if (!config.cloudStorage.url) {
     return [];
   }
 
   const projects = normalizeRemoteCloudProjectList(
-    await requestRemoteJson<unknown>(buildRemoteProviderUrl(config.cloudStorage.url, "/projects"), {
-      headers: buildGatewayHeaders(buildServerProviderHeaders(config.cloudStorage), sessionToken),
-    }),
+    await requestRemoteJsonWithRetry<unknown>(
+      buildRemoteProviderUrl(config.cloudStorage.url, "/projects"),
+      {
+        headers: buildGatewayHeaders(buildServerProviderHeaders(config.cloudStorage), sessionToken),
+      },
+      {
+        attempts: retryAttempts,
+        initialDelayMs: 250,
+        backoffFactor: 2,
+      },
+    ),
   );
 
   return projects ?? [];
@@ -45,6 +54,7 @@ export async function saveCloudGatewayBundle(
   sessionToken = "",
 ): Promise<CloudGatewayBundleResult> {
   const config = getServerProviderConfig();
+  const retryAttempts = 3;
 
   if (!config.cloudStorage.url) {
     return {
@@ -55,11 +65,19 @@ export async function saveCloudGatewayBundle(
   }
 
   const result = normalizeRemoteCloudStorageResult(
-    await requestRemoteJson<unknown>(buildRemoteProviderUrl(config.cloudStorage.url, "/bundle"), {
-      method: "POST",
-      payload: bundle,
-      headers: buildGatewayHeaders(buildServerProviderHeaders(config.cloudStorage), sessionToken),
-    }),
+    await requestRemoteJsonWithRetry<unknown>(
+      buildRemoteProviderUrl(config.cloudStorage.url, "/bundle"),
+      {
+        method: "POST",
+        payload: bundle,
+        headers: buildGatewayHeaders(buildServerProviderHeaders(config.cloudStorage), sessionToken),
+      },
+      {
+        attempts: retryAttempts,
+        initialDelayMs: 250,
+        backoffFactor: 2,
+      },
+    ),
     bundle.projectCount,
   );
 
@@ -71,4 +89,3 @@ export async function saveCloudGatewayBundle(
     }
   );
 }
-

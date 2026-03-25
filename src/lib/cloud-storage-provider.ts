@@ -4,7 +4,7 @@ import {
 } from "@/lib/cloud-remote-contracts";
 import { getProviderConfig } from "@/lib/provider-config";
 import { getClientGatewayUrl } from "@/lib/provider-gateway-client";
-import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
+import { buildRemoteProviderUrl, requestRemoteJsonWithRetry } from "@/lib/remote-provider-client";
 import { getRuntimeCapabilities } from "@/lib/runtime-capabilities";
 import type { CloudProjectRecord, CloudSyncBundle } from "@/types/app";
 
@@ -37,21 +37,35 @@ function createLocalCloudStorageProvider(): CloudStorageProvider {
 }
 
 function createRemoteCloudStorageProvider(cloudStorageProviderUrl: string): CloudStorageProvider {
+  const retryAttempts = 3;
+
   return {
     isConfigured: () => true,
     fetchProjects: async () => {
       const projects = normalizeRemoteCloudProjectList(
-        await requestRemoteJson<unknown>(buildRemoteProviderUrl(cloudStorageProviderUrl, "/projects")),
+        await requestRemoteJsonWithRetry<unknown>(buildRemoteProviderUrl(cloudStorageProviderUrl, "/projects"), {}, {
+          attempts: retryAttempts,
+          initialDelayMs: 250,
+          backoffFactor: 2,
+        }),
       );
 
       return projects ?? [];
     },
     saveBundle: async (bundle) => {
       const result = normalizeRemoteCloudStorageResult(
-        await requestRemoteJson<unknown>(buildRemoteProviderUrl(cloudStorageProviderUrl, "/bundle"), {
-          method: "POST",
-          payload: bundle,
-        }),
+        await requestRemoteJsonWithRetry<unknown>(
+          buildRemoteProviderUrl(cloudStorageProviderUrl, "/bundle"),
+          {
+            method: "POST",
+            payload: bundle,
+          },
+          {
+            attempts: retryAttempts,
+            initialDelayMs: 250,
+            backoffFactor: 2,
+          },
+        ),
         bundle.projectCount,
       );
 
