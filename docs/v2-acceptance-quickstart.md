@@ -25,6 +25,13 @@ GET `/api/internal/real-integration-readiness?format=markdown`
   - `import-provider-contract.md`
   - `real-integration-readiness.md`
 
+可选：命令行一键验收
+
+```bash
+npm run check:v2
+npm run check:v2:md
+```
+
 ## 2) 检查同步闭环
 
 GET `/api/internal/sync-readiness`  
