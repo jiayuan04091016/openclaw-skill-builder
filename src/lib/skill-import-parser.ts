@@ -178,6 +178,115 @@ function parseJsonSkillContent(content: string): ParsedSkillSections | null {
   }
 }
 
+function parseSimpleYamlMap(content: string) {
+  const lines = content.split("\n");
+  const map = new Map<string, string>();
+  let currentKey = "";
+  let currentValue: string[] = [];
+
+  function flush() {
+    if (!currentKey) {
+      return;
+    }
+    const value = currentValue.join("\n").trim();
+    if (value) {
+      map.set(currentKey.toLowerCase(), value);
+    }
+    currentKey = "";
+    currentValue = [];
+  }
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) {
+      continue;
+    }
+
+    const pair = line.match(/^([A-Za-z_][A-Za-z0-9_.-]*)\s*:\s*(.*)$/);
+    if (pair) {
+      flush();
+      currentKey = pair[1].trim();
+      const value = pair[2].trim();
+      if (value === "|" || value === ">") {
+        continue;
+      }
+      if (value) {
+        currentValue.push(value.replace(/^['"]|['"]$/g, ""));
+      }
+      continue;
+    }
+
+    if (currentKey && (/^\s+/.test(line) || trimmed.startsWith("- "))) {
+      currentValue.push(trimmed.replace(/^- /, "").trim());
+    }
+  }
+
+  flush();
+  return map;
+}
+
+function readYamlValue(map: Map<string, string>, aliases: string[]) {
+  for (const alias of aliases) {
+    const value = map.get(alias.toLowerCase())?.trim();
+    if (value) {
+      return value;
+    }
+  }
+  return "";
+}
+
+function parseYamlSkillContent(content: string): ParsedSkillSections | null {
+  if (!/^[A-Za-z_][A-Za-z0-9_.-]*\s*:/m.test(content)) {
+    return null;
+  }
+
+  const map = parseSimpleYamlMap(content);
+  if (map.size === 0) {
+    return null;
+  }
+
+  const frontmatterName = readYamlValue(map, ["name", "title", "skillName", "skill.name", "metadata.name"]);
+  const frontmatterDescription = readYamlValue(map, [
+    "description",
+    "summary",
+    "purpose",
+    "overview",
+    "skill.description",
+    "metadata.description",
+  ]);
+  const audience = readYamlValue(map, ["audience", "targetAudience", "target_users", "targetUsers"]);
+  const mainTask = readYamlValue(map, ["mainTask", "task", "tasks", "useCases", "scenario"]);
+  const inputFormat = readYamlValue(map, ["inputFormat", "input", "inputs", "input_format"]);
+  const outputFormat = readYamlValue(map, ["outputFormat", "output", "outputs", "output_format"]);
+  const warnings = readYamlValue(map, ["warnings", "notes", "cautions", "risk"]);
+  const summary = [frontmatterDescription, mainTask, inputFormat, outputFormat].filter(Boolean).join(" ").slice(0, 180);
+
+  if (
+    !frontmatterName &&
+    !frontmatterDescription &&
+    !audience &&
+    !mainTask &&
+    !inputFormat &&
+    !outputFormat &&
+    !warnings
+  ) {
+    return null;
+  }
+
+  return {
+    frontmatterName,
+    frontmatterDescription,
+    headingTitle: frontmatterName,
+    description: frontmatterDescription,
+    audience,
+    mainTask,
+    inputFormat,
+    outputFormat,
+    warnings,
+    summary,
+  };
+}
+
 function extractFrontmatter(content: string) {
   const match = content.match(/^---\n([\s\S]*?)\n---(?:\n|$)/);
   return match?.[1] ?? "";
@@ -264,6 +373,11 @@ export function parseSkillImportSections(content: string): ParsedSkillSections {
 
   if (jsonParsed) {
     return jsonParsed;
+  }
+
+  const yamlParsed = parseYamlSkillContent(normalized);
+  if (yamlParsed) {
+    return yamlParsed;
   }
 
   const description = extractFirstAvailableSection(normalized, sectionAliases.description).value;

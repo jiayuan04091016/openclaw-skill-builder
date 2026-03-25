@@ -11,7 +11,7 @@ function decodeText(buffer: ArrayBuffer) {
 }
 
 function isTextCandidate(entry: string) {
-  return /\.(md|txt|json)$/i.test(entry);
+  return /\.(md|txt|json|ya?ml)$/i.test(entry);
 }
 
 function scoreSkillTextCandidate(path: string, content: string) {
@@ -43,6 +43,18 @@ function scoreSkillTextCandidate(path: string, content: string) {
       score += 16;
     }
     if (normalizedContent.includes("\"input\"") || normalizedContent.includes("\"output\"")) {
+      score += 12;
+    }
+  }
+  if (normalizedPath.endsWith(".yaml") || normalizedPath.endsWith(".yml")) {
+    score += 20;
+    if (normalizedContent.includes("name:") || normalizedContent.includes("title:")) {
+      score += 16;
+    }
+    if (normalizedContent.includes("description:")) {
+      score += 16;
+    }
+    if (normalizedContent.includes("input") || normalizedContent.includes("output")) {
       score += 12;
     }
   }
@@ -114,7 +126,11 @@ export async function loadImportedSkillAsset(file: File): Promise<ImportedSkillA
     };
   }
 
-  if (file.type.startsWith("text/") || file.type === "application/json" || /\.(md|txt|json)$/i.test(file.name)) {
+  if (
+    file.type.startsWith("text/") ||
+    file.type === "application/json" ||
+    /\.(md|txt|json|ya?ml)$/i.test(file.name)
+  ) {
     return {
       sourceType: /\.md$/i.test(file.name) ? "markdown" : "text",
       sourceName: file.name,
