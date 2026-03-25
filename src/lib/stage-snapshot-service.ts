@@ -1,4 +1,5 @@
 import { writeMediaProviderContractSnapshot } from "@/lib/media-provider-contract-snapshot-service";
+import { writeRealIntegrationReadinessSnapshot } from "@/lib/real-integration-readiness-service";
 import { writeProviderIntegrationPlanSnapshot } from "@/lib/provider-integration-plan-service";
 import { writeProviderGatewaySnapshot } from "@/lib/provider-gateway-snapshot-service";
 import { writeSyncPipelineSnapshot } from "@/lib/sync-pipeline-snapshot-service";
@@ -23,6 +24,7 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
     syncReadinessSnapshot,
     syncPipelineSnapshot,
     mediaProviderContractSnapshot,
+    realIntegrationReadinessSnapshot,
   ] =
     await Promise.all([
       writeV2CapabilitySnapshot(),
@@ -31,6 +33,7 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
       writeSyncReadinessSnapshot(),
       writeSyncPipelineSnapshot(),
       writeMediaProviderContractSnapshot(),
+      writeRealIntegrationReadinessSnapshot(),
     ]);
 
   return {
@@ -60,6 +63,10 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
         fileName: mediaProviderContractSnapshot.fileName,
         filePath: mediaProviderContractSnapshot.filePath,
       },
+      {
+        fileName: realIntegrationReadinessSnapshot.fileName,
+        filePath: realIntegrationReadinessSnapshot.filePath,
+      },
     ],
     readyForUnifiedTesting: readinessSnapshot.reportReady,
     readyForRealIntegration:
@@ -67,6 +74,7 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
       providerGatewaySnapshot.readyForIntegration &&
       syncReadinessSnapshot.readyForIntegration &&
       mediaProviderContractSnapshot.readyForIntegration &&
-      syncPipelineSnapshot.readyForIntegration,
+      syncPipelineSnapshot.readyForIntegration &&
+      realIntegrationReadinessSnapshot.readyForRealIntegration,
   };
 }

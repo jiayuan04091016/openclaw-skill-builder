@@ -5,6 +5,8 @@
 POST `/api/internal/stage-snapshot`
 GET `/api/internal/v2-acceptance`
 GET `/api/internal/v2-acceptance?format=markdown`
+GET `/api/internal/real-integration-readiness`
+GET `/api/internal/real-integration-readiness?format=markdown`
 
 预期：
 - 返回 `readyForUnifiedTesting`
@@ -17,6 +19,7 @@ GET `/api/internal/v2-acceptance?format=markdown`
   - `sync-readiness.md`
   - `sync-pipeline-snapshot.md`
   - `media-provider-contract.md`
+  - `real-integration-readiness.md`
 
 ## 2) 检查同步闭环
 
