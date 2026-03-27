@@ -1,4 +1,5 @@
 import JSZip from "jszip";
+import { parseImportedSkill } from "@/lib/skill-import";
 
 export type ImportedSkillAsset = {
   sourceType: "text" | "markdown" | "zip" | "manual";
@@ -83,6 +84,35 @@ function scoreSkillTextCandidate(path: string, content: string) {
   return score;
 }
 
+function scoreParsedSkillCoverage(content: string) {
+  const parsed = parseImportedSkill(content);
+  const extractedFields = [
+    parsed.title,
+    parsed.description,
+    parsed.audience,
+    parsed.mainTask,
+    parsed.inputFormat,
+    parsed.outputFormat,
+    parsed.warnings,
+  ].filter((item) => item.trim()).length;
+
+  let score = extractedFields * 40;
+  if (parsed.sources.title !== "missing") {
+    score += 20;
+  }
+  if (parsed.sources.description !== "missing") {
+    score += 20;
+  }
+  if (parsed.sources.inputFormat !== "missing") {
+    score += 16;
+  }
+  if (parsed.sources.outputFormat !== "missing") {
+    score += 16;
+  }
+
+  return score;
+}
+
 async function chooseBestZipCandidate(zip: JSZip) {
   const candidates = Object.keys(zip.files)
     .filter((entry) => !entry.endsWith("/"))
@@ -97,7 +127,7 @@ async function chooseBestZipCandidate(zip: JSZip) {
       continue;
     }
 
-    const score = scoreSkillTextCandidate(candidate, text);
+    const score = scoreSkillTextCandidate(candidate, text) + scoreParsedSkillCoverage(text);
     if (!best || score > best.score) {
       best = { path: candidate, text, score };
     }
