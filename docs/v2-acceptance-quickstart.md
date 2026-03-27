@@ -29,7 +29,7 @@ GET `/api/internal/provider-request-telemetry?format=markdown`
 - 返回 `readyForRealIntegration`
 - `v2-acceptance` 返回 `scorePercent`、`passedCount/totalCount`、`nextStep`
 - `release-readiness` 会包含 `providerTelemetry` 维度（成功率门槛默认 `95%`）
-- `stage-gates` 会包含独立的 `provider-telemetry` 门禁（要求有样本且成功率达标）
+- `stage-gates` 会包含独立的 `provider-telemetry` 门禁（进入真实远端联调后，要求有样本且成功率达标）
 - `files` 包含：
   - `v2-capability-readiness.md`
   - `provider-integration-plan.md`
