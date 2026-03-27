@@ -20,7 +20,9 @@ export type RealIntegrationReadinessItem = {
   effectiveTarget: string;
   healthUrl: string;
   urlMismatch: boolean;
+  authHeaderRequired: boolean;
   authHeaderConfigured: boolean;
+  authReady: boolean;
   nextStep: string;
 };
 
@@ -82,8 +84,12 @@ function buildItemNextStep(item: Omit<RealIntegrationReadinessItem, "nextStep">)
     return `修复 ${item.label} 的健康检查可达性。`;
   }
 
-  if (!item.authHeaderConfigured) {
-    return `${item.label} 已可达；如远端要求鉴权，请补充服务端鉴权 Header。`;
+  if (item.authHeaderRequired && !item.authHeaderConfigured) {
+    return `${item.label} 已配置为必须鉴权，请补充服务端鉴权 Header。`;
+  }
+
+  if (!item.authHeaderRequired && !item.authHeaderConfigured) {
+    return `${item.label} 已可达；如远端要求鉴权，建议补充服务端鉴权 Header。`;
   }
 
   return `${item.label} 已具备真实联调条件。`;
@@ -94,7 +100,8 @@ function buildReportNextStep(items: RealIntegrationReadinessItem[]) {
     items.find((item) => !item.configured) ??
     items.find((item) => item.urlMismatch) ??
     items.find((item) => item.mode !== "remote") ??
-    items.find((item) => item.reachable === false);
+    items.find((item) => item.reachable === false) ??
+    items.find((item) => !item.authReady);
 
   if (!firstBlocking) {
     return "四类能力都已达到真实联调基线。";
@@ -136,6 +143,14 @@ export async function buildRealIntegrationReadinessReport(): Promise<RealIntegra
           : key === "ocr"
             ? Boolean(serverConfig.ocr.authHeaderValue.trim())
             : Boolean(serverConfig.video.authHeaderValue.trim());
+    const authHeaderRequired =
+      key === "auth"
+        ? serverConfig.auth.authHeaderRequired
+        : key === "cloud-storage"
+          ? serverConfig.cloudStorage.authHeaderRequired
+          : key === "ocr"
+            ? serverConfig.ocr.authHeaderRequired
+            : serverConfig.video.authHeaderRequired;
 
     const effectiveTarget = serverTarget || publicTarget;
     const itemWithoutNextStep = {
@@ -150,7 +165,9 @@ export async function buildRealIntegrationReadinessReport(): Promise<RealIntegra
       effectiveTarget,
       healthUrl: health?.healthUrl ?? "",
       urlMismatch: Boolean(publicTarget && serverTarget && publicTarget !== serverTarget),
+      authHeaderRequired,
       authHeaderConfigured,
+      authReady: !authHeaderRequired || authHeaderConfigured,
     };
 
     return {
@@ -162,7 +179,12 @@ export async function buildRealIntegrationReadinessReport(): Promise<RealIntegra
   const allConfigured = items.every((item) => item.configured);
   const allReachable = items.every((item) => item.configured && item.reachable === true);
   const allUsingRemoteTarget = items.every((item) => item.mode === "remote");
-  const readyForRealIntegration = allConfigured && allReachable && allUsingRemoteTarget && !items.some((i) => i.urlMismatch);
+  const readyForRealIntegration =
+    allConfigured &&
+    allReachable &&
+    allUsingRemoteTarget &&
+    !items.some((i) => i.urlMismatch) &&
+    items.every((item) => item.authReady);
 
   return {
     generatedAt: new Date().toISOString(),
@@ -203,7 +225,9 @@ export function buildRealIntegrationReadinessMarkdown(report: RealIntegrationRea
     lines.push(`  publicTarget: ${item.publicTarget || "(empty)"}`);
     lines.push(`  serverTarget: ${item.serverTarget || "(empty)"}`);
     lines.push(`  healthUrl: ${item.healthUrl || "(empty)"}`);
+    lines.push(`  authHeaderRequired: ${item.authHeaderRequired}`);
     lines.push(`  authHeaderConfigured: ${item.authHeaderConfigured}`);
+    lines.push(`  authReady: ${item.authReady}`);
     lines.push(`  nextStep: ${item.nextStep}`);
   }
 

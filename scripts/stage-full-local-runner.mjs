@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 
 import { spawn } from "node:child_process";
-
-const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
 const baseUrl = process.env.V2_CHECK_BASE_URL || "http://127.0.0.1:3000";
 const hostArg = process.env.STAGE_LOCAL_HOST || "127.0.0.1";
 const portArg = process.env.STAGE_LOCAL_PORT || "3000";
@@ -25,10 +23,26 @@ async function isReachable(url) {
 }
 
 function runNpm(args, options = {}) {
-  return spawn(npmCmd, args, {
-    stdio: options.silent ? "ignore" : "inherit",
+  const stdio = options.silent ? "ignore" : "inherit";
+
+  if (process.platform === "win32") {
+    const commandLine = ["npm.cmd", ...args]
+      .map((part) => (/\s/.test(part) ? `"${part.replace(/"/g, '\\"')}"` : part))
+      .join(" ");
+
+    return spawn("cmd.exe", ["/d", "/s", "/c", commandLine], {
+      stdio,
+      shell: false,
+      env: process.env,
+      cwd: process.cwd(),
+    });
+  }
+
+  return spawn("npm", args, {
+    stdio,
     shell: false,
     env: process.env,
+    cwd: process.cwd(),
   });
 }
 

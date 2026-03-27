@@ -11,11 +11,28 @@ function readNumber(value: string | undefined, fallback: number) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
+function readBoolean(value: string | undefined, fallback: boolean) {
+  if (!value) {
+    return fallback;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (["1", "true", "yes", "on"].includes(normalized)) {
+    return true;
+  }
+  if (["0", "false", "no", "off"].includes(normalized)) {
+    return false;
+  }
+
+  return fallback;
+}
+
 export type ServerProviderTargetConfig = {
   url: string;
   healthPath: string;
   authHeaderName: string;
   authHeaderValue: string;
+  authHeaderRequired: boolean;
 };
 
 export type ServerProviderConfig = {
@@ -37,6 +54,13 @@ function buildTargetConfig(prefix: string, publicPrefix: string): ServerProvider
       "/health",
     authHeaderName: readValue(process.env[`${prefix}_AUTH_HEADER_NAME`]) || "Authorization",
     authHeaderValue: readValue(process.env[`${prefix}_AUTH_HEADER_VALUE`]),
+    authHeaderRequired: readBoolean(
+      readServerValue(
+        process.env[`${prefix}_AUTH_HEADER_REQUIRED`],
+        process.env[`NEXT_PUBLIC_${publicPrefix}_AUTH_HEADER_REQUIRED`],
+      ),
+      false,
+    ),
   };
 }
 
