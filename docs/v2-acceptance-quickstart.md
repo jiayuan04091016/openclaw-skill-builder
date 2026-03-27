@@ -3,6 +3,11 @@
 ## 1) 生成阶段快照
 
 POST `/api/internal/stage-snapshot`
+POST `/api/internal/import-readiness-snapshot`
+POST `/api/internal/release-readiness-snapshot`
+POST `/api/internal/stage-artifacts-snapshot`
+POST `/api/internal/stage-run-history-snapshot`
+POST `/api/internal/v2-infra-status-snapshot`
 GET `/api/internal/v2-acceptance`
 GET `/api/internal/v2-acceptance?format=markdown`
 GET `/api/internal/v2-infra-status`
