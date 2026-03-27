@@ -8,6 +8,8 @@ POST `/api/internal/release-readiness-snapshot`
 POST `/api/internal/stage-artifacts-snapshot`
 POST `/api/internal/stage-run-history-snapshot`
 POST `/api/internal/v2-infra-status-snapshot`
+GET `/api/internal/snapshot-catalog`
+GET `/api/internal/snapshot-catalog?format=markdown`
 GET `/api/internal/v2-acceptance`
 GET `/api/internal/v2-acceptance?format=markdown`
 GET `/api/internal/v2-infra-status`

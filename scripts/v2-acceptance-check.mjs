@@ -112,6 +112,12 @@ const checks = [
     path: "/api/internal/media-provider-contract",
     validate: (payload) => Boolean(payload && typeof payload.allValid === "boolean"),
   },
+  {
+    key: "snapshot-catalog",
+    path: "/api/internal/snapshot-catalog",
+    validate: (payload) =>
+      Boolean(payload && typeof payload.totalCount === "number" && Array.isArray(payload.items) && payload.items.length > 0),
+  },
 ];
 
 async function runCheck(check) {
