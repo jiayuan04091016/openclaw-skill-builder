@@ -152,8 +152,8 @@ export async function buildStageArtifactsReport(): Promise<StageArtifactsReport>
     latestBundleExists: latestBundle.latestBundleExists,
     nextStep:
       missingCount === 0 && latestBundle.latestBundleExists
-        ? "交付资产齐全，可直接输出交付包。"
-        : "先运行 npm run stage:full 生成并补齐交付资产。",
+        ? "Delivery artifacts are complete. You can export the delivery bundle."
+        : "Run npm run stage:full first to generate and complete delivery artifacts.",
     items,
   };
 }

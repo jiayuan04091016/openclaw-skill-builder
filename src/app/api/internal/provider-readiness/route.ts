@@ -6,6 +6,6 @@ export async function GET() {
   const report = await buildProviderReadinessReport();
 
   return NextResponse.json(report, {
-    status: 200,
+    status: report.readyForRealIntegration ? 200 : 412,
   });
 }
