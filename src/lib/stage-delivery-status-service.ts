@@ -1,6 +1,8 @@
 import { access, readFile } from "node:fs/promises";
 import path from "node:path";
 
+import { buildProviderTelemetryGateReport } from "@/lib/provider-telemetry-gate-snapshot-service";
+
 type DeliveryFileKey =
   | "v2-acceptance-check"
   | "stage-snapshot-manifest"
@@ -21,6 +23,14 @@ export type StageDeliveryStatusReport = {
   readyForDelivery: boolean;
   missingCount: number;
   nextStep: string;
+  providerTelemetryGate: {
+    enabled: boolean;
+    healthy: boolean;
+    totalCalls: number;
+    successRatePercent: number;
+    minSuccessRatePercent: number;
+    nextStep: string;
+  };
   bundlePointerValid: boolean;
   latestBundleFileName: string | null;
   latestBundleFilePath: string | null;
@@ -65,35 +75,50 @@ async function findLatestBundle(docsDir: string) {
 
 export async function buildStageDeliveryStatusReport(): Promise<StageDeliveryStatusReport> {
   const docsDir = path.join(/* turbopackIgnore: true */ process.cwd(), "docs");
-  const files = await Promise.all(
-    REQUIRED_FILES.map(async (required) => {
-      const filePath = path.join(docsDir, required.fileName);
-      const exists = await pathExists(filePath);
+  const [files, providerTelemetryGate] = await Promise.all([
+    Promise.all(
+      REQUIRED_FILES.map(async (required) => {
+        const filePath = path.join(docsDir, required.fileName);
+        const exists = await pathExists(filePath);
 
-      return {
-        key: required.key,
-        fileName: required.fileName,
-        exists,
-        filePath,
-      };
-    }),
-  );
+        return {
+          key: required.key,
+          fileName: required.fileName,
+          exists,
+          filePath,
+        };
+      }),
+    ),
+    buildProviderTelemetryGateReport(),
+  ]);
 
   const latestBundle = await findLatestBundle(docsDir);
   const bundlePointerValid = latestBundle ? await pathExists(latestBundle.filePath) : false;
   const missingCount = files.filter((file) => !file.exists).length;
-  const readyForDelivery = missingCount === 0 && bundlePointerValid;
+  const telemetryGateReady = !providerTelemetryGate.enabled || providerTelemetryGate.healthy;
+  const readyForDelivery = missingCount === 0 && bundlePointerValid && telemetryGateReady;
+  const nextStep = !telemetryGateReady
+    ? providerTelemetryGate.nextStep
+    : readyForDelivery
+      ? "交付包已就绪，可直接发送 stage-delivery-bundle。"
+      : bundlePointerValid
+        ? "先运行 npm run stage:full 生成完整报告与交付包。"
+        : "交付包指针无效或文件缺失，请先运行 npm run snapshot:bundle。";
 
   return {
     generatedAt: new Date().toISOString(),
     readyForDelivery,
     missingCount,
     bundlePointerValid,
-    nextStep: readyForDelivery
-      ? "交付包已就绪，可直接发送 stage-delivery-bundle。"
-      : bundlePointerValid
-        ? "先运行 npm run stage:full 生成完整报告与交付包。"
-        : "交付包指针无效或文件缺失，请先运行 npm run snapshot:bundle。",
+    nextStep,
+    providerTelemetryGate: {
+      enabled: providerTelemetryGate.enabled,
+      healthy: providerTelemetryGate.healthy,
+      totalCalls: providerTelemetryGate.totalCalls,
+      successRatePercent: providerTelemetryGate.successRatePercent,
+      minSuccessRatePercent: providerTelemetryGate.minSuccessRatePercent,
+      nextStep: providerTelemetryGate.nextStep,
+    },
     latestBundleFileName: latestBundle?.fileName ?? null,
     latestBundleFilePath: latestBundle?.filePath ?? null,
     files,
@@ -109,6 +134,7 @@ export function buildStageDeliveryStatusMarkdown(report: StageDeliveryStatusRepo
     `- missingCount: ${report.missingCount}`,
     `- bundlePointerValid: ${report.bundlePointerValid}`,
     `- latestBundleFileName: ${report.latestBundleFileName ?? "none"}`,
+    `- providerTelemetryGate: enabled=${report.providerTelemetryGate.enabled}, healthy=${report.providerTelemetryGate.healthy}, successRate=${report.providerTelemetryGate.successRatePercent}%, minSuccessRate=${report.providerTelemetryGate.minSuccessRatePercent}%`,
     `- nextStep: ${report.nextStep}`,
     "",
     "## Files",
