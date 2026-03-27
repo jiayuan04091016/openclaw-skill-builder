@@ -2,16 +2,25 @@ import { buildAuthReadinessReport } from "@/lib/auth-readiness-service";
 import { buildCloudReadinessReport } from "@/lib/cloud-readiness-service";
 import { buildImportReadinessReport } from "@/lib/import-readiness-service";
 import { buildOcrReadinessReport } from "@/lib/ocr-readiness-service";
+import { buildProviderReadinessReport } from "@/lib/provider-readiness-service";
 import { buildSyncReadinessReport } from "@/lib/sync-readiness-service";
 import { buildVideoReadinessReport } from "@/lib/video-readiness-service";
 
-type InfraKey = "auth" | "cloud" | "sync" | "import" | "ocr" | "video";
+type InfraKey =
+  | "provider-connectivity"
+  | "auth"
+  | "cloud"
+  | "sync"
+  | "import"
+  | "ocr"
+  | "video";
 
 export type V2InfraStatusItem = {
   key: InfraKey;
   label: string;
   ready: boolean;
   nextStep: string;
+  blockingIssues?: string[];
 };
 
 export type V2InfraStatusReport = {
@@ -20,6 +29,7 @@ export type V2InfraStatusReport = {
   passedCount: number;
   totalCount: number;
   readyForUnifiedTesting: boolean;
+  readyForRealIntegration: boolean;
   nextBlockingKey: InfraKey | null;
   nextStep: string;
   items: V2InfraStatusItem[];
@@ -33,7 +43,8 @@ function toPercent(passedCount: number, totalCount: number) {
 }
 
 export async function buildV2InfraStatusReport(): Promise<V2InfraStatusReport> {
-  const [auth, cloud, sync, imported, ocr, video] = await Promise.all([
+  const [provider, auth, cloud, sync, imported, ocr, video] = await Promise.all([
+    buildProviderReadinessReport(),
     buildAuthReadinessReport(),
     buildCloudReadinessReport(),
     buildSyncReadinessReport(),
@@ -43,6 +54,13 @@ export async function buildV2InfraStatusReport(): Promise<V2InfraStatusReport> {
   ]);
 
   const items: V2InfraStatusItem[] = [
+    {
+      key: "provider-connectivity",
+      label: "真实服务连通性",
+      ready: provider.readyForRealIntegration,
+      nextStep: provider.nextIntegrationStep,
+      blockingIssues: provider.issues.map((issue) => issue.message),
+    },
     { key: "auth", label: "账号登录", ready: auth.readyForIntegration, nextStep: auth.nextStep },
     { key: "cloud", label: "云端存储", ready: cloud.readyForIntegration, nextStep: cloud.nextStep },
     { key: "sync", label: "跨设备同步", ready: sync.readyForIntegration, nextStep: sync.nextStep },
@@ -60,8 +78,9 @@ export async function buildV2InfraStatusReport(): Promise<V2InfraStatusReport> {
     passedCount,
     totalCount: items.length,
     readyForUnifiedTesting: passedCount === items.length,
+    readyForRealIntegration: provider.readyForRealIntegration,
     nextBlockingKey: nextBlocking?.key ?? null,
-    nextStep: nextBlocking?.nextStep ?? "六大模块都已进入统一测试状态。",
+    nextStep: nextBlocking?.nextStep ?? "All core modules are ready for unified testing.",
     items,
   };
 }
@@ -74,6 +93,7 @@ export function buildV2InfraStatusMarkdown(report: V2InfraStatusReport) {
     `- progressPercent: ${report.progressPercent}%`,
     `- passed: ${report.passedCount}/${report.totalCount}`,
     `- readyForUnifiedTesting: ${report.readyForUnifiedTesting}`,
+    `- readyForRealIntegration: ${report.readyForRealIntegration}`,
     `- nextBlockingKey: ${report.nextBlockingKey ?? "none"}`,
     `- nextStep: ${report.nextStep}`,
     "",
@@ -81,8 +101,12 @@ export function buildV2InfraStatusMarkdown(report: V2InfraStatusReport) {
   ];
 
   for (const item of report.items) {
-    lines.push(`- ${item.label}（${item.ready ? "已就绪" : "未就绪"}）`);
+    lines.push(`- ${item.label}: ${item.ready ? "ready" : "not-ready"}`);
     lines.push(`  nextStep: ${item.nextStep}`);
+
+    if (item.blockingIssues?.length) {
+      lines.push(`  blockingIssues: ${item.blockingIssues.join(" | ")}`);
+    }
   }
 
   return lines.join("\n");
