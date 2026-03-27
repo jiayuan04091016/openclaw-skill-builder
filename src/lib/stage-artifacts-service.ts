@@ -7,6 +7,7 @@ type StageArtifactKey =
   | "provider-gateway-readiness"
   | "provider-request-telemetry"
   | "provider-telemetry-gate"
+  | "snapshot-catalog"
   | "sync-readiness"
   | "sync-pipeline-snapshot"
   | "media-provider-contract"
@@ -53,6 +54,7 @@ const REQUIRED_ARTIFACTS: Array<{ key: StageArtifactKey; fileName: string }> = [
   { key: "provider-gateway-readiness", fileName: "provider-gateway-readiness.md" },
   { key: "provider-request-telemetry", fileName: "provider-request-telemetry.md" },
   { key: "provider-telemetry-gate", fileName: "provider-telemetry-gate.md" },
+  { key: "snapshot-catalog", fileName: "snapshot-catalog.md" },
   { key: "sync-readiness", fileName: "sync-readiness.md" },
   { key: "sync-pipeline-snapshot", fileName: "sync-pipeline-snapshot.md" },
   { key: "media-provider-contract", fileName: "media-provider-contract.md" },

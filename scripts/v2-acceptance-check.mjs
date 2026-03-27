@@ -118,13 +118,19 @@ const checks = [
     validate: (payload) =>
       Boolean(payload && typeof payload.totalCount === "number" && Array.isArray(payload.items) && payload.items.length > 0),
   },
+  {
+    key: "snapshot-catalog-snapshot",
+    path: "/api/internal/snapshot-catalog-snapshot",
+    method: "POST",
+    validate: (payload) => Boolean(payload && payload.fileName === "snapshot-catalog.md" && typeof payload.totalCount === "number"),
+  },
 ];
 
 async function runCheck(check) {
   const url = `${baseUrl.replace(/\/+$/, "")}${check.path}`;
 
   try {
-    const response = await fetch(url, { method: "GET", cache: "no-store" });
+    const response = await fetch(url, { method: check.method || "GET", cache: "no-store" });
 
     if (!response.ok) {
       return {
