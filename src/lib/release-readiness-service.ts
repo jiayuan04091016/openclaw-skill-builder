@@ -1,6 +1,5 @@
 import { buildRealIntegrationReadinessReport } from "@/lib/real-integration-readiness-service";
-import { evaluateProviderTelemetryGate } from "@/lib/provider-telemetry-gate-service";
-import { buildProviderRequestTelemetryReport } from "@/lib/provider-request-telemetry-service";
+import { buildProviderTelemetryGateReport } from "@/lib/provider-telemetry-gate-snapshot-service";
 import { runV2AcceptanceChecks } from "@/lib/v2-acceptance-runner-service";
 import { buildV2InfraStatusReport } from "@/lib/v2-infra-status-service";
 
@@ -42,13 +41,12 @@ function averageScore(scores: number[]) {
 }
 
 export async function buildReleaseReadinessReport(): Promise<ReleaseReadinessReport> {
-  const [infra, acceptance, realIntegration, providerTelemetry] = await Promise.all([
+  const [infra, acceptance, realIntegration, telemetryGate] = await Promise.all([
     buildV2InfraStatusReport(),
     runV2AcceptanceChecks(),
     buildRealIntegrationReadinessReport(),
-    Promise.resolve(buildProviderRequestTelemetryReport()),
+    buildProviderTelemetryGateReport(),
   ]);
-  const telemetryGate = evaluateProviderTelemetryGate(providerTelemetry, realIntegration);
   const telemetryHealthy = telemetryGate.enabled ? telemetryGate.healthy : true;
   const telemetryNextStep = telemetryGate.enabled
     ? telemetryGate.nextStep
@@ -76,7 +74,7 @@ export async function buildReleaseReadinessReport(): Promise<ReleaseReadinessRep
       infra.progressPercent,
       acceptance.scorePercent,
       realIntegration.readyForRealIntegration ? 100 : 0,
-      providerTelemetry.totalCalls === 0 ? 70 : providerTelemetry.successRatePercent,
+      telemetryGate.totalCalls === 0 ? 70 : telemetryGate.successRatePercent,
     ]),
     readyForBetaRelease,
     nextStep,
@@ -97,8 +95,8 @@ export async function buildReleaseReadinessReport(): Promise<ReleaseReadinessRep
       },
       providerTelemetry: {
         healthy: telemetryHealthy,
-        totalCalls: providerTelemetry.totalCalls,
-        successRatePercent: providerTelemetry.successRatePercent,
+        totalCalls: telemetryGate.totalCalls,
+        successRatePercent: telemetryGate.successRatePercent,
         minSuccessRatePercent: telemetryGate.minSuccessRatePercent,
         nextStep: telemetryNextStep,
       },
