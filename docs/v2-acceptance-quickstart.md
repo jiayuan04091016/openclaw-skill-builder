@@ -34,6 +34,7 @@ GET `/api/internal/provider-telemetry-gate?format=markdown`
 - `release-readiness` 会包含 `providerTelemetry` 维度（成功率门槛默认 `95%`）
 - `stage-gates` 会包含独立的 `provider-telemetry` 门禁（进入真实远端联调后，要求有样本且成功率达标）
 - `stage-report` 会汇总 `gates` 通过率和当前阻塞门禁
+- `stage-delivery-status` 会要求 `provider-telemetry-gate.md` 存在后才判定可交付
 - `files` 包含：
   - `v2-capability-readiness.md`
   - `provider-integration-plan.md`

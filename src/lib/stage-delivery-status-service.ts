@@ -6,7 +6,8 @@ type DeliveryFileKey =
   | "stage-snapshot-manifest"
   | "stage-report"
   | "release-readiness"
-  | "v2-infra-status";
+  | "v2-infra-status"
+  | "provider-telemetry-gate";
 
 export type StageDeliveryFileStatus = {
   key: DeliveryFileKey;
@@ -32,6 +33,7 @@ const REQUIRED_FILES: Array<{ key: DeliveryFileKey; fileName: string }> = [
   { key: "stage-report", fileName: "stage-report.md" },
   { key: "release-readiness", fileName: "release-readiness.md" },
   { key: "v2-infra-status", fileName: "v2-infra-status.md" },
+  { key: "provider-telemetry-gate", fileName: "provider-telemetry-gate.md" },
 ];
 
 async function pathExists(filePath: string) {
