@@ -43,11 +43,15 @@ function createRemoteCloudStorageProvider(cloudStorageProviderUrl: string): Clou
     isConfigured: () => true,
     fetchProjects: async () => {
       const projects = normalizeRemoteCloudProjectList(
-        await requestRemoteJsonWithRetry<unknown>(buildRemoteProviderUrl(cloudStorageProviderUrl, "/projects"), {}, {
-          attempts: providerConfig.providerRequestRetryAttempts,
-          initialDelayMs: providerConfig.providerRequestRetryInitialDelayMs,
-          backoffFactor: providerConfig.providerRequestRetryBackoffFactor,
-        }),
+        await requestRemoteJsonWithRetry<unknown>(
+          buildRemoteProviderUrl(cloudStorageProviderUrl, "/projects"),
+          { telemetryKey: "cloud-storage" },
+          {
+            attempts: providerConfig.providerRequestRetryAttempts,
+            initialDelayMs: providerConfig.providerRequestRetryInitialDelayMs,
+            backoffFactor: providerConfig.providerRequestRetryBackoffFactor,
+          },
+        ),
       );
 
       return projects ?? [];
@@ -59,6 +63,7 @@ function createRemoteCloudStorageProvider(cloudStorageProviderUrl: string): Clou
           {
             method: "POST",
             payload: bundle,
+            telemetryKey: "cloud-storage",
           },
           {
             attempts: providerConfig.providerRequestRetryAttempts,

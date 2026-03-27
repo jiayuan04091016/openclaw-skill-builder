@@ -53,6 +53,11 @@ const checks = [
     validate: (payload) => Boolean(payload && typeof payload.readyForRealIntegration === "boolean"),
   },
   {
+    key: "provider-request-telemetry",
+    path: "/api/internal/provider-request-telemetry",
+    validate: (payload) => Boolean(payload && typeof payload.totalCalls === "number" && Array.isArray(payload.items)),
+  },
+  {
     key: "import-readiness",
     path: "/api/internal/import-readiness",
     validate: (payload) =>

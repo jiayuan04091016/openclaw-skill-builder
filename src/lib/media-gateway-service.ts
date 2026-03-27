@@ -36,6 +36,7 @@ export async function runOcrGateway(resource: ResourceItem, sessionToken = ""): 
         method: "POST",
         payload: resource,
         headers: buildGatewayHeaders(buildServerProviderHeaders(config.ocr), sessionToken),
+        telemetryKey: "ocr",
       },
       {
         attempts: config.providerRequestRetryAttempts,
@@ -75,6 +76,7 @@ export async function runVideoGateway(
         method: "POST",
         payload: resource,
         headers: buildGatewayHeaders(buildServerProviderHeaders(config.video), sessionToken),
+        telemetryKey: "video",
       },
       {
         attempts: config.providerRequestRetryAttempts,

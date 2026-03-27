@@ -36,6 +36,7 @@ export async function fetchCloudGatewayProjects(sessionToken = ""): Promise<Clou
       buildRemoteProviderUrl(config.cloudStorage.url, "/projects"),
       {
         headers: buildGatewayHeaders(buildServerProviderHeaders(config.cloudStorage), sessionToken),
+        telemetryKey: "cloud-storage",
       },
       {
         attempts: config.providerRequestRetryAttempts,
@@ -69,6 +70,7 @@ export async function saveCloudGatewayBundle(
         method: "POST",
         payload: bundle,
         headers: buildGatewayHeaders(buildServerProviderHeaders(config.cloudStorage), sessionToken),
+        telemetryKey: "cloud-storage",
       },
       {
         attempts: config.providerRequestRetryAttempts,

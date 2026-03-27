@@ -21,6 +21,8 @@ GET `/api/internal/stage-run-history`
 GET `/api/internal/stage-run-history?format=markdown`
 GET `/api/internal/real-integration-readiness`
 GET `/api/internal/real-integration-readiness?format=markdown`
+GET `/api/internal/provider-request-telemetry`
+GET `/api/internal/provider-request-telemetry?format=markdown`
 
 预期：
 - 返回 `readyForUnifiedTesting`
@@ -30,6 +32,7 @@ GET `/api/internal/real-integration-readiness?format=markdown`
   - `v2-capability-readiness.md`
   - `provider-integration-plan.md`
   - `provider-gateway-readiness.md`
+  - `provider-request-telemetry.md`
   - `sync-readiness.md`
   - `sync-pipeline-snapshot.md`
   - `media-provider-contract.md`
