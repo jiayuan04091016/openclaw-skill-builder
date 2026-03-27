@@ -11,6 +11,7 @@ GET `/api/internal/release-readiness`
 GET `/api/internal/release-readiness?format=markdown`
 GET `/api/internal/stage-report`
 GET `/api/internal/stage-report?format=markdown`
+POST `/api/internal/stage-report-snapshot`
 GET `/api/internal/stage-delivery-status`
 GET `/api/internal/stage-delivery-status?format=markdown`
 POST `/api/internal/stage-delivery-status-snapshot`
@@ -18,6 +19,7 @@ GET `/api/internal/stage-artifacts`
 GET `/api/internal/stage-artifacts?format=markdown`
 GET `/api/internal/stage-gates`
 GET `/api/internal/stage-gates?format=markdown`
+POST `/api/internal/stage-gates-snapshot`
 GET `/api/internal/stage-run-history`
 GET `/api/internal/stage-run-history?format=markdown`
 GET `/api/internal/real-integration-readiness`
