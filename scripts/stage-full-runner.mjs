@@ -5,7 +5,6 @@ import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const baseUrl = process.env.V2_CHECK_BASE_URL || "http://127.0.0.1:3000";
-const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
 
 const steps = [
   { key: "check:v2:md", args: ["run", "check:v2:md"] },
@@ -109,11 +108,7 @@ async function readArtifactsStatus(url) {
 function runNpmStep(step) {
   return new Promise((resolve) => {
     const startedAt = Date.now();
-    const child = spawn(npmCmd, step.args, {
-      stdio: "inherit",
-      shell: false,
-      env: process.env,
-    });
+    const child = runNpm(step.args);
 
     child.on("close", (code) => {
       resolve({
@@ -274,3 +269,24 @@ main().catch((error) => {
   console.error(error instanceof Error ? error.message : String(error));
   process.exit(1);
 });
+function runNpm(args) {
+  if (process.platform === "win32") {
+    const commandLine = ["npm.cmd", ...args]
+      .map((part) => (/\s/.test(part) ? `"${part.replace(/"/g, '\\"')}"` : part))
+      .join(" ");
+
+    return spawn("cmd.exe", ["/d", "/s", "/c", commandLine], {
+      stdio: "inherit",
+      shell: false,
+      env: process.env,
+      cwd: process.cwd(),
+    });
+  }
+
+  return spawn("npm", args, {
+    stdio: "inherit",
+    shell: false,
+    env: process.env,
+    cwd: process.cwd(),
+  });
+}
