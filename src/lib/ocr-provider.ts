@@ -2,7 +2,7 @@ import { buildLocalOcrText } from "@/lib/media-local-enhancement";
 import { normalizeRemoteOcrResult } from "@/lib/media-remote-contracts";
 import { getProviderConfig } from "@/lib/provider-config";
 import { getClientGatewayUrl } from "@/lib/provider-gateway-client";
-import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
+import { buildRemoteProviderUrl, requestRemoteJsonWithRetry } from "@/lib/remote-provider-client";
 import type { OcrResult, ResourceItem } from "@/types/app";
 
 export type OcrProvider = {
@@ -30,13 +30,25 @@ function createLocalOcrProvider(): OcrProvider {
 }
 
 function createRemoteOcrProvider(ocrProviderUrl: string): OcrProvider {
+  const providerConfig = getProviderConfig();
+  const retryOptions = {
+    attempts: providerConfig.providerRequestRetryAttempts,
+    initialDelayMs: providerConfig.providerRequestRetryInitialDelayMs,
+    backoffFactor: providerConfig.providerRequestRetryBackoffFactor,
+  };
+
   return {
     extractText: async (resource) => {
       const result = normalizeRemoteOcrResult(
-        await requestRemoteJson<unknown>(buildRemoteProviderUrl(ocrProviderUrl, "/extract"), {
-          method: "POST",
-          payload: resource,
-        }),
+        await requestRemoteJsonWithRetry<unknown>(
+          buildRemoteProviderUrl(ocrProviderUrl, "/extract"),
+          {
+            method: "POST",
+            payload: resource,
+            telemetryKey: "ocr",
+          },
+          retryOptions,
+        ),
       );
 
       return (
@@ -69,4 +81,3 @@ export function createOcrProvider(): OcrProvider {
 
   return createLocalOcrProvider();
 }
-

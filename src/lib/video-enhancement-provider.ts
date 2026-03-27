@@ -2,7 +2,7 @@ import { buildLocalVideoSummary } from "@/lib/media-local-enhancement";
 import { normalizeRemoteVideoEnhancementResult } from "@/lib/media-remote-contracts";
 import { getProviderConfig } from "@/lib/provider-config";
 import { getClientGatewayUrl } from "@/lib/provider-gateway-client";
-import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
+import { buildRemoteProviderUrl, requestRemoteJsonWithRetry } from "@/lib/remote-provider-client";
 import type { ResourceItem, VideoEnhancementResult } from "@/types/app";
 
 export type VideoEnhancementProvider = {
@@ -30,13 +30,25 @@ function createLocalVideoEnhancementProvider(): VideoEnhancementProvider {
 }
 
 function createRemoteVideoEnhancementProvider(videoEnhancementProviderUrl: string): VideoEnhancementProvider {
+  const providerConfig = getProviderConfig();
+  const retryOptions = {
+    attempts: providerConfig.providerRequestRetryAttempts,
+    initialDelayMs: providerConfig.providerRequestRetryInitialDelayMs,
+    backoffFactor: providerConfig.providerRequestRetryBackoffFactor,
+  };
+
   return {
     summarize: async (resource) => {
       const result = normalizeRemoteVideoEnhancementResult(
-        await requestRemoteJson<unknown>(buildRemoteProviderUrl(videoEnhancementProviderUrl, "/summarize"), {
-          method: "POST",
-          payload: resource,
-        }),
+        await requestRemoteJsonWithRetry<unknown>(
+          buildRemoteProviderUrl(videoEnhancementProviderUrl, "/summarize"),
+          {
+            method: "POST",
+            payload: resource,
+            telemetryKey: "video",
+          },
+          retryOptions,
+        ),
       );
 
       return (
@@ -69,4 +81,3 @@ export function createVideoEnhancementProvider(): VideoEnhancementProvider {
 
   return createLocalVideoEnhancementProvider();
 }
-

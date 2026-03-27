@@ -3,7 +3,7 @@ import {
   normalizeRemoteCloudProjectList,
   normalizeRemoteCloudStorageResult,
 } from "@/lib/cloud-remote-contracts";
-import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
+import { buildRemoteProviderUrl, requestRemoteJsonWithRetry } from "@/lib/remote-provider-client";
 import { buildServerProviderHeaders, getServerProviderConfig } from "@/lib/server-provider-config";
 
 export type CloudProviderContractReport = {
@@ -30,17 +30,32 @@ export async function buildCloudProviderContractReport(): Promise<CloudProviderC
 
   const issues: string[] = [];
   const sampleBundle = buildSampleCloudSyncBundle();
+  const retryOptions = {
+    attempts: providerConfig.providerRequestRetryAttempts,
+    initialDelayMs: providerConfig.providerRequestRetryInitialDelayMs,
+    backoffFactor: providerConfig.providerRequestRetryBackoffFactor,
+  };
   const projects = normalizeRemoteCloudProjectList(
-    await requestRemoteJson<unknown>(buildRemoteProviderUrl(providerConfig.cloudStorage.url, "/projects"), {
-      headers,
-    }),
+    await requestRemoteJsonWithRetry<unknown>(
+      buildRemoteProviderUrl(providerConfig.cloudStorage.url, "/projects"),
+      {
+        headers,
+        telemetryKey: "cloud-storage",
+      },
+      retryOptions,
+    ),
   );
   const bundleResult = normalizeRemoteCloudStorageResult(
-    await requestRemoteJson<unknown>(buildRemoteProviderUrl(providerConfig.cloudStorage.url, "/bundle"), {
-      method: "POST",
-      payload: sampleBundle,
-      headers,
-    }),
+    await requestRemoteJsonWithRetry<unknown>(
+      buildRemoteProviderUrl(providerConfig.cloudStorage.url, "/bundle"),
+      {
+        method: "POST",
+        payload: sampleBundle,
+        headers,
+        telemetryKey: "cloud-storage",
+      },
+      retryOptions,
+    ),
     sampleBundle.projectCount,
   );
 

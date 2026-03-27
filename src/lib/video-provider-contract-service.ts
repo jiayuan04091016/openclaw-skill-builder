@@ -1,5 +1,5 @@
 import { isNormalizedVideoEnhancementResult } from "@/lib/media-remote-contracts";
-import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
+import { buildRemoteProviderUrl, requestRemoteJsonWithRetry } from "@/lib/remote-provider-client";
 import { buildServerProviderHeaders, getServerProviderConfig } from "@/lib/server-provider-config";
 
 export type VideoProviderContractReport = {
@@ -23,11 +23,17 @@ export async function buildVideoProviderContractReport(): Promise<VideoProviderC
   }
 
   const issues: string[] = [];
-  const summarizeResult = await requestRemoteJson<unknown>(
+  const retryOptions = {
+    attempts: providerConfig.providerRequestRetryAttempts,
+    initialDelayMs: providerConfig.providerRequestRetryInitialDelayMs,
+    backoffFactor: providerConfig.providerRequestRetryBackoffFactor,
+  };
+  const summarizeResult = await requestRemoteJsonWithRetry<unknown>(
     buildRemoteProviderUrl(providerConfig.video.url, "/summarize"),
     {
       method: "POST",
       headers,
+      telemetryKey: "video",
       payload: {
         id: "sample-video-resource",
         type: "video",
@@ -36,6 +42,7 @@ export async function buildVideoProviderContractReport(): Promise<VideoProviderC
         createdAt: new Date().toISOString(),
       },
     },
+    retryOptions,
   );
 
   const summarizeShapeValid = isNormalizedVideoEnhancementResult(summarizeResult);
@@ -51,4 +58,3 @@ export async function buildVideoProviderContractReport(): Promise<VideoProviderC
     issues,
   };
 }
-

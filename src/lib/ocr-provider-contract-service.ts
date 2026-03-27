@@ -1,5 +1,5 @@
 import { isNormalizedOcrResult } from "@/lib/media-remote-contracts";
-import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
+import { buildRemoteProviderUrl, requestRemoteJsonWithRetry } from "@/lib/remote-provider-client";
 import { buildServerProviderHeaders, getServerProviderConfig } from "@/lib/server-provider-config";
 
 export type OcrProviderContractReport = {
@@ -23,17 +23,27 @@ export async function buildOcrProviderContractReport(): Promise<OcrProviderContr
   }
 
   const issues: string[] = [];
-  const extractResult = await requestRemoteJson<unknown>(buildRemoteProviderUrl(providerConfig.ocr.url, "/extract"), {
-    method: "POST",
-    headers,
-    payload: {
-      id: "sample-ocr-resource",
-      type: "image",
-      name: "sample.png",
-      content: "示例 OCR 内容",
-      createdAt: new Date().toISOString(),
+  const retryOptions = {
+    attempts: providerConfig.providerRequestRetryAttempts,
+    initialDelayMs: providerConfig.providerRequestRetryInitialDelayMs,
+    backoffFactor: providerConfig.providerRequestRetryBackoffFactor,
+  };
+  const extractResult = await requestRemoteJsonWithRetry<unknown>(
+    buildRemoteProviderUrl(providerConfig.ocr.url, "/extract"),
+    {
+      method: "POST",
+      headers,
+      telemetryKey: "ocr",
+      payload: {
+        id: "sample-ocr-resource",
+        type: "image",
+        name: "sample.png",
+        content: "示例 OCR 内容",
+        createdAt: new Date().toISOString(),
+      },
     },
-  });
+    retryOptions,
+  );
 
   const extractShapeValid = isNormalizedOcrResult(extractResult);
 
@@ -48,4 +58,3 @@ export async function buildOcrProviderContractReport(): Promise<OcrProviderContr
     issues,
   };
 }
-
