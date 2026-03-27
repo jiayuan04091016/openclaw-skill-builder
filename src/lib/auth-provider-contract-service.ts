@@ -2,7 +2,7 @@ import {
   isNormalizedAuthResult,
   isNormalizedSessionProfile,
 } from "@/lib/auth-remote-contracts";
-import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
+import { buildRemoteProviderUrl, requestRemoteJsonWithRetry } from "@/lib/remote-provider-client";
 import { buildServerProviderHeaders, getServerProviderConfig } from "@/lib/server-provider-config";
 
 export type AuthProviderContractReport = {
@@ -30,18 +30,40 @@ export async function buildAuthProviderContractReport(): Promise<AuthProviderCon
   }
 
   const issues: string[] = [];
+  const retryOptions = {
+    attempts: providerConfig.providerRequestRetryAttempts,
+    initialDelayMs: providerConfig.providerRequestRetryInitialDelayMs,
+    backoffFactor: providerConfig.providerRequestRetryBackoffFactor,
+  };
 
-  const profile = await requestRemoteJson<unknown>(buildRemoteProviderUrl(providerConfig.auth.url, "/profile"), {
-    headers,
-  });
-  const signIn = await requestRemoteJson<unknown>(buildRemoteProviderUrl(providerConfig.auth.url, "/sign-in"), {
-    method: "POST",
-    headers,
-  });
-  const signOut = await requestRemoteJson<unknown>(buildRemoteProviderUrl(providerConfig.auth.url, "/sign-out"), {
-    method: "POST",
-    headers,
-  });
+  const [profile, signIn, signOut] = await Promise.all([
+    requestRemoteJsonWithRetry<unknown>(
+      buildRemoteProviderUrl(providerConfig.auth.url, "/profile"),
+      {
+        headers,
+        telemetryKey: "auth",
+      },
+      retryOptions,
+    ),
+    requestRemoteJsonWithRetry<unknown>(
+      buildRemoteProviderUrl(providerConfig.auth.url, "/sign-in"),
+      {
+        method: "POST",
+        headers,
+        telemetryKey: "auth",
+      },
+      retryOptions,
+    ),
+    requestRemoteJsonWithRetry<unknown>(
+      buildRemoteProviderUrl(providerConfig.auth.url, "/sign-out"),
+      {
+        method: "POST",
+        headers,
+        telemetryKey: "auth",
+      },
+      retryOptions,
+    ),
+  ]);
 
   const profileShapeValid = isNormalizedSessionProfile(profile);
   const signInShapeValid = isNormalizedAuthResult(signIn);

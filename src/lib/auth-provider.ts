@@ -4,7 +4,7 @@ import {
 } from "@/lib/auth-remote-contracts";
 import { getProviderConfig } from "@/lib/provider-config";
 import { getClientGatewayUrl } from "@/lib/provider-gateway-client";
-import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
+import { buildRemoteProviderUrl, requestRemoteJsonWithRetry } from "@/lib/remote-provider-client";
 import { getRuntimeCapabilities } from "@/lib/runtime-capabilities";
 import { buildGuestSessionProfile } from "@/lib/session-service";
 import type { SessionProfile } from "@/types/app";
@@ -44,20 +44,36 @@ function createLocalAuthProvider(): AuthProvider {
 }
 
 function createRemoteAuthProvider(authProviderUrl: string): AuthProvider {
+  const providerConfig = getProviderConfig();
+  const retryOptions = {
+    attempts: providerConfig.providerRequestRetryAttempts,
+    initialDelayMs: providerConfig.providerRequestRetryInitialDelayMs,
+    backoffFactor: providerConfig.providerRequestRetryBackoffFactor,
+  };
+
   return {
     isEnabled: () => true,
     getCurrentProfile: async () => {
       const profile = normalizeRemoteSessionProfile(
-        await requestRemoteJson<unknown>(buildRemoteProviderUrl(authProviderUrl, "/profile")),
+        await requestRemoteJsonWithRetry<unknown>(
+          buildRemoteProviderUrl(authProviderUrl, "/profile"),
+          { telemetryKey: "auth" },
+          retryOptions,
+        ),
       );
 
       return profile ?? buildGuestSessionProfile(true);
     },
     signIn: async () => {
       const result = normalizeRemoteAuthResult(
-        await requestRemoteJson<unknown>(buildRemoteProviderUrl(authProviderUrl, "/sign-in"), {
-          method: "POST",
-        }),
+        await requestRemoteJsonWithRetry<unknown>(
+          buildRemoteProviderUrl(authProviderUrl, "/sign-in"),
+          {
+            method: "POST",
+            telemetryKey: "auth",
+          },
+          retryOptions,
+        ),
       );
 
       return (
@@ -69,9 +85,14 @@ function createRemoteAuthProvider(authProviderUrl: string): AuthProvider {
     },
     signOut: async () => {
       const result = normalizeRemoteAuthResult(
-        await requestRemoteJson<unknown>(buildRemoteProviderUrl(authProviderUrl, "/sign-out"), {
-          method: "POST",
-        }),
+        await requestRemoteJsonWithRetry<unknown>(
+          buildRemoteProviderUrl(authProviderUrl, "/sign-out"),
+          {
+            method: "POST",
+            telemetryKey: "auth",
+          },
+          retryOptions,
+        ),
       );
 
       return (
@@ -103,4 +124,3 @@ export function createAuthProvider(): AuthProvider {
 
   return createLocalAuthProvider();
 }
-

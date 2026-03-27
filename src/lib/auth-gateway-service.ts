@@ -3,7 +3,7 @@ import {
   normalizeRemoteSessionProfile,
 } from "@/lib/auth-remote-contracts";
 import type { AuthProviderResult } from "@/lib/auth-provider";
-import { buildRemoteProviderUrl, requestRemoteJson } from "@/lib/remote-provider-client";
+import { buildRemoteProviderUrl, requestRemoteJsonWithRetry } from "@/lib/remote-provider-client";
 import { buildServerProviderHeaders, getServerProviderConfig } from "@/lib/server-provider-config";
 import { buildGuestSessionProfile } from "@/lib/session-service";
 import type { SessionProfile } from "@/types/app";
@@ -22,15 +22,25 @@ function buildGatewayHeaders(baseHeaders: HeadersInit | undefined, sessionToken:
 
 export async function getAuthGatewayProfile(sessionToken = ""): Promise<SessionProfile> {
   const config = getServerProviderConfig();
+  const retryOptions = {
+    attempts: config.providerRequestRetryAttempts,
+    initialDelayMs: config.providerRequestRetryInitialDelayMs,
+    backoffFactor: config.providerRequestRetryBackoffFactor,
+  };
 
   if (!config.auth.url) {
     return buildGuestSessionProfile(false);
   }
 
   const profile = normalizeRemoteSessionProfile(
-    await requestRemoteJson<unknown>(buildRemoteProviderUrl(config.auth.url, "/profile"), {
-      headers: buildGatewayHeaders(buildServerProviderHeaders(config.auth), sessionToken),
-    }),
+    await requestRemoteJsonWithRetry<unknown>(
+      buildRemoteProviderUrl(config.auth.url, "/profile"),
+      {
+        headers: buildGatewayHeaders(buildServerProviderHeaders(config.auth), sessionToken),
+        telemetryKey: "auth",
+      },
+      retryOptions,
+    ),
   );
 
   return profile ?? buildGuestSessionProfile(true);
@@ -38,6 +48,11 @@ export async function getAuthGatewayProfile(sessionToken = ""): Promise<SessionP
 
 export async function runAuthGatewaySignIn(): Promise<AuthProviderResult> {
   const config = getServerProviderConfig();
+  const retryOptions = {
+    attempts: config.providerRequestRetryAttempts,
+    initialDelayMs: config.providerRequestRetryInitialDelayMs,
+    backoffFactor: config.providerRequestRetryBackoffFactor,
+  };
 
   if (!config.auth.url) {
     return {
@@ -47,10 +62,15 @@ export async function runAuthGatewaySignIn(): Promise<AuthProviderResult> {
   }
 
   const result = normalizeRemoteAuthResult(
-    await requestRemoteJson<unknown>(buildRemoteProviderUrl(config.auth.url, "/sign-in"), {
-      method: "POST",
-      headers: buildServerProviderHeaders(config.auth),
-    }),
+    await requestRemoteJsonWithRetry<unknown>(
+      buildRemoteProviderUrl(config.auth.url, "/sign-in"),
+      {
+        method: "POST",
+        headers: buildServerProviderHeaders(config.auth),
+        telemetryKey: "auth",
+      },
+      retryOptions,
+    ),
   );
 
   return (
@@ -63,6 +83,11 @@ export async function runAuthGatewaySignIn(): Promise<AuthProviderResult> {
 
 export async function runAuthGatewaySignOut(sessionToken = ""): Promise<AuthProviderResult> {
   const config = getServerProviderConfig();
+  const retryOptions = {
+    attempts: config.providerRequestRetryAttempts,
+    initialDelayMs: config.providerRequestRetryInitialDelayMs,
+    backoffFactor: config.providerRequestRetryBackoffFactor,
+  };
 
   if (!config.auth.url) {
     return {
@@ -72,10 +97,15 @@ export async function runAuthGatewaySignOut(sessionToken = ""): Promise<AuthProv
   }
 
   const result = normalizeRemoteAuthResult(
-    await requestRemoteJson<unknown>(buildRemoteProviderUrl(config.auth.url, "/sign-out"), {
-      method: "POST",
-      headers: buildGatewayHeaders(buildServerProviderHeaders(config.auth), sessionToken),
-    }),
+    await requestRemoteJsonWithRetry<unknown>(
+      buildRemoteProviderUrl(config.auth.url, "/sign-out"),
+      {
+        method: "POST",
+        headers: buildGatewayHeaders(buildServerProviderHeaders(config.auth), sessionToken),
+        telemetryKey: "auth",
+      },
+      retryOptions,
+    ),
   );
 
   return (
@@ -85,4 +115,3 @@ export async function runAuthGatewaySignOut(sessionToken = ""): Promise<AuthProv
     }
   );
 }
-
