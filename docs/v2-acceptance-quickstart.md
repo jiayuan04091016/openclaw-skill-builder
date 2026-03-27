@@ -28,6 +28,7 @@ GET `/api/internal/provider-request-telemetry?format=markdown`
 - 返回 `readyForUnifiedTesting`
 - 返回 `readyForRealIntegration`
 - `v2-acceptance` 返回 `scorePercent`、`passedCount/totalCount`、`nextStep`
+- `v2-acceptance` 包含 `provider 请求遥测` 检查（真实远端联调阶段才阻塞）
 - `release-readiness` 会包含 `providerTelemetry` 维度（成功率门槛默认 `95%`）
 - `stage-gates` 会包含独立的 `provider-telemetry` 门禁（进入真实远端联调后，要求有样本且成功率达标）
 - `stage-report` 会汇总 `gates` 通过率和当前阻塞门禁

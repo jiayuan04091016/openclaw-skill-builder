@@ -5,6 +5,8 @@ import { buildImportReadinessReport } from "@/lib/import-readiness-service";
 import { buildMediaProviderContractSummary } from "@/lib/media-provider-contract-summary-service";
 import { runMockCloudIsolationSmoke } from "@/lib/mock-cloud-isolation-smoke-service";
 import { buildOcrReadinessReport } from "@/lib/ocr-readiness-service";
+import { buildProviderRequestTelemetryReport } from "@/lib/provider-request-telemetry-service";
+import { buildRealIntegrationReadinessReport } from "@/lib/real-integration-readiness-service";
 import { buildSyncReadinessReport } from "@/lib/sync-readiness-service";
 import { runSyncRoundtripSmoke } from "@/lib/sync-roundtrip-smoke-service";
 import { buildVideoReadinessReport } from "@/lib/video-readiness-service";
@@ -20,7 +22,8 @@ type AcceptanceCheck = {
     | "auth-cloud-bridge-smoke"
     | "sync-roundtrip-smoke"
     | "media-provider-contract"
-    | "mock-cloud-isolation";
+    | "mock-cloud-isolation"
+    | "provider-telemetry";
   label: string;
   ok: boolean;
   nextStep: string;
@@ -44,20 +47,57 @@ function calcScorePercent(passedCount: number, totalCount: number) {
   return Math.round((passedCount / totalCount) * 100);
 }
 
+function readMinSuccessRatePercent() {
+  const fromServer = Number(process.env.PROVIDER_TELEMETRY_MIN_SUCCESS_RATE_PERCENT);
+  const fromPublic = Number(process.env.NEXT_PUBLIC_PROVIDER_TELEMETRY_MIN_SUCCESS_RATE_PERCENT);
+  const value = Number.isFinite(fromServer) && fromServer > 0 ? fromServer : fromPublic;
+
+  if (Number.isFinite(value) && value > 0 && value <= 100) {
+    return Math.floor(value);
+  }
+
+  return 95;
+}
+
 export async function runV2AcceptanceChecks(): Promise<V2AcceptanceReport> {
-  const [auth, cloud, sync, skillImport, ocr, video, authCloudBridge, syncRoundtrip, mediaContract, isolation] =
+  const [
+    auth,
+    cloud,
+    sync,
+    skillImport,
+    ocr,
+    video,
+    authCloudBridge,
+    syncRoundtrip,
+    mediaContract,
+    isolation,
+    telemetry,
+    realIntegration,
+  ] =
     await Promise.all([
       buildAuthReadinessReport(),
       buildCloudReadinessReport(),
       buildSyncReadinessReport(),
-      Promise.resolve(buildImportReadinessReport()),
+      buildImportReadinessReport(),
       buildOcrReadinessReport(),
       buildVideoReadinessReport(),
       runAuthCloudBridgeSmoke(),
       runSyncRoundtripSmoke(),
       buildMediaProviderContractSummary(),
-      Promise.resolve(runMockCloudIsolationSmoke()),
+      runMockCloudIsolationSmoke(),
+      Promise.resolve(buildProviderRequestTelemetryReport()),
+      buildRealIntegrationReadinessReport(),
     ]);
+  const minSuccessRatePercent = readMinSuccessRatePercent();
+  const telemetryGateEnabled = realIntegration.allConfigured && realIntegration.allUsingRemoteTarget;
+  const telemetryOk = !telemetryGateEnabled || (telemetry.totalCalls > 0 && telemetry.successRatePercent >= minSuccessRatePercent);
+  const telemetryNextStep = !telemetryGateEnabled
+    ? "当前还未进入真实远端联调阶段，provider 遥测检查暂不阻塞。"
+    : telemetry.totalCalls <= 0
+      ? "先运行 provider 真实调用链路，生成遥测样本。"
+      : telemetry.successRatePercent < minSuccessRatePercent
+        ? `先修复 provider 调用失败，将成功率提升到 >= ${minSuccessRatePercent}%。`
+        : "provider 请求遥测检查已通过。";
 
   const checks: AcceptanceCheck[] = [
     { key: "auth", label: "账号登录 readiness", ok: auth.readyForIntegration, nextStep: auth.nextStep },
@@ -89,6 +129,12 @@ export async function runV2AcceptanceChecks(): Promise<V2AcceptanceReport> {
       label: "mock 云端隔离",
       ok: isolation.ok,
       nextStep: isolation.ok ? "mock 云端隔离已通过。" : "先修复 mock 云端按 token 隔离逻辑。",
+    },
+    {
+      key: "provider-telemetry",
+      label: "provider 请求遥测",
+      ok: telemetryOk,
+      nextStep: telemetryNextStep,
     },
   ];
 
@@ -130,4 +176,3 @@ export function buildV2AcceptanceMarkdown(report: V2AcceptanceReport) {
 
   return lines.join("\n");
 }
-
