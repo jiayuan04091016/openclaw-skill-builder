@@ -58,6 +58,17 @@ const checks = [
     validate: (payload) => Boolean(payload && typeof payload.totalCalls === "number" && Array.isArray(payload.items)),
   },
   {
+    key: "provider-telemetry-gate",
+    path: "/api/internal/provider-telemetry-gate",
+    validate: (payload) =>
+      Boolean(
+        payload &&
+          typeof payload.enabled === "boolean" &&
+          typeof payload.healthy === "boolean" &&
+          typeof payload.minSuccessRatePercent === "number",
+      ),
+  },
+  {
     key: "import-readiness",
     path: "/api/internal/import-readiness",
     validate: (payload) =>

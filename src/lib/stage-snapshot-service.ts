@@ -7,6 +7,7 @@ import { writeRealIntegrationReadinessSnapshot } from "@/lib/real-integration-re
 import { writeReleaseReadinessSnapshot } from "@/lib/release-readiness-snapshot-service";
 import { writeProviderIntegrationPlanSnapshot } from "@/lib/provider-integration-plan-service";
 import { writeProviderRequestTelemetrySnapshot } from "@/lib/provider-request-telemetry-service";
+import { writeProviderTelemetryGateSnapshot } from "@/lib/provider-telemetry-gate-snapshot-service";
 import { writeProviderGatewaySnapshot } from "@/lib/provider-gateway-snapshot-service";
 import { writeSyncPipelineSnapshot } from "@/lib/sync-pipeline-snapshot-service";
 import { writeSyncReadinessSnapshot } from "@/lib/sync-readiness-snapshot-service";
@@ -67,6 +68,7 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
     providerSnapshot,
     providerGatewaySnapshot,
     providerRequestTelemetrySnapshot,
+    providerTelemetryGateSnapshot,
     syncReadinessSnapshot,
     syncPipelineSnapshot,
     mediaProviderContractSnapshot,
@@ -85,6 +87,7 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
       writeProviderIntegrationPlanSnapshot(),
       writeProviderGatewaySnapshot(),
       writeProviderRequestTelemetrySnapshot(),
+      writeProviderTelemetryGateSnapshot(),
       writeSyncReadinessSnapshot(),
       writeSyncPipelineSnapshot(),
       writeMediaProviderContractSnapshot(),
@@ -117,6 +120,10 @@ export async function writeStageSnapshot(): Promise<StageSnapshotResult> {
       {
         fileName: providerRequestTelemetrySnapshot.fileName,
         filePath: providerRequestTelemetrySnapshot.filePath,
+      },
+      {
+        fileName: providerTelemetryGateSnapshot.fileName,
+        filePath: providerTelemetryGateSnapshot.filePath,
       },
       {
         fileName: syncReadinessSnapshot.fileName,
