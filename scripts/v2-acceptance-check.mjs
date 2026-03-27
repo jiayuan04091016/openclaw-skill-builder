@@ -25,7 +25,14 @@ const checks = [
   {
     key: "stage-report",
     path: "/api/internal/stage-report",
-    validate: (payload) => Boolean(payload && typeof payload.readyForBetaRelease === "boolean"),
+    validate: (payload) =>
+      Boolean(
+        payload &&
+          typeof payload.readyForBetaRelease === "boolean" &&
+          payload.sections &&
+          payload.sections.gates &&
+          typeof payload.sections.gates.passPercent === "number",
+      ),
   },
   {
     key: "stage-delivery-status",
@@ -40,7 +47,13 @@ const checks = [
   {
     key: "stage-gates",
     path: "/api/internal/stage-gates",
-    validate: (payload) => Boolean(payload && typeof payload.passPercent === "number"),
+    validate: (payload) =>
+      Boolean(
+        payload &&
+          typeof payload.passPercent === "number" &&
+          Array.isArray(payload.gates) &&
+          payload.gates.some((item) => item && item.key === "provider-telemetry"),
+      ),
   },
   {
     key: "stage-run-history",

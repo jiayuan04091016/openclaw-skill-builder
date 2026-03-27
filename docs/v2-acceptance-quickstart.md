@@ -25,6 +25,7 @@ GET `/api/internal/provider-request-telemetry`
 GET `/api/internal/provider-request-telemetry?format=markdown`
 GET `/api/internal/provider-telemetry-gate`
 GET `/api/internal/provider-telemetry-gate?format=markdown`
+POST `/api/internal/provider-telemetry-gate-snapshot`
 
 预期：
 - 返回 `readyForUnifiedTesting`
