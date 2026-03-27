@@ -1,7 +1,5 @@
 import { buildReleaseReadinessReport } from "@/lib/release-readiness-service";
-import { buildProviderRequestTelemetryReport } from "@/lib/provider-request-telemetry-service";
-import { buildRealIntegrationReadinessReport } from "@/lib/real-integration-readiness-service";
-import { evaluateProviderTelemetryGate } from "@/lib/provider-telemetry-gate-service";
+import { buildProviderTelemetryGateReport } from "@/lib/provider-telemetry-gate-snapshot-service";
 import { buildStageArtifactsReport } from "@/lib/stage-artifacts-service";
 import { buildStageDeliveryStatusReport } from "@/lib/stage-delivery-status-service";
 import { runV2AcceptanceChecks } from "@/lib/v2-acceptance-runner-service";
@@ -35,16 +33,14 @@ function toPercent(passed: number, total: number) {
 }
 
 export async function buildStageGatesReport(): Promise<StageGatesReport> {
-  const [infra, acceptance, release, telemetry, realIntegration, delivery, artifacts] = await Promise.all([
+  const [infra, acceptance, release, telemetryGateReport, delivery, artifacts] = await Promise.all([
     buildV2InfraStatusReport(),
     runV2AcceptanceChecks(),
     buildReleaseReadinessReport(),
-    Promise.resolve(buildProviderRequestTelemetryReport()),
-    buildRealIntegrationReadinessReport(),
+    buildProviderTelemetryGateReport(),
     buildStageDeliveryStatusReport(),
     buildStageArtifactsReport(),
   ]);
-  const telemetryGate = evaluateProviderTelemetryGate(telemetry, realIntegration);
 
   const gates: StageGateItem[] = [
     {
@@ -67,9 +63,9 @@ export async function buildStageGatesReport(): Promise<StageGatesReport> {
     },
     {
       key: "provider-telemetry",
-      passed: telemetryGate.healthy,
-      detail: `enabled=${telemetryGate.enabled}, totalCalls=${telemetry.totalCalls}, successRate=${telemetry.successRatePercent}%, minSuccessRate=${telemetryGate.minSuccessRatePercent}%`,
-      nextStep: telemetryGate.nextStep,
+      passed: telemetryGateReport.healthy,
+      detail: `enabled=${telemetryGateReport.enabled}, totalCalls=${telemetryGateReport.totalCalls}, successRate=${telemetryGateReport.successRatePercent}%, minSuccessRate=${telemetryGateReport.minSuccessRatePercent}%`,
+      nextStep: telemetryGateReport.nextStep,
     },
     {
       key: "delivery",

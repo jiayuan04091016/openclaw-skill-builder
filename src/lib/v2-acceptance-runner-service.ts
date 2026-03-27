@@ -5,9 +5,7 @@ import { buildImportReadinessReport } from "@/lib/import-readiness-service";
 import { buildMediaProviderContractSummary } from "@/lib/media-provider-contract-summary-service";
 import { runMockCloudIsolationSmoke } from "@/lib/mock-cloud-isolation-smoke-service";
 import { buildOcrReadinessReport } from "@/lib/ocr-readiness-service";
-import { evaluateProviderTelemetryGate } from "@/lib/provider-telemetry-gate-service";
-import { buildProviderRequestTelemetryReport } from "@/lib/provider-request-telemetry-service";
-import { buildRealIntegrationReadinessReport } from "@/lib/real-integration-readiness-service";
+import { buildProviderTelemetryGateReport } from "@/lib/provider-telemetry-gate-snapshot-service";
 import { buildSyncReadinessReport } from "@/lib/sync-readiness-service";
 import { runSyncRoundtripSmoke } from "@/lib/sync-roundtrip-smoke-service";
 import { buildVideoReadinessReport } from "@/lib/video-readiness-service";
@@ -60,8 +58,7 @@ export async function runV2AcceptanceChecks(): Promise<V2AcceptanceReport> {
     syncRoundtrip,
     mediaContract,
     isolation,
-    telemetry,
-    realIntegration,
+    telemetryGate,
   ] =
     await Promise.all([
       buildAuthReadinessReport(),
@@ -74,10 +71,8 @@ export async function runV2AcceptanceChecks(): Promise<V2AcceptanceReport> {
       runSyncRoundtripSmoke(),
       buildMediaProviderContractSummary(),
       runMockCloudIsolationSmoke(),
-      Promise.resolve(buildProviderRequestTelemetryReport()),
-      buildRealIntegrationReadinessReport(),
+      buildProviderTelemetryGateReport(),
     ]);
-  const telemetryGate = evaluateProviderTelemetryGate(telemetry, realIntegration);
 
   const checks: AcceptanceCheck[] = [
     { key: "auth", label: "账号登录 readiness", ok: auth.readyForIntegration, nextStep: auth.nextStep },
