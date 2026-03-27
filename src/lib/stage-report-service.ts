@@ -1,4 +1,5 @@
 import { buildReleaseReadinessReport } from "@/lib/release-readiness-service";
+import { buildStageGatesReport } from "@/lib/stage-gates-service";
 import { runV2AcceptanceChecks } from "@/lib/v2-acceptance-runner-service";
 import { buildV2InfraStatusReport } from "@/lib/v2-infra-status-service";
 
@@ -23,6 +24,12 @@ export type StageReport = {
       readyForBetaRelease: boolean;
       nextStep: string;
     };
+    gates: {
+      passPercent: number;
+      allPassed: boolean;
+      nextBlockingGate: string | null;
+      nextStep: string;
+    };
   };
 };
 
@@ -34,10 +41,11 @@ function averageScore(items: number[]) {
 }
 
 export async function buildStageReport(): Promise<StageReport> {
-  const [infra, acceptance, release] = await Promise.all([
+  const [infra, acceptance, release, gates] = await Promise.all([
     buildV2InfraStatusReport(),
     runV2AcceptanceChecks(),
     buildReleaseReadinessReport(),
+    buildStageGatesReport(),
   ]);
 
   const readyForBetaRelease = release.readyForBetaRelease;
@@ -68,6 +76,12 @@ export async function buildStageReport(): Promise<StageReport> {
         readyForBetaRelease: release.readyForBetaRelease,
         nextStep: release.nextStep,
       },
+      gates: {
+        passPercent: gates.passPercent,
+        allPassed: gates.allPassed,
+        nextBlockingGate: gates.nextBlockingGate,
+        nextStep: gates.nextStep,
+      },
     },
   };
 }
@@ -88,6 +102,8 @@ export function buildStageReportMarkdown(report: StageReport) {
     `  nextStep: ${report.sections.acceptance.nextStep}`,
     `- release: score=${report.sections.release.scorePercent}%, readyForBetaRelease=${report.sections.release.readyForBetaRelease}`,
     `  nextStep: ${report.sections.release.nextStep}`,
+    `- gates: passPercent=${report.sections.gates.passPercent}%, allPassed=${report.sections.gates.allPassed}, nextBlockingGate=${report.sections.gates.nextBlockingGate ?? "none"}`,
+    `  nextStep: ${report.sections.gates.nextStep}`,
   ];
 
   return lines.join("\n");
