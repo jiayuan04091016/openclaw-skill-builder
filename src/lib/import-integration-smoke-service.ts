@@ -1,11 +1,16 @@
+import JSZip from "jszip";
+
 import { createSkillImportPipelineService } from "@/lib/skill-import-pipeline-service";
+import { loadImportedSkillAssetFromZipData } from "@/lib/skill-import-loader";
 
 export type ImportIntegrationSmokeReport = {
   parsedTitle: string;
   parsedTitleFromJson: string;
   parsedTitleFromYaml: string;
+  parsedTitleFromZip: string;
   extractedCount: number;
   archiveReady: boolean;
+  zipArchiveReady: boolean;
   readyForFirstDraft: boolean;
   ok: boolean;
 };
@@ -48,25 +53,60 @@ inputFormat: 巡检原始记录文本
 outputFormat: 问题清单 + 优先级 + 建议动作
 `;
 
-export function runImportIntegrationSmoke(): ImportIntegrationSmokeReport {
+async function buildSampleSkillZipData() {
+  const zip = new JSZip();
+  zip.file(
+    "sample-skill/SKILL.md",
+    `---
+name: ZIP 导入助手
+description: 从 ZIP 包中提取 Skill 核心字段
+---
+
+# ZIP 导入助手
+
+## 适用对象
+电脑新手
+
+## 主要任务
+导入已有 Skill 并补全核心结构
+
+## 输入内容
+旧 Skill 的压缩包
+
+## 输出内容
+解析后的结构化字段
+`,
+  );
+  zip.file("sample-skill/README.txt", "this is a plain readme");
+  return zip.generateAsync({ type: "uint8array" });
+}
+
+export async function runImportIntegrationSmoke(): Promise<ImportIntegrationSmokeReport> {
   const pipeline = createSkillImportPipelineService();
   const result = pipeline.importFromText(sampleImportedSkill, "import-smoke.md");
   const resultFromJson = pipeline.importFromText(sampleImportedSkillJson, "import-smoke.json");
   const resultFromYaml = pipeline.importFromText(sampleImportedSkillYaml, "import-smoke.yaml");
+  const zipAsset = await loadImportedSkillAssetFromZipData("import-smoke.zip", await buildSampleSkillZipData());
+  const zipResult = pipeline.importFromText(zipAsset.importedSkillText, zipAsset.sourceName);
+  const zipArchiveReady = Boolean(zipResult.archive && zipAsset.sourceType === "zip");
 
   return {
     parsedTitle: result.review?.parsed.title ?? "",
     parsedTitleFromJson: resultFromJson.review?.parsed.title ?? "",
     parsedTitleFromYaml: resultFromYaml.review?.parsed.title ?? "",
+    parsedTitleFromZip: zipResult.review?.parsed.title ?? "",
     extractedCount: result.review?.summary.extractedCount ?? 0,
     archiveReady: Boolean(result.archive),
+    zipArchiveReady,
     readyForFirstDraft: result.review?.summary.readyForFirstDraft === true,
     ok: Boolean(
         result.archive &&
         result.review &&
         result.review.summary.extractedCount >= 4 &&
         resultFromJson.review?.parsed.title.trim() &&
-        resultFromYaml.review?.parsed.title.trim(),
+        resultFromYaml.review?.parsed.title.trim() &&
+        zipResult.review?.parsed.title.trim() &&
+        zipArchiveReady,
     ),
   };
 }

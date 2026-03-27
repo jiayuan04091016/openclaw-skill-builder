@@ -136,24 +136,31 @@ async function chooseBestZipCandidate(zip: JSZip) {
   return best;
 }
 
-export async function loadImportedSkillAsset(file: File): Promise<ImportedSkillAsset> {
-  if (file.name.toLowerCase().endsWith(".zip")) {
-    const zip = await JSZip.loadAsync(await file.arrayBuffer());
-    const best = await chooseBestZipCandidate(zip);
+export async function loadImportedSkillAssetFromZipData(
+  sourceName: string,
+  zipData: ArrayBuffer | Uint8Array,
+): Promise<ImportedSkillAsset> {
+  const zip = await JSZip.loadAsync(zipData);
+  const best = await chooseBestZipCandidate(zip);
 
-    if (!best) {
-      return {
-        sourceType: "zip",
-        sourceName: file.name,
-        importedSkillText: "",
-      };
-    }
-
+  if (!best) {
     return {
       sourceType: "zip",
-      sourceName: `${file.name}::${best.path}`,
-      importedSkillText: best.text,
+      sourceName,
+      importedSkillText: "",
     };
+  }
+
+  return {
+    sourceType: "zip",
+    sourceName: `${sourceName}::${best.path}`,
+    importedSkillText: best.text,
+  };
+}
+
+export async function loadImportedSkillAsset(file: File): Promise<ImportedSkillAsset> {
+  if (file.name.toLowerCase().endsWith(".zip")) {
+    return loadImportedSkillAssetFromZipData(file.name, await file.arrayBuffer());
   }
 
   if (

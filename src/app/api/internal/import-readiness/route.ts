@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { buildImportReadinessMarkdown, buildImportReadinessReport } from "@/lib/import-readiness-service";
 
 export async function GET(request: NextRequest) {
-  const report = buildImportReadinessReport();
+  const report = await buildImportReadinessReport();
   const format = request.nextUrl.searchParams.get("format");
 
   if (format === "markdown") {

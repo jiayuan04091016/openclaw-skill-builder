@@ -5,15 +5,17 @@ export type ImportReadinessReport = {
   contractValid: boolean;
   integrationSmokeReady: boolean;
   archiveReady: boolean;
-  formatCoverage: Array<"markdown" | "json" | "yaml">;
+  formatCoverage: Array<"markdown" | "json" | "yaml" | "zip">;
   readyForIntegration: boolean;
   nextStep: string;
   issues: string[];
 };
 
-export function buildImportReadinessReport(): ImportReadinessReport {
-  const contractReport = buildImportProviderContractReport();
-  const integrationSmoke = runImportIntegrationSmoke();
+export async function buildImportReadinessReport(): Promise<ImportReadinessReport> {
+  const [contractReport, integrationSmoke] = await Promise.all([
+    buildImportProviderContractReport(),
+    runImportIntegrationSmoke(),
+  ]);
   const issues = [...contractReport.issues];
 
   if (!integrationSmoke.ok) {

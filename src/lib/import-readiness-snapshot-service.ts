@@ -5,8 +5,10 @@ import { buildImportProviderContractMarkdown, buildImportProviderContractReport 
 import { buildImportReadinessMarkdown, buildImportReadinessReport } from "@/lib/import-readiness-service";
 
 export async function writeImportReadinessSnapshot() {
-  const readiness = buildImportReadinessReport();
-  const contract = buildImportProviderContractReport();
+  const [readiness, contract] = await Promise.all([
+    buildImportReadinessReport(),
+    buildImportProviderContractReport(),
+  ]);
   const docsDir = path.join(process.cwd(), "docs");
   const readinessFileName = "import-readiness.md";
   const contractFileName = "import-provider-contract.md";

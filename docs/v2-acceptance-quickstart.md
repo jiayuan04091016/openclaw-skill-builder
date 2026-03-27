@@ -136,4 +136,4 @@ GET `/api/internal/import-readiness?format=markdown`
 预期：
 - `allValid: true`
 - `readyForIntegration: true`
-- `formatCoverage` 包含 `markdown`、`json`、`yaml`
+- `formatCoverage` 包含 `markdown`、`json`、`yaml`、`zip`

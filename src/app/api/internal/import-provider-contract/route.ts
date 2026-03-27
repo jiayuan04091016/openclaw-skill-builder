@@ -6,7 +6,7 @@ import {
 } from "@/lib/import-provider-contract-service";
 
 export async function GET(request: NextRequest) {
-  const report = buildImportProviderContractReport();
+  const report = await buildImportProviderContractReport();
   const format = request.nextUrl.searchParams.get("format");
 
   if (format === "markdown") {

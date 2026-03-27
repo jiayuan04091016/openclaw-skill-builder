@@ -1,3 +1,6 @@
+import JSZip from "jszip";
+
+import { loadImportedSkillAssetFromZipData } from "@/lib/skill-import-loader";
 import { createSkillImportPipelineService } from "@/lib/skill-import-pipeline-service";
 
 export type ImportProviderContractReport = {
@@ -6,7 +9,8 @@ export type ImportProviderContractReport = {
   archiveShapeValid: boolean;
   jsonFormatValid: boolean;
   yamlFormatValid: boolean;
-  formatCoverage: Array<"markdown" | "json" | "yaml">;
+  zipFormatValid: boolean;
+  formatCoverage: Array<"markdown" | "json" | "yaml" | "zip">;
   allValid: boolean;
   issues: string[];
 };
@@ -52,11 +56,38 @@ inputFormat: YAML 文本
 outputFormat: Skill 字段
 `;
 
-export function buildImportProviderContractReport(): ImportProviderContractReport {
+async function buildSampleZipData() {
+  const zip = new JSZip();
+  zip.file(
+    "bundle/SKILL.md",
+    `---
+name: ZIP 合约助手
+description: 验证 ZIP 结构导入
+---
+
+## 适用对象
+内容整理人员
+
+## 主要任务
+验证 ZIP 解析
+
+## 输入内容
+zip 文件
+
+## 输出内容
+Skill 字段
+`,
+  );
+  return zip.generateAsync({ type: "uint8array" });
+}
+
+export async function buildImportProviderContractReport(): Promise<ImportProviderContractReport> {
   const pipeline = createSkillImportPipelineService();
   const result = pipeline.importFromText(sampleImportedSkill, "sample-skill.md");
   const jsonResult = pipeline.importFromText(sampleImportedSkillJson, "sample-skill.json");
   const yamlResult = pipeline.importFromText(sampleImportedSkillYaml, "sample-skill.yaml");
+  const zipAsset = await loadImportedSkillAssetFromZipData("sample-skill.zip", await buildSampleZipData());
+  const zipResult = pipeline.importFromText(zipAsset.importedSkillText, zipAsset.sourceName);
   const issues: string[] = [];
   const parseShapeValid = Boolean(
     result.review?.parsed.title &&
@@ -88,7 +119,14 @@ export function buildImportProviderContractReport(): ImportProviderContractRepor
       yamlResult.review?.parsed.inputFormat.trim() &&
       yamlResult.review?.parsed.outputFormat.trim(),
   );
-  const formatCoverage: Array<"markdown" | "json" | "yaml"> = ["markdown"];
+  const zipFormatValid = Boolean(
+    zipAsset.sourceType === "zip" &&
+      zipResult.review?.parsed.title.trim() &&
+      zipResult.review?.parsed.description.trim() &&
+      zipResult.review?.parsed.inputFormat.trim() &&
+      zipResult.review?.parsed.outputFormat.trim(),
+  );
+  const formatCoverage: Array<"markdown" | "json" | "yaml" | "zip"> = ["markdown"];
 
   if (jsonFormatValid) {
     formatCoverage.push("json");
@@ -96,6 +134,10 @@ export function buildImportProviderContractReport(): ImportProviderContractRepor
 
   if (yamlFormatValid) {
     formatCoverage.push("yaml");
+  }
+
+  if (zipFormatValid) {
+    formatCoverage.push("zip");
   }
 
   if (!parseShapeValid) {
@@ -118,14 +160,25 @@ export function buildImportProviderContractReport(): ImportProviderContractRepor
     issues.push("旧 Skill YAML 结构解析未通过。");
   }
 
+  if (!zipFormatValid) {
+    issues.push("旧 Skill ZIP 结构解析未通过。");
+  }
+
   return {
     parseShapeValid,
     reviewShapeValid,
     archiveShapeValid,
     jsonFormatValid,
     yamlFormatValid,
+    zipFormatValid,
     formatCoverage,
-    allValid: parseShapeValid && reviewShapeValid && archiveShapeValid && jsonFormatValid && yamlFormatValid,
+    allValid:
+      parseShapeValid &&
+      reviewShapeValid &&
+      archiveShapeValid &&
+      jsonFormatValid &&
+      yamlFormatValid &&
+      zipFormatValid,
     issues,
   };
 }
@@ -140,6 +193,7 @@ export function buildImportProviderContractMarkdown(report: ImportProviderContra
     `- archiveShapeValid: ${report.archiveShapeValid}`,
     `- jsonFormatValid: ${report.jsonFormatValid}`,
     `- yamlFormatValid: ${report.yamlFormatValid}`,
+    `- zipFormatValid: ${report.zipFormatValid}`,
     `- formatCoverage: ${report.formatCoverage.join(", ")}`,
     "",
     "## Issues",
