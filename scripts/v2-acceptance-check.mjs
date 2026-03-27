@@ -20,7 +20,15 @@ const checks = [
   {
     key: "release-readiness",
     path: "/api/internal/release-readiness",
-    validate: (payload) => Boolean(payload && typeof payload.readyForBetaRelease === "boolean"),
+    validate: (payload) =>
+      Boolean(
+        payload &&
+          typeof payload.readyForBetaRelease === "boolean" &&
+          payload.dimensions &&
+          payload.dimensions.providerTelemetry &&
+          typeof payload.dimensions.providerTelemetry.healthy === "boolean" &&
+          typeof payload.dimensions.providerTelemetry.minSuccessRatePercent === "number",
+      ),
   },
   {
     key: "stage-report",
@@ -37,7 +45,14 @@ const checks = [
   {
     key: "stage-delivery-status",
     path: "/api/internal/stage-delivery-status",
-    validate: (payload) => Boolean(payload && typeof payload.readyForDelivery === "boolean"),
+    validate: (payload) =>
+      Boolean(
+        payload &&
+          typeof payload.readyForDelivery === "boolean" &&
+          payload.providerTelemetryGate &&
+          typeof payload.providerTelemetryGate.enabled === "boolean" &&
+          typeof payload.providerTelemetryGate.healthy === "boolean",
+      ),
   },
   {
     key: "stage-artifacts",
