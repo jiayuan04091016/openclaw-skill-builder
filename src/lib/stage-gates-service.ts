@@ -1,6 +1,7 @@
 import { buildReleaseReadinessReport } from "@/lib/release-readiness-service";
 import { buildProviderRequestTelemetryReport } from "@/lib/provider-request-telemetry-service";
 import { buildRealIntegrationReadinessReport } from "@/lib/real-integration-readiness-service";
+import { evaluateProviderTelemetryGate } from "@/lib/provider-telemetry-gate-service";
 import { buildStageArtifactsReport } from "@/lib/stage-artifacts-service";
 import { buildStageDeliveryStatusReport } from "@/lib/stage-delivery-status-service";
 import { runV2AcceptanceChecks } from "@/lib/v2-acceptance-runner-service";
@@ -33,18 +34,6 @@ function toPercent(passed: number, total: number) {
   return Math.round((passed / total) * 100);
 }
 
-function readMinSuccessRatePercent() {
-  const fromServer = Number(process.env.PROVIDER_TELEMETRY_MIN_SUCCESS_RATE_PERCENT);
-  const fromPublic = Number(process.env.NEXT_PUBLIC_PROVIDER_TELEMETRY_MIN_SUCCESS_RATE_PERCENT);
-  const value = Number.isFinite(fromServer) && fromServer > 0 ? fromServer : fromPublic;
-
-  if (Number.isFinite(value) && value > 0 && value <= 100) {
-    return Math.floor(value);
-  }
-
-  return 95;
-}
-
 export async function buildStageGatesReport(): Promise<StageGatesReport> {
   const [infra, acceptance, release, telemetry, realIntegration, delivery, artifacts] = await Promise.all([
     buildV2InfraStatusReport(),
@@ -55,18 +44,7 @@ export async function buildStageGatesReport(): Promise<StageGatesReport> {
     buildStageDeliveryStatusReport(),
     buildStageArtifactsReport(),
   ]);
-  const minSuccessRatePercent = readMinSuccessRatePercent();
-  const telemetrySampleReady = telemetry.totalCalls > 0;
-  const telemetrySuccessReady = telemetry.successRatePercent >= minSuccessRatePercent;
-  const telemetryGateEnabled = realIntegration.allConfigured && realIntegration.allUsingRemoteTarget;
-  const telemetryPassed = !telemetryGateEnabled || (telemetrySampleReady && telemetrySuccessReady);
-  const telemetryNextStep = !telemetryGateEnabled
-    ? "当前还未进入真实远端联调阶段，provider 遥测门禁暂不阻塞。"
-    : !telemetrySampleReady
-      ? "先运行 provider 真实调用链路，生成遥测样本。"
-      : !telemetrySuccessReady
-        ? `先修复 provider 调用失败，将成功率提升到 >= ${minSuccessRatePercent}%。`
-        : "provider 请求遥测已达门禁要求。";
+  const telemetryGate = evaluateProviderTelemetryGate(telemetry, realIntegration);
 
   const gates: StageGateItem[] = [
     {
@@ -89,9 +67,9 @@ export async function buildStageGatesReport(): Promise<StageGatesReport> {
     },
     {
       key: "provider-telemetry",
-      passed: telemetryPassed,
-      detail: `enabled=${telemetryGateEnabled}, totalCalls=${telemetry.totalCalls}, successRate=${telemetry.successRatePercent}%, minSuccessRate=${minSuccessRatePercent}%`,
-      nextStep: telemetryNextStep,
+      passed: telemetryGate.healthy,
+      detail: `enabled=${telemetryGate.enabled}, totalCalls=${telemetry.totalCalls}, successRate=${telemetry.successRatePercent}%, minSuccessRate=${telemetryGate.minSuccessRatePercent}%`,
+      nextStep: telemetryGate.nextStep,
     },
     {
       key: "delivery",

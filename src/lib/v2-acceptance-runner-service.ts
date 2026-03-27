@@ -5,6 +5,7 @@ import { buildImportReadinessReport } from "@/lib/import-readiness-service";
 import { buildMediaProviderContractSummary } from "@/lib/media-provider-contract-summary-service";
 import { runMockCloudIsolationSmoke } from "@/lib/mock-cloud-isolation-smoke-service";
 import { buildOcrReadinessReport } from "@/lib/ocr-readiness-service";
+import { evaluateProviderTelemetryGate } from "@/lib/provider-telemetry-gate-service";
 import { buildProviderRequestTelemetryReport } from "@/lib/provider-request-telemetry-service";
 import { buildRealIntegrationReadinessReport } from "@/lib/real-integration-readiness-service";
 import { buildSyncReadinessReport } from "@/lib/sync-readiness-service";
@@ -47,18 +48,6 @@ function calcScorePercent(passedCount: number, totalCount: number) {
   return Math.round((passedCount / totalCount) * 100);
 }
 
-function readMinSuccessRatePercent() {
-  const fromServer = Number(process.env.PROVIDER_TELEMETRY_MIN_SUCCESS_RATE_PERCENT);
-  const fromPublic = Number(process.env.NEXT_PUBLIC_PROVIDER_TELEMETRY_MIN_SUCCESS_RATE_PERCENT);
-  const value = Number.isFinite(fromServer) && fromServer > 0 ? fromServer : fromPublic;
-
-  if (Number.isFinite(value) && value > 0 && value <= 100) {
-    return Math.floor(value);
-  }
-
-  return 95;
-}
-
 export async function runV2AcceptanceChecks(): Promise<V2AcceptanceReport> {
   const [
     auth,
@@ -88,16 +77,7 @@ export async function runV2AcceptanceChecks(): Promise<V2AcceptanceReport> {
       Promise.resolve(buildProviderRequestTelemetryReport()),
       buildRealIntegrationReadinessReport(),
     ]);
-  const minSuccessRatePercent = readMinSuccessRatePercent();
-  const telemetryGateEnabled = realIntegration.allConfigured && realIntegration.allUsingRemoteTarget;
-  const telemetryOk = !telemetryGateEnabled || (telemetry.totalCalls > 0 && telemetry.successRatePercent >= minSuccessRatePercent);
-  const telemetryNextStep = !telemetryGateEnabled
-    ? "当前还未进入真实远端联调阶段，provider 遥测检查暂不阻塞。"
-    : telemetry.totalCalls <= 0
-      ? "先运行 provider 真实调用链路，生成遥测样本。"
-      : telemetry.successRatePercent < minSuccessRatePercent
-        ? `先修复 provider 调用失败，将成功率提升到 >= ${minSuccessRatePercent}%。`
-        : "provider 请求遥测检查已通过。";
+  const telemetryGate = evaluateProviderTelemetryGate(telemetry, realIntegration);
 
   const checks: AcceptanceCheck[] = [
     { key: "auth", label: "账号登录 readiness", ok: auth.readyForIntegration, nextStep: auth.nextStep },
@@ -133,8 +113,8 @@ export async function runV2AcceptanceChecks(): Promise<V2AcceptanceReport> {
     {
       key: "provider-telemetry",
       label: "provider 请求遥测",
-      ok: telemetryOk,
-      nextStep: telemetryNextStep,
+      ok: telemetryGate.healthy,
+      nextStep: telemetryGate.nextStep,
     },
   ];
 

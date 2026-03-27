@@ -1,4 +1,5 @@
 import { buildRealIntegrationReadinessReport } from "@/lib/real-integration-readiness-service";
+import { evaluateProviderTelemetryGate } from "@/lib/provider-telemetry-gate-service";
 import { buildProviderRequestTelemetryReport } from "@/lib/provider-request-telemetry-service";
 import { runV2AcceptanceChecks } from "@/lib/v2-acceptance-runner-service";
 import { buildV2InfraStatusReport } from "@/lib/v2-infra-status-service";
@@ -40,18 +41,6 @@ function averageScore(scores: number[]) {
   return Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
 }
 
-function readMinSuccessRatePercent() {
-  const fromServer = Number(process.env.PROVIDER_TELEMETRY_MIN_SUCCESS_RATE_PERCENT);
-  const fromPublic = Number(process.env.NEXT_PUBLIC_PROVIDER_TELEMETRY_MIN_SUCCESS_RATE_PERCENT);
-  const value = Number.isFinite(fromServer) && fromServer > 0 ? fromServer : fromPublic;
-
-  if (Number.isFinite(value) && value > 0 && value <= 100) {
-    return Math.floor(value);
-  }
-
-  return 95;
-}
-
 export async function buildReleaseReadinessReport(): Promise<ReleaseReadinessReport> {
   const [infra, acceptance, realIntegration, providerTelemetry] = await Promise.all([
     buildV2InfraStatusReport(),
@@ -59,15 +48,11 @@ export async function buildReleaseReadinessReport(): Promise<ReleaseReadinessRep
     buildRealIntegrationReadinessReport(),
     Promise.resolve(buildProviderRequestTelemetryReport()),
   ]);
-  const minSuccessRatePercent = readMinSuccessRatePercent();
-  const telemetryHealthy =
-    providerTelemetry.totalCalls === 0 || providerTelemetry.successRatePercent >= minSuccessRatePercent;
-  const telemetryNextStep =
-    providerTelemetry.totalCalls === 0
-      ? "先执行 provider 网关链路，生成请求遥测样本。"
-      : telemetryHealthy
-        ? "provider 请求遥测健康度达标。"
-        : `先修复 provider 请求失败，并将成功率提升到 >= ${minSuccessRatePercent}%。`;
+  const telemetryGate = evaluateProviderTelemetryGate(providerTelemetry, realIntegration);
+  const telemetryHealthy = telemetryGate.enabled ? telemetryGate.healthy : true;
+  const telemetryNextStep = telemetryGate.enabled
+    ? telemetryGate.nextStep
+    : "当前仍在第一阶段或 mock 阶段，provider 请求遥测暂不作为发布阻塞。";
 
   const readyForBetaRelease =
     infra.readyForUnifiedTesting &&
@@ -114,7 +99,7 @@ export async function buildReleaseReadinessReport(): Promise<ReleaseReadinessRep
         healthy: telemetryHealthy,
         totalCalls: providerTelemetry.totalCalls,
         successRatePercent: providerTelemetry.successRatePercent,
-        minSuccessRatePercent,
+        minSuccessRatePercent: telemetryGate.minSuccessRatePercent,
         nextStep: telemetryNextStep,
       },
     },
