@@ -31,6 +31,7 @@ GET `/api/internal/real-integration-readiness`
 GET `/api/internal/real-integration-readiness?format=markdown`
 GET `/api/internal/provider-request-telemetry`
 GET `/api/internal/provider-request-telemetry?format=markdown`
+POST `/api/internal/provider-request-telemetry-snapshot`
 GET `/api/internal/provider-telemetry-gate`
 GET `/api/internal/provider-telemetry-gate?format=markdown`
 POST `/api/internal/provider-telemetry-gate-snapshot`
