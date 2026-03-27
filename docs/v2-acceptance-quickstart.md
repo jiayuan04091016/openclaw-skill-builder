@@ -28,6 +28,7 @@ GET `/api/internal/provider-request-telemetry?format=markdown`
 - 返回 `readyForUnifiedTesting`
 - 返回 `readyForRealIntegration`
 - `v2-acceptance` 返回 `scorePercent`、`passedCount/totalCount`、`nextStep`
+- `release-readiness` 会包含 `providerTelemetry` 维度（成功率门槛默认 `95%`）
 - `files` 包含：
   - `v2-capability-readiness.md`
   - `provider-integration-plan.md`

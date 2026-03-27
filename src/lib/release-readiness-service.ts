@@ -1,4 +1,5 @@
 import { buildRealIntegrationReadinessReport } from "@/lib/real-integration-readiness-service";
+import { buildProviderRequestTelemetryReport } from "@/lib/provider-request-telemetry-service";
 import { runV2AcceptanceChecks } from "@/lib/v2-acceptance-runner-service";
 import { buildV2InfraStatusReport } from "@/lib/v2-infra-status-service";
 
@@ -22,6 +23,13 @@ export type ReleaseReadinessReport = {
       readyForRealIntegration: boolean;
       nextStep: string;
     };
+    providerTelemetry: {
+      healthy: boolean;
+      totalCalls: number;
+      successRatePercent: number;
+      minSuccessRatePercent: number;
+      nextStep: string;
+    };
   };
 };
 
@@ -32,15 +40,40 @@ function averageScore(scores: number[]) {
   return Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
 }
 
+function readMinSuccessRatePercent() {
+  const fromServer = Number(process.env.PROVIDER_TELEMETRY_MIN_SUCCESS_RATE_PERCENT);
+  const fromPublic = Number(process.env.NEXT_PUBLIC_PROVIDER_TELEMETRY_MIN_SUCCESS_RATE_PERCENT);
+  const value = Number.isFinite(fromServer) && fromServer > 0 ? fromServer : fromPublic;
+
+  if (Number.isFinite(value) && value > 0 && value <= 100) {
+    return Math.floor(value);
+  }
+
+  return 95;
+}
+
 export async function buildReleaseReadinessReport(): Promise<ReleaseReadinessReport> {
-  const [infra, acceptance, realIntegration] = await Promise.all([
+  const [infra, acceptance, realIntegration, providerTelemetry] = await Promise.all([
     buildV2InfraStatusReport(),
     runV2AcceptanceChecks(),
     buildRealIntegrationReadinessReport(),
+    Promise.resolve(buildProviderRequestTelemetryReport()),
   ]);
+  const minSuccessRatePercent = readMinSuccessRatePercent();
+  const telemetryHealthy =
+    providerTelemetry.totalCalls === 0 || providerTelemetry.successRatePercent >= minSuccessRatePercent;
+  const telemetryNextStep =
+    providerTelemetry.totalCalls === 0
+      ? "先执行 provider 网关链路，生成请求遥测样本。"
+      : telemetryHealthy
+        ? "provider 请求遥测健康度达标。"
+        : `先修复 provider 请求失败，并将成功率提升到 >= ${minSuccessRatePercent}%。`;
 
   const readyForBetaRelease =
-    infra.readyForUnifiedTesting && acceptance.allPassed && realIntegration.readyForRealIntegration;
+    infra.readyForUnifiedTesting &&
+    acceptance.allPassed &&
+    realIntegration.readyForRealIntegration &&
+    telemetryHealthy;
 
   const nextStep = !infra.readyForUnifiedTesting
     ? infra.nextStep
@@ -48,6 +81,8 @@ export async function buildReleaseReadinessReport(): Promise<ReleaseReadinessRep
       ? acceptance.nextStep
       : !realIntegration.readyForRealIntegration
         ? realIntegration.nextStep
+        : !telemetryHealthy
+          ? telemetryNextStep
         : "已达到 Beta 发布条件。";
 
   return {
@@ -56,6 +91,7 @@ export async function buildReleaseReadinessReport(): Promise<ReleaseReadinessRep
       infra.progressPercent,
       acceptance.scorePercent,
       realIntegration.readyForRealIntegration ? 100 : 0,
+      providerTelemetry.totalCalls === 0 ? 70 : providerTelemetry.successRatePercent,
     ]),
     readyForBetaRelease,
     nextStep,
@@ -73,6 +109,13 @@ export async function buildReleaseReadinessReport(): Promise<ReleaseReadinessRep
       realIntegration: {
         readyForRealIntegration: realIntegration.readyForRealIntegration,
         nextStep: realIntegration.nextStep,
+      },
+      providerTelemetry: {
+        healthy: telemetryHealthy,
+        totalCalls: providerTelemetry.totalCalls,
+        successRatePercent: providerTelemetry.successRatePercent,
+        minSuccessRatePercent,
+        nextStep: telemetryNextStep,
       },
     },
   };
@@ -94,6 +137,8 @@ export function buildReleaseReadinessMarkdown(report: ReleaseReadinessReport) {
     `  nextStep: ${report.dimensions.acceptance.nextStep}`,
     `- realIntegration: readyForRealIntegration=${report.dimensions.realIntegration.readyForRealIntegration}`,
     `  nextStep: ${report.dimensions.realIntegration.nextStep}`,
+    `- providerTelemetry: healthy=${report.dimensions.providerTelemetry.healthy}, totalCalls=${report.dimensions.providerTelemetry.totalCalls}, successRate=${report.dimensions.providerTelemetry.successRatePercent}%, minSuccessRate=${report.dimensions.providerTelemetry.minSuccessRatePercent}%`,
+    `  nextStep: ${report.dimensions.providerTelemetry.nextStep}`,
   ];
 
   return lines.join("\n");
